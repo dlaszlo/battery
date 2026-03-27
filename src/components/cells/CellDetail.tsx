@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useBatteryStore } from "@/lib/store";
 import {
   formatDate,
@@ -25,6 +26,7 @@ interface CellDetailProps {
 }
 
 export default function CellDetail({ cell }: CellDetailProps) {
+  const router = useRouter();
   const deleteCell = useBatteryStore((s) => s.deleteCell);
   const settings = useBatteryStore((s) => s.settings);
   const { toast } = useToast();
@@ -200,7 +202,7 @@ export default function CellDetail({ cell }: CellDetailProps) {
         onConfirm={() => {
           deleteCell(cell.id);
           toast("Cella törölve");
-          window.location.href = "/cells";
+          router.push("/cells");
         }}
         title="Cella törlése"
         message={`Biztosan törlöd a #${cell.id} (${cell.brand}) cellát? Ez a művelet nem vonható vissza.`}
