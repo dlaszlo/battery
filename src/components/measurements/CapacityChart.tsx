@@ -12,6 +12,8 @@ import {
 } from "recharts";
 import type { Measurement } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
+import { useBatteryStore } from "@/lib/store";
+import { t } from "@/lib/i18n";
 
 interface CapacityChartProps {
   measurements: Measurement[];
@@ -20,11 +22,12 @@ interface CapacityChartProps {
 }
 
 export default function CapacityChart({ measurements, nominalCapacity, scrapThreshold }: CapacityChartProps) {
+  const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
   const isDark = typeof document !== "undefined" && document.documentElement.classList.contains("dark");
   if (measurements.length < 2) {
     return (
       <p className="py-8 text-center text-sm text-gray-400 dark:text-gray-500">
-        Legalább 2 mérés szükséges a grafikon megjelenítéséhez.
+        {t("chart.minDataRequired", lang)}
       </p>
     );
   }
@@ -65,7 +68,7 @@ export default function CapacityChart({ measurements, nominalCapacity, scrapThre
               color: isDark ? "#f3f4f6" : "#111827",
             }}
             formatter={(value: number, name: string) => {
-              if (name === "capacity") return [`${value} mAh`, "Kapacitás"];
+              if (name === "capacity") return [`${value} mAh`, t("chart.capacity", lang)];
               return [value, name];
             }}
           />
@@ -73,13 +76,13 @@ export default function CapacityChart({ measurements, nominalCapacity, scrapThre
             y={nominalCapacity}
             stroke="#3b82f6"
             strokeDasharray="5 5"
-            label={{ value: "Névleges", position: "right", fontSize: 10, fill: "#3b82f6" }}
+            label={{ value: t("chart.nominal", lang), position: "right", fontSize: 10, fill: "#3b82f6" }}
           />
           <ReferenceLine
             y={thresholdValue}
             stroke="#ef4444"
             strokeDasharray="5 5"
-            label={{ value: "Selejt határ", position: "right", fontSize: 10, fill: "#ef4444" }}
+            label={{ value: t("chart.scrapBorder", lang), position: "right", fontSize: 10, fill: "#ef4444" }}
           />
           <Line
             type="monotone"

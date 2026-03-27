@@ -5,6 +5,7 @@ import { useBatteryStore } from "@/lib/store";
 import { formatDate, formatCapacity, formatResistance, capacityPercent } from "@/lib/utils";
 import type { Measurement } from "@/lib/types";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import { t } from "@/lib/i18n";
 
 interface MeasurementListProps {
   cellId: string;
@@ -14,13 +15,14 @@ interface MeasurementListProps {
 
 export default function MeasurementList({ cellId, measurements, nominalCapacity }: MeasurementListProps) {
   const deleteMeasurement = useBatteryStore((s) => s.deleteMeasurement);
+  const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const sorted = [...measurements].sort((a, b) => b.date.localeCompare(a.date));
 
   if (sorted.length === 0) {
     return (
-      <p className="py-8 text-center text-sm text-gray-400 dark:text-gray-500">Még nincs mérés ehhez a cellához.</p>
+      <p className="py-8 text-center text-sm text-gray-400 dark:text-gray-500">{t("measurement.noMeasurementsForCell", lang)}</p>
     );
   }
 
@@ -30,13 +32,13 @@ export default function MeasurementList({ cellId, measurements, nominalCapacity 
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400">
-              <th className="px-4 py-2.5">Dátum</th>
-              <th className="px-4 py-2.5">Kapacitás</th>
-              <th className="px-4 py-2.5 hidden sm:table-cell">%</th>
-              <th className="px-4 py-2.5 hidden sm:table-cell">Áram</th>
-              <th className="px-4 py-2.5 hidden md:table-cell">IR</th>
-              <th className="px-4 py-2.5 hidden lg:table-cell">Eszköz</th>
-              <th className="px-4 py-2.5 hidden lg:table-cell">Megjegyzés</th>
+              <th className="px-4 py-2.5">{t("measurement.headerDate", lang)}</th>
+              <th className="px-4 py-2.5">{t("measurement.headerCapacity", lang)}</th>
+              <th className="px-4 py-2.5 hidden sm:table-cell">{t("measurement.headerPercent", lang)}</th>
+              <th className="px-4 py-2.5 hidden sm:table-cell">{t("measurement.headerCurrent", lang)}</th>
+              <th className="px-4 py-2.5 hidden md:table-cell">{t("measurement.headerResistance", lang)}</th>
+              <th className="px-4 py-2.5 hidden lg:table-cell">{t("measurement.headerDevice", lang)}</th>
+              <th className="px-4 py-2.5 hidden lg:table-cell">{t("measurement.headerNotes", lang)}</th>
               <th className="px-4 py-2.5 w-10"></th>
             </tr>
           </thead>
@@ -90,9 +92,9 @@ export default function MeasurementList({ cellId, measurements, nominalCapacity 
           if (deleteId) deleteMeasurement(cellId, deleteId);
           setDeleteId(null);
         }}
-        title="Mérés törlése"
-        message="Biztosan törlöd ezt a mérést? Ez a művelet nem vonható vissza."
-        confirmLabel="Törlés"
+        title={t("measurement.deleteTitle", lang)}
+        message={t("measurement.deleteConfirm", lang)}
+        confirmLabel={t("measurement.deleteBtn", lang)}
       />
     </>
   );

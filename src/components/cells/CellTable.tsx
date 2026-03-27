@@ -3,7 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useCells } from "@/hooks/useCells";
+import { useBatteryStore } from "@/lib/store";
 import { formatCapacity } from "@/lib/utils";
+import { t } from "@/lib/i18n";
 import { CELL_STATUSES, CHEMISTRIES, FORM_FACTORS } from "@/lib/constants";
 import type { CellStatus, Chemistry, FormFactor } from "@/lib/types";
 import Input from "@/components/ui/Input";
@@ -13,6 +15,7 @@ import StatusBadge from "./StatusBadge";
 type SortField = "id" | "brand" | "nominalCapacity" | "status" | "updatedAt" | "purchaseDate";
 
 export default function CellTable() {
+  const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<CellStatus | "">("");
   const [chemistryFilter, setChemistryFilter] = useState<Chemistry | "">("");
@@ -40,16 +43,16 @@ export default function CellTable() {
     return <span className="text-blue-600 ml-1 dark:text-blue-400">{sortDir === "asc" ? "↑" : "↓"}</span>;
   };
 
-  const statusOptions = [{ value: "", label: "Mind" }, ...CELL_STATUSES.map((s) => ({ value: s, label: s }))];
-  const chemOptions = [{ value: "", label: "Mind" }, ...CHEMISTRIES.map((c) => ({ value: c, label: c }))];
-  const ffOptions = [{ value: "", label: "Mind" }, ...FORM_FACTORS.map((f) => ({ value: f, label: f }))];
+  const statusOptions = [{ value: "", label: t("cells.all", lang) }, ...CELL_STATUSES.map((s) => ({ value: s, label: s }))];
+  const chemOptions = [{ value: "", label: t("cells.all", lang) }, ...CHEMISTRIES.map((c) => ({ value: c, label: c }))];
+  const ffOptions = [{ value: "", label: t("cells.all", lang) }, ...FORM_FACTORS.map((f) => ({ value: f, label: f }))];
 
   return (
     <div className="space-y-4">
       {/* Filters */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Input
-          placeholder="Keresés (ID, márka, eladó...)"
+          placeholder={t("cells.searchPlaceholder", lang)}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -57,19 +60,19 @@ export default function CellTable() {
           options={statusOptions}
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as CellStatus | "")}
-          placeholder="Állapot"
+          placeholder={t("table.status", lang)}
         />
         <Select
           options={chemOptions}
           value={chemistryFilter}
           onChange={(e) => setChemistryFilter(e.target.value as Chemistry | "")}
-          placeholder="Kémia"
+          placeholder={t("table.chemistry", lang)}
         />
         <Select
           options={ffOptions}
           value={formFactorFilter}
           onChange={(e) => setFormFactorFilter(e.target.value as FormFactor | "")}
-          placeholder="Form faktor"
+          placeholder={t("table.form", lang)}
         />
       </div>
 
@@ -78,30 +81,30 @@ export default function CellTable() {
         {cells.length === 0 ? (
           <div className="px-6 py-12 text-center text-sm text-gray-400 dark:text-gray-500">
             {search || statusFilter || chemistryFilter || formFactorFilter
-              ? "Nincs találat a szűrőkkel."
-              : "Még nincs cella. Adj hozzá egyet!"}
+              ? t("cells.noResults", lang)
+              : t("cells.noCellsYet", lang)}
           </div>
         ) : (
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b bg-gray-50 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400">
                 <th className="px-4 py-3 cursor-pointer hover:text-gray-700 dark:hover:text-gray-300" onClick={() => toggleSort("id")}>
-                  ID <SortIcon field="id" />
+                  {t("table.id", lang)} <SortIcon field="id" />
                 </th>
                 <th className="px-4 py-3 cursor-pointer hover:text-gray-700 dark:hover:text-gray-300" onClick={() => toggleSort("brand")}>
-                  Márka <SortIcon field="brand" />
+                  {t("table.brand", lang)} <SortIcon field="brand" />
                 </th>
-                <th className="px-4 py-3 hidden sm:table-cell">Form</th>
-                <th className="px-4 py-3 hidden md:table-cell">Kémia</th>
+                <th className="px-4 py-3 hidden sm:table-cell">{t("table.form", lang)}</th>
+                <th className="px-4 py-3 hidden md:table-cell">{t("table.chemistry", lang)}</th>
                 <th className="px-4 py-3 cursor-pointer hover:text-gray-700 dark:hover:text-gray-300" onClick={() => toggleSort("nominalCapacity")}>
-                  Kapacitás <SortIcon field="nominalCapacity" />
+                  {t("table.capacity", lang)} <SortIcon field="nominalCapacity" />
                 </th>
-                <th className="px-4 py-3 hidden lg:table-cell">Utolsó mérés</th>
+                <th className="px-4 py-3 hidden lg:table-cell">{t("table.lastMeasurement", lang)}</th>
                 <th className="px-4 py-3 cursor-pointer hover:text-gray-700 dark:hover:text-gray-300" onClick={() => toggleSort("status")}>
-                  Állapot <SortIcon field="status" />
+                  {t("table.status", lang)} <SortIcon field="status" />
                 </th>
-                <th className="px-4 py-3 hidden xl:table-cell">Eszköz</th>
-                <th className="px-4 py-3 hidden lg:table-cell">Csoport</th>
+                <th className="px-4 py-3 hidden xl:table-cell">{t("table.device", lang)}</th>
+                <th className="px-4 py-3 hidden lg:table-cell">{t("table.group", lang)}</th>
               </tr>
             </thead>
             <tbody className="divide-y dark:divide-gray-700">
@@ -139,7 +142,7 @@ export default function CellTable() {
         )}
       </div>
 
-      <p className="text-xs text-gray-400 dark:text-gray-500">{cells.length} cella</p>
+      <p className="text-xs text-gray-400 dark:text-gray-500">{cells.length} {t("cells.cellCount", lang)}</p>
     </div>
   );
 }

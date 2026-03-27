@@ -8,6 +8,7 @@ import { useToast } from "@/components/ui/Toast";
 import { useBatteryStore } from "@/lib/store";
 import { TEST_DEVICES } from "@/lib/constants";
 import { todayISO } from "@/lib/utils";
+import { t } from "@/lib/i18n";
 
 interface MeasurementFormProps {
   cellId: string;
@@ -17,6 +18,7 @@ interface MeasurementFormProps {
 export default function MeasurementForm({ cellId, onDone }: MeasurementFormProps) {
   const addMeasurement = useBatteryStore((s) => s.addMeasurement);
   const settings = useBatteryStore((s) => s.settings);
+  const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
   const { toast } = useToast();
 
   const [form, setForm] = useState({
@@ -46,10 +48,10 @@ export default function MeasurementForm({ cellId, onDone }: MeasurementFormProps
 
     const errs: Record<string, string> = {};
     if (!form.measuredCapacity || Number(form.measuredCapacity) <= 0) {
-      errs.measuredCapacity = "Mért kapacitás kötelező";
+      errs.measuredCapacity = t("measurement.capacityRequired", lang);
     }
     if (!form.dischargeCurrent || Number(form.dischargeCurrent) <= 0) {
-      errs.dischargeCurrent = "Merítési áram kötelező";
+      errs.dischargeCurrent = t("measurement.currentRequired", lang);
     }
 
     if (Object.keys(errs).length > 0) {
@@ -66,7 +68,7 @@ export default function MeasurementForm({ cellId, onDone }: MeasurementFormProps
       notes: form.notes.trim() || undefined,
     });
 
-    toast("Mérés rögzítve");
+    toast(t("measurement.saved", lang));
     onDone();
   };
 
@@ -74,21 +76,21 @@ export default function MeasurementForm({ cellId, onDone }: MeasurementFormProps
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <Input
-          label="Mérés dátuma"
+          label={t("measurement.dateLabel", lang)}
           type="date"
           value={form.date}
           onChange={(e) => set("date", e.target.value)}
         />
         <Input
-          label="Mért kapacitás (mAh)"
+          label={t("measurement.capacity", lang)}
           type="number"
-          placeholder="pl. 2850"
+          placeholder={t("measurement.capacityPlaceholder", lang)}
           value={form.measuredCapacity}
           onChange={(e) => set("measuredCapacity", e.target.value)}
           error={errors.measuredCapacity}
         />
         <Input
-          label="Merítési áram (mA)"
+          label={t("measurement.dischargeCurrent", lang)}
           type="number"
           placeholder="pl. 500"
           value={form.dischargeCurrent}
@@ -96,23 +98,23 @@ export default function MeasurementForm({ cellId, onDone }: MeasurementFormProps
           error={errors.dischargeCurrent}
         />
         <Input
-          label="Belső ellenállás (mΩ)"
+          label={t("measurement.internalResistance", lang)}
           type="number"
           step="0.1"
-          placeholder="pl. 45"
+          placeholder={t("measurement.internalResistancePlaceholder", lang)}
           value={form.internalResistance}
           onChange={(e) => set("internalResistance", e.target.value)}
         />
         <ComboBox
-          label="Tesztelő eszköz"
+          label={t("measurement.testDevice", lang)}
           options={TEST_DEVICES}
           value={form.testDevice}
           onChange={(v) => set("testDevice", v)}
-          placeholder="pl. LiitoKala Lii-700"
+          placeholder={t("measurement.testDevicePlaceholder", lang)}
         />
         <Input
-          label="Megjegyzés"
-          placeholder="Egyéb info..."
+          label={t("measurement.notes", lang)}
+          placeholder={t("measurement.notesPlaceholder", lang)}
           value={form.notes}
           onChange={(e) => set("notes", e.target.value)}
         />
@@ -120,9 +122,9 @@ export default function MeasurementForm({ cellId, onDone }: MeasurementFormProps
 
       <div className="flex justify-end gap-3">
         <Button type="button" variant="secondary" onClick={onDone}>
-          Mégse
+          {t("measurement.cancel", lang)}
         </Button>
-        <Button type="submit">Mérés mentése</Button>
+        <Button type="submit">{t("measurement.save", lang)}</Button>
       </div>
     </form>
   );

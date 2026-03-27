@@ -77,6 +77,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   defaultDischargeCurrent: 500,
   devices: [...DEFAULT_DEVICES],
   theme: "system",
+  language: "hu",
 };
 
 export const DEFAULT_GITHUB_REPO = "battery-cell-data";

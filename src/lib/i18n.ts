@@ -1,0 +1,388 @@
+import type { Language } from "./types";
+
+const translations = {
+  // Navigation
+  "nav.home": { hu: "Főoldal", en: "Home" },
+  "nav.cells": { hu: "Cellák", en: "Cells" },
+  "nav.addCell": { hu: "Új cella", en: "New Cell" },
+  "nav.settings": { hu: "Beállítások", en: "Settings" },
+
+  // Dashboard
+  "dashboard.title": { hu: "Főoldal", en: "Home" },
+  "dashboard.subtitle": { hu: "Áttekintés az akkumulátor celláidról", en: "Overview of your battery cells" },
+  "dashboard.totalCells": { hu: "Összes cella", en: "Total Cells" },
+  "dashboard.activeCells": { hu: "Aktív", en: "Active" },
+  "dashboard.scrappedCells": { hu: "Selejt", en: "Scrapped" },
+  "dashboard.measurements": { hu: "Mérések", en: "Measurements" },
+  "dashboard.recentCells": { hu: "Utoljára módosított cellák", en: "Recently Modified Cells" },
+  "dashboard.allCells": { hu: "Összes", en: "All" },
+  "dashboard.noCells": { hu: "Még nincs cella.", en: "No cells yet." },
+  "dashboard.addFirst": { hu: "Adj hozzá egyet!", en: "Add one!" },
+  "dashboard.byChemistry": { hu: "Kémia szerint", en: "By Chemistry" },
+  "dashboard.byFormFactor": { hu: "Form faktor szerint", en: "By Form Factor" },
+
+  // Cell list
+  "cells.title": { hu: "Cellák", en: "Cells" },
+  "cells.subtitle": { hu: "Az összes nyilvántartott akkumulátor cella", en: "All registered battery cells" },
+  "cells.searchPlaceholder": { hu: "Keresés (ID, márka, eladó...)", en: "Search (ID, brand, seller...)" },
+  "cells.noResults": { hu: "Nincs találat a szűrőkkel.", en: "No results with these filters." },
+  "cells.noCellsYet": { hu: "Még nincs cella. Adj hozzá egyet!", en: "No cells yet. Add one!" },
+  "cells.cellCount": { hu: "cella", en: "cells" },
+  "cells.notFound": { hu: "cella nem található.", en: "cell not found." },
+  "cells.all": { hu: "Mind", en: "All" },
+
+  // Cell detail
+  "cell.editTitle": { hu: "szerkesztése", en: "editing" },
+  "cell.newFromTemplate": { hu: "Új cella (#{id} alapján)", en: "New cell (based on #{id})" },
+  "cell.duplicate": { hu: "Másolás", en: "Duplicate" },
+  "cell.edit": { hu: "Szerkesztés", en: "Edit" },
+  "cell.delete": { hu: "Törlés", en: "Delete" },
+  "cell.details": { hu: "Részletek", en: "Details" },
+  "cell.capacityTrend": { hu: "Kapacitás trend", en: "Capacity Trend" },
+  "cell.measurements": { hu: "Mérések", en: "Measurements" },
+  "cell.addMeasurement": { hu: "+ Mérés hozzáadása", en: "+ Add Measurement" },
+  "cell.newMeasurement": { hu: "Új mérés", en: "New Measurement" },
+  "cell.events": { hu: "Előzmények", en: "History" },
+  "cell.deleteTitle": { hu: "Cella törlése", en: "Delete Cell" },
+  "cell.deleteConfirm": { hu: "Biztosan törlöd a #{id} ({brand}) cellát? Ez a művelet nem vonható vissza.", en: "Are you sure you want to delete cell #{id} ({brand})? This action cannot be undone." },
+  "cell.deleted": { hu: "Cella törölve", en: "Cell deleted" },
+  "cell.modified": { hu: "Cella módosítva", en: "Cell modified" },
+  "cell.added": { hu: "Cella hozzáadva", en: "Cell added" },
+  "cell.noEvents": { hu: "Nincs esemény.", en: "No events." },
+  "cell.lastMeasurement": { hu: "Utolsó mérés", en: "Last Measurement" },
+
+  // Cell form
+  "form.addTitle": { hu: "Új cella hozzáadása", en: "Add New Cell" },
+  "form.addSubtitle": { hu: "Töltsd ki a cella adatait", en: "Fill in the cell details" },
+  "form.basics": { hu: "Alap adatok", en: "Basic Info" },
+  "form.purchase": { hu: "Beszerzés", en: "Purchase" },
+  "form.physical": { hu: "Fizikai adatok és azonosítás", en: "Physical Data & Identification" },
+  "form.placement": { hu: "Elhelyezés", en: "Placement" },
+  "form.id": { hu: "Sorszám (ID)", en: "Serial Number (ID)" },
+  "form.idPlaceholder": { hu: "pl. 01", en: "e.g. 01" },
+  "form.brand": { hu: "Márka", en: "Brand" },
+  "form.brandPlaceholder": { hu: "pl. LG, Samsung, Sony", en: "e.g. LG, Samsung, Sony" },
+  "form.model": { hu: "Modell", en: "Model" },
+  "form.modelPlaceholder": { hu: "pl. HE4, 30Q, VTC6", en: "e.g. HE4, 30Q, VTC6" },
+  "form.formFactor": { hu: "Form faktor", en: "Form Factor" },
+  "form.chemistry": { hu: "Kémia", en: "Chemistry" },
+  "form.cathodeType": { hu: "Katód típus", en: "Cathode Type" },
+  "form.cathodeTypePlaceholder": { hu: "pl. INR", en: "e.g. INR" },
+  "form.contactType": { hu: "Érintkezés típusa", en: "Contact Type" },
+  "form.contactTypePlaceholder": { hu: "pl. Flat top", en: "e.g. Flat top" },
+  "form.nominalCapacity": { hu: "Névleges kapacitás (mAh)", en: "Nominal Capacity (mAh)" },
+  "form.nominalCapacityPlaceholder": { hu: "pl. 3000", en: "e.g. 3000" },
+  "form.maxDischargeCurrent": { hu: "Max merítési áram (A)", en: "Max Discharge Current (A)" },
+  "form.maxDischargeCurrentPlaceholder": { hu: "pl. 20", en: "e.g. 20" },
+  "form.status": { hu: "Állapot", en: "Status" },
+  "form.platform": { hu: "Platform", en: "Platform" },
+  "form.platformPlaceholder": { hu: "pl. AliExpress", en: "e.g. AliExpress" },
+  "form.seller": { hu: "Eladó / Bolt", en: "Seller / Store" },
+  "form.sellerPlaceholder": { hu: "pl. Nkon", en: "e.g. Nkon" },
+  "form.purchaseDate": { hu: "Beszerzés dátuma", en: "Purchase Date" },
+  "form.pricePerUnit": { hu: "Ár / db (Ft)", en: "Price / unit" },
+  "form.pricePerUnitPlaceholder": { hu: "pl. 1500", en: "e.g. 5" },
+  "form.weight": { hu: "Súly (g)", en: "Weight (g)" },
+  "form.weightPlaceholder": { hu: "pl. 48.5", en: "e.g. 48.5" },
+  "form.storageVoltage": { hu: "Tárolási feszültség (V)", en: "Storage Voltage (V)" },
+  "form.storageVoltagePlaceholder": { hu: "pl. 3.70", en: "e.g. 3.70" },
+  "form.batchNumber": { hu: "Gyártási tétel (batch)", en: "Batch Number" },
+  "form.batchNumberPlaceholder": { hu: "pl. P298J242A0", en: "e.g. P298J242A0" },
+  "form.currentDevice": { hu: "Jelenlegi eszköz", en: "Current Device" },
+  "form.currentDevicePlaceholder": { hu: "pl. Raktáron", en: "e.g. Storage" },
+  "form.group": { hu: "Csoport / Pakk", en: "Group / Pack" },
+  "form.groupPlaceholder": { hu: "pl. E-bike 1. pakk", en: "e.g. E-bike pack 1" },
+  "form.notes": { hu: "Megjegyzés", en: "Notes" },
+  "form.notesPlaceholder": { hu: "Egyéb információk...", en: "Additional info..." },
+  "form.cancel": { hu: "Mégse", en: "Cancel" },
+  "form.save": { hu: "Mentés", en: "Save" },
+  "form.addCell": { hu: "Cella hozzáadása", en: "Add Cell" },
+
+  // Form validation
+  "validation.idRequired": { hu: "Sorszám kötelező", en: "Serial number is required" },
+  "validation.idExists": { hu: "Ez a sorszám már létezik", en: "This serial number already exists" },
+  "validation.brandRequired": { hu: "Márka kötelező", en: "Brand is required" },
+  "validation.capacityRequired": { hu: "Kapacitás kötelező", en: "Capacity is required" },
+  "validation.invalidCapacity": { hu: "Érvénytelen kapacitás", en: "Invalid capacity" },
+  "validation.invalidPrice": { hu: "Érvénytelen ár", en: "Invalid price" },
+  "validation.invalidWeight": { hu: "Érvénytelen súly", en: "Invalid weight" },
+
+  // Cell info labels
+  "info.id": { hu: "Sorszám", en: "Serial No." },
+  "info.brand": { hu: "Márka", en: "Brand" },
+  "info.model": { hu: "Modell", en: "Model" },
+  "info.formFactor": { hu: "Form faktor", en: "Form Factor" },
+  "info.chemistry": { hu: "Kémia", en: "Chemistry" },
+  "info.cathodeType": { hu: "Katód típus", en: "Cathode Type" },
+  "info.contactType": { hu: "Érintkezés", en: "Contact Type" },
+  "info.nominalCapacity": { hu: "Névleges kapacitás", en: "Nominal Capacity" },
+  "info.maxDischargeCurrent": { hu: "Max merítési áram", en: "Max Discharge Current" },
+  "info.status": { hu: "Állapot", en: "Status" },
+  "info.currentDevice": { hu: "Jelenlegi eszköz", en: "Current Device" },
+  "info.platform": { hu: "Platform", en: "Platform" },
+  "info.seller": { hu: "Eladó", en: "Seller" },
+  "info.purchaseDate": { hu: "Beszerzés", en: "Purchase Date" },
+  "info.pricePerUnit": { hu: "Ár / db", en: "Price / unit" },
+  "info.weight": { hu: "Súly", en: "Weight" },
+  "info.storageVoltage": { hu: "Tárolási feszültség", en: "Storage Voltage" },
+  "info.batchNumber": { hu: "Gyártási tétel", en: "Batch Number" },
+  "info.group": { hu: "Csoport / Pakk", en: "Group / Pack" },
+  "info.notes": { hu: "Megjegyzés", en: "Notes" },
+
+  // Status values
+  "status.new": { hu: "Új", en: "New" },
+  "status.used": { hu: "Használt", en: "Used" },
+  "status.salvaged": { hu: "Bontott", en: "Salvaged" },
+  "status.scrapped": { hu: "Selejt", en: "Scrapped" },
+
+  // Measurement form
+  "measurement.date": { hu: "Dátum", en: "Date" },
+  "measurement.capacity": { hu: "Mért kapacitás (mAh)", en: "Measured Capacity (mAh)" },
+  "measurement.capacityPlaceholder": { hu: "pl. 2800", en: "e.g. 2800" },
+  "measurement.dischargeCurrent": { hu: "Merítési áram (mA)", en: "Discharge Current (mA)" },
+  "measurement.internalResistance": { hu: "Belső ellenállás (mΩ)", en: "Internal Resistance (mΩ)" },
+  "measurement.internalResistancePlaceholder": { hu: "pl. 25", en: "e.g. 25" },
+  "measurement.testDevice": { hu: "Tesztelő eszköz", en: "Test Device" },
+  "measurement.notes": { hu: "Megjegyzés", en: "Notes" },
+  "measurement.save": { hu: "Mérés mentése", en: "Save Measurement" },
+  "measurement.cancel": { hu: "Mégse", en: "Cancel" },
+  "measurement.saved": { hu: "Mérés rögzítve", en: "Measurement saved" },
+  "measurement.deleted": { hu: "Mérés törölve", en: "Measurement deleted" },
+  "measurement.capacityRequired": { hu: "Kapacitás kötelező", en: "Capacity is required" },
+  "measurement.invalidCapacity": { hu: "Érvénytelen kapacitás", en: "Invalid capacity" },
+  "measurement.noMeasurements": { hu: "Még nincs mérés rögzítve.", en: "No measurements recorded yet." },
+
+  // Measurement list headers
+  "measurement.headerDate": { hu: "Dátum", en: "Date" },
+  "measurement.headerCapacity": { hu: "Kapacitás", en: "Capacity" },
+  "measurement.headerPercent": { hu: "%", en: "%" },
+  "measurement.headerCurrent": { hu: "Áram", en: "Current" },
+  "measurement.headerResistance": { hu: "Ellenállás", en: "Resistance" },
+  "measurement.headerDevice": { hu: "Eszköz", en: "Device" },
+
+  // Chart
+  "chart.noData": { hu: "Még nincs mérési adat a grafikonhoz.", en: "No measurement data for the chart yet." },
+  "chart.capacity": { hu: "Kapacitás", en: "Capacity" },
+  "chart.nominal": { hu: "Névleges", en: "Nominal" },
+  "chart.scrapThreshold": { hu: "Selejt küszöb", en: "Scrap Threshold" },
+
+  // Table headers
+  "table.id": { hu: "ID", en: "ID" },
+  "table.brand": { hu: "Márka", en: "Brand" },
+  "table.form": { hu: "Form", en: "Form" },
+  "table.chemistry": { hu: "Kémia", en: "Chemistry" },
+  "table.capacity": { hu: "Kapacitás", en: "Capacity" },
+  "table.lastMeasurement": { hu: "Utolsó mérés", en: "Last Measurement" },
+  "table.status": { hu: "Állapot", en: "Status" },
+  "table.device": { hu: "Eszköz", en: "Device" },
+  "table.group": { hu: "Csoport", en: "Group" },
+
+  // Settings
+  "settings.title": { hu: "Beállítások", en: "Settings" },
+  "settings.subtitle": { hu: "Alkalmazás és szinkronizáció beállítások", en: "Application and sync settings" },
+  "settings.appearance": { hu: "Megjelenés", en: "Appearance" },
+  "settings.appearanceDesc": { hu: "Világos, sötét, vagy rendszer beállítás szerinti téma", en: "Light, dark, or system-based theme" },
+  "settings.themeLight": { hu: "Világos", en: "Light" },
+  "settings.themeDark": { hu: "Sötét", en: "Dark" },
+  "settings.themeSystem": { hu: "Rendszer", en: "System" },
+  "settings.language": { hu: "Nyelv", en: "Language" },
+  "settings.languageDesc": { hu: "Az alkalmazás nyelve", en: "Application language" },
+  "settings.scrapDetection": { hu: "Selejt-jelzés", en: "Scrap Detection" },
+  "settings.scrapDetectionDesc": { hu: "Automatikus selejtnek jelölés küszöbértéke", en: "Automatic scrap detection threshold" },
+  "settings.threshold": { hu: "Küszöbérték (névleges kapacitás %-a)", en: "Threshold (% of nominal capacity)" },
+  "settings.thresholdHint": { hu: "Ha a mért kapacitás ez alá csökken, a cella automatikusan selejtnek jelölődik.", en: "When measured capacity drops below this, the cell is automatically marked as scrapped." },
+  "settings.defaultMeasurement": { hu: "Alapértelmezett mérési értékek", en: "Default Measurement Values" },
+  "settings.defaultMeasurementDesc": { hu: "Új mérés hozzáadásakor ezek az értékek lesznek kitöltve", en: "These values will be pre-filled when adding a new measurement" },
+  "settings.testDevice": { hu: "Tesztelő eszköz", en: "Test Device" },
+  "settings.dischargeCurrent": { hu: "Merítési áram (mA)", en: "Discharge Current (mA)" },
+  "settings.devices": { hu: "Eszközök", en: "Devices" },
+  "settings.devicesDesc": { hu: "A cellák hozzárendelhetők ezekhez az eszközökhöz", en: "Cells can be assigned to these devices" },
+  "settings.noDevices": { hu: "Nincs eszköz megadva.", en: "No devices configured." },
+  "settings.newDevicePlaceholder": { hu: "Új eszköz neve...", en: "New device name..." },
+  "settings.addDevice": { hu: "Hozzáadás", en: "Add" },
+  "settings.deviceAdded": { hu: "hozzáadva", en: "added" },
+  "settings.deviceRemoved": { hu: "törölve", en: "removed" },
+  "settings.github": { hu: "GitHub szinkronizáció", en: "GitHub Sync" },
+  "settings.githubDesc": { hu: "Az adataid a GitHub privát repódban tárolódnak", en: "Your data is stored in your private GitHub repository" },
+  "settings.githubUser": { hu: "Felhasználó", en: "User" },
+  "settings.githubRepo": { hu: "Repó", en: "Repo" },
+  "settings.githubStatus": { hu: "Állapot", en: "Status" },
+  "settings.githubSynced": { hu: "Szinkronizálva", en: "Synced" },
+  "settings.githubSyncing": { hu: "Szinkronizálás...", en: "Syncing..." },
+  "settings.githubError": { hu: "Hiba", en: "Error" },
+  "settings.githubLastSync": { hu: "Utolsó szinkron", en: "Last Sync" },
+  "settings.githubNotConnected": { hu: "Nincs csatlakoztatva GitHub fiók.", en: "No GitHub account connected." },
+  "settings.tokenRefresh": { hu: "Token frissítése", en: "Refresh Token" },
+  "settings.tokenNewTitle": { hu: "Új token megadása", en: "Enter New Token" },
+  "settings.tokenHint": { hu: "Generálj egy új Fine-grained PAT-ot a GitHub Settings-ben.", en: "Generate a new Fine-grained PAT in GitHub Settings." },
+  "settings.tokenSave": { hu: "Mentés", en: "Save" },
+  "settings.tokenUpdated": { hu: "Token frissítve", en: "Token updated" },
+  "settings.resync": { hu: "Újraszinkronizálás", en: "Re-sync" },
+  "settings.resynced": { hu: "GitHub újraszinkronizálva (UTF-8)", en: "GitHub re-synced (UTF-8)" },
+  "settings.disconnect": { hu: "GitHub leválasztás", en: "Disconnect GitHub" },
+  "settings.disconnectTitle": { hu: "GitHub leválasztás", en: "Disconnect GitHub" },
+  "settings.disconnectMessage": { hu: "Leválasztod a GitHub fiókot? Az adataid megmaradnak a böngészőben, de nem szinkronizálódnak többé.", en: "Disconnect your GitHub account? Your data will remain in the browser but will no longer sync." },
+  "settings.disconnectConfirm": { hu: "Leválasztás", en: "Disconnect" },
+  "settings.export": { hu: "Adat export / import", en: "Data Export / Import" },
+  "settings.exportDesc": { hu: "Mentsd el vagy töltsd be az adataidat JSON fájlként", en: "Save or load your data as a JSON file" },
+  "settings.exportBtn": { hu: "Export (JSON letöltés)", en: "Export (Download JSON)" },
+  "settings.importBtn": { hu: "Import (JSON feltöltés)", en: "Import (Upload JSON)" },
+  "settings.exported": { hu: "Adatok exportálva", en: "Data exported" },
+  "settings.imported": { hu: "Adatok importálva", en: "Data imported" },
+  "settings.importError": { hu: "Import hiba", en: "Import error" },
+  "settings.importSuccess": { hu: "Import sikeres!", en: "Import successful!" },
+  "settings.cellCount": { hu: "Jelenleg {count} cella van a rendszerben.", en: "Currently {count} cells in the system." },
+  "settings.dangerZone": { hu: "Veszélyzóna", en: "Danger Zone" },
+  "settings.dangerZoneDesc": { hu: "Ezek a műveletek nem vonhatók vissza", en: "These actions cannot be undone" },
+  "settings.deleteAll": { hu: "Összes adat törlése", en: "Delete All Data" },
+  "settings.deleteAllTitle": { hu: "Összes adat törlése", en: "Delete All Data" },
+  "settings.deleteAllMessage": { hu: "Biztosan törlöd az összes cellát és mérést? Ez a művelet nem vonható vissza! Az adatok a GitHub repóból is törlődnek.", en: "Are you sure you want to delete all cells and measurements? This action cannot be undone! Data will also be deleted from the GitHub repo." },
+  "settings.deleteAllConfirm": { hu: "Minden törlése", en: "Delete Everything" },
+
+  // Events
+  "event.created": { hu: "Cella létrehozva", en: "Cell created" },
+  "event.edited": { hu: "Cella szerkesztve", en: "Cell edited" },
+  "event.statusChanged": { hu: "Állapot", en: "Status" },
+  "event.deviceChanged": { hu: "Eszköz", en: "Device" },
+  "event.measurementAdded": { hu: "Mérés", en: "Measurement" },
+  "event.measurementDeleted": { hu: "Mérés törölve", en: "Measurement deleted" },
+  "event.autoScrapped": { hu: "Automatikusan selejtnek jelölve", en: "Automatically marked as scrapped" },
+
+  // Footer
+  "footer.text": { hu: "Battery Cell Tracker — Akkumulátor cella nyilvántartó", en: "Battery Cell Tracker — Battery cell inventory" },
+
+  // Loading
+  "loading": { hu: "Betöltés...", en: "Loading..." },
+
+  // Onboarding
+  "onboarding.welcome.title": { hu: "Üdvözlünk!", en: "Welcome!" },
+  "onboarding.welcome.subtitle": { hu: "Battery Cell Tracker — az akkumulátor celláid nyilvántartója", en: "Battery Cell Tracker — your battery cell inventory" },
+  "onboarding.welcome.desc": { hu: "Tartsd nyilván az összes celládat, rögzítsd a mérési eredményeket, és kövesd a kapacitás-változásokat.", en: "Track all your cells, record measurement results, and monitor capacity changes." },
+  "onboarding.welcome.start": { hu: "Kezdjük!", en: "Let's start!" },
+  "onboarding.welcome.quickSetup": { hu: "Már van tokened? Gyors beállítás", en: "Already have a token? Quick setup" },
+  "onboarding.repo.title": { hu: "GitHub repó létrehozása", en: "Create GitHub Repository" },
+  "onboarding.repo.desc": { hu: "Az adataid egy privát GitHub repóban lesznek tárolva.", en: "Your data will be stored in a private GitHub repository." },
+  "onboarding.repo.step1": { hu: "Nyisd meg a GitHub-ot és hozz létre egy új privát repót:", en: "Open GitHub and create a new private repository:" },
+  "onboarding.repo.repoName": { hu: "Ajánlott név:", en: "Recommended name:" },
+  "onboarding.repo.createRepo": { hu: "Repó létrehozása a GitHub-on", en: "Create repo on GitHub" },
+  "onboarding.repo.next": { hu: "Tovább", en: "Next" },
+  "onboarding.repo.back": { hu: "Vissza", en: "Back" },
+  "onboarding.token.title": { hu: "Token generálása", en: "Generate Token" },
+  "onboarding.token.desc": { hu: "Fine-grained Personal Access Token kell a repó eléréséhez.", en: "A Fine-grained Personal Access Token is needed to access the repo." },
+  "onboarding.token.step1": { hu: "Nyisd meg a GitHub token beállításokat:", en: "Open GitHub token settings:" },
+  "onboarding.token.generateToken": { hu: "Token generálása", en: "Generate Token" },
+  "onboarding.token.ownerLabel": { hu: "GitHub felhasználónév", en: "GitHub Username" },
+  "onboarding.token.ownerPlaceholder": { hu: "pl. johndoe", en: "e.g. johndoe" },
+  "onboarding.token.repoLabel": { hu: "Repó neve", en: "Repository Name" },
+  "onboarding.token.tokenLabel": { hu: "Personal Access Token", en: "Personal Access Token" },
+  "onboarding.token.tokenPlaceholder": { hu: "github_pat_...", en: "github_pat_..." },
+  "onboarding.token.connect": { hu: "Csatlakozás", en: "Connect" },
+  "onboarding.token.back": { hu: "Vissza", en: "Back" },
+  "onboarding.complete.title": { hu: "Kész!", en: "Done!" },
+  "onboarding.complete.desc": { hu: "A GitHub repó sikeresen csatlakoztatva. Kezdheted a cellák rögzítését!", en: "GitHub repo successfully connected. You can start recording cells!" },
+  "onboarding.complete.start": { hu: "Indítás", en: "Get Started" },
+  "onboarding.quick.title": { hu: "Gyors beállítás", en: "Quick Setup" },
+  "onboarding.quick.desc": { hu: "Ha már van privát repód és tokened, add meg az adatokat:", en: "If you already have a private repo and token, enter the details:" },
+  "onboarding.quick.back": { hu: "Vissza a varázslóhoz", en: "Back to wizard" },
+
+  // Measurement form extra
+  "measurement.dateLabel": { hu: "Mérés dátuma", en: "Measurement Date" },
+  "measurement.currentRequired": { hu: "Merítési áram kötelező", en: "Discharge current is required" },
+  "measurement.notesPlaceholder": { hu: "Egyéb info...", en: "Additional info..." },
+  "measurement.testDevicePlaceholder": { hu: "pl. LiitoKala Lii-700", en: "e.g. LiitoKala Lii-700" },
+
+  // Measurement list extra
+  "measurement.noMeasurementsForCell": { hu: "Még nincs mérés ehhez a cellához.", en: "No measurements for this cell yet." },
+  "measurement.deleteTitle": { hu: "Mérés törlése", en: "Delete Measurement" },
+  "measurement.deleteConfirm": { hu: "Biztosan törlöd ezt a mérést? Ez a művelet nem vonható vissza.", en: "Are you sure you want to delete this measurement? This action cannot be undone." },
+  "measurement.deleteBtn": { hu: "Törlés", en: "Delete" },
+  "measurement.headerNotes": { hu: "Megjegyzés", en: "Notes" },
+
+  // Chart extra
+  "chart.minDataRequired": { hu: "Legalább 2 mérés szükséges a grafikon megjelenítéséhez.", en: "At least 2 measurements are needed for the chart." },
+  "chart.scrapBorder": { hu: "Selejt határ", en: "Scrap Limit" },
+
+  // Dashboard extra
+  "dashboard.allArrow": { hu: "Összes", en: "All" },
+  "dashboard.pcs": { hu: "db", en: "pcs" },
+
+  // Onboarding wizard steps
+  "onboarding.step.welcome": { hu: "Üdvözlünk", en: "Welcome" },
+  "onboarding.step.repo": { hu: "Repó", en: "Repo" },
+  "onboarding.step.token": { hu: "Token", en: "Token" },
+  "onboarding.step.done": { hu: "Kész", en: "Done" },
+
+  // WelcomeStep features
+  "onboarding.welcome.feature.inventory": { hu: "Cellák nyilvántartása: márka, típus, kapacitás", en: "Cell inventory: brand, type, capacity" },
+  "onboarding.welcome.feature.trends": { hu: "Mérési előzmények és kapacitás trendek", en: "Measurement history and capacity trends" },
+  "onboarding.welcome.feature.scrap": { hu: "Automatikus selejt-jelzés", en: "Automatic scrap detection" },
+  "onboarding.welcome.feature.cloud": { hu: "Adatok biztonságban a GitHub privát repódban", en: "Data safely stored in your private GitHub repo" },
+  "onboarding.welcome.descFull": { hu: "Tartsd nyilván az összes akkumulátor celládat! Rögzítsd a mérési eredményeket, kövesd a kapacitás-változásokat, és automatikusan kiszűrjük a selejt cellákat.", en: "Track all your battery cells! Record measurement results, monitor capacity changes, and we automatically filter out scrapped cells." },
+
+  // RepoStep extra
+  "onboarding.repo.setupTitle": { hu: "GitHub repó beállítás", en: "GitHub Repo Setup" },
+  "onboarding.repo.setupDesc": { hu: "Hozz létre egy privát repót a GitHub-on, ahol az adataid tárolódnak.", en: "Create a private repository on GitHub where your data will be stored." },
+  "onboarding.repo.stepsTitle": { hu: "Lépések:", en: "Steps:" },
+  "onboarding.repo.step1Open": { hu: "Nyisd meg a", en: "Open the" },
+  "onboarding.repo.step1Page": { hu: "oldalt", en: "page" },
+  "onboarding.repo.step3": { hu: "Válaszd a", en: "Choose the" },
+  "onboarding.repo.step3Option": { hu: "opciót", en: "option" },
+  "onboarding.repo.step4": { hu: "Kattints a \"Create repository\" gombra", en: "Click the \"Create repository\" button" },
+  "onboarding.repo.ownerLabel": { hu: "GitHub felhasználónév", en: "GitHub Username" },
+  "onboarding.repo.ownerPlaceholder": { hu: "pl. johndoe", en: "e.g. johndoe" },
+  "onboarding.repo.repoLabel": { hu: "Repó neve", en: "Repository Name" },
+  "onboarding.repo.repoHint": { hu: "Ha nem változtatod meg, a battery-cell-data nevet használjuk.", en: "If you don't change it, battery-cell-data will be used." },
+
+  // TokenStep extra
+  "onboarding.token.descFull": { hu: "Generálj egy Fine-grained Personal Access Token-t, ami csak a {repo} repóhoz fér hozzá.", en: "Generate a Fine-grained Personal Access Token that only has access to the {repo} repo." },
+  "onboarding.token.stepsTitle": { hu: "Lépések:", en: "Steps:" },
+  "onboarding.token.step1Open": { hu: "Nyisd meg a", en: "Open the" },
+  "onboarding.token.step1Page": { hu: "létrehozó oldalt", en: "creation page" },
+  "onboarding.token.step3Exp": { hu: "pl. 1 év", en: "e.g. 1 year" },
+  "onboarding.token.step6": { hu: "Kattints a \"Generate token\" gombra és másold ki", en: "Click \"Generate token\" and copy it" },
+  "onboarding.token.hint": { hu: "A token csak a böngésződben tárolódik, semmilyen szerverre nem kerül.", en: "The token is only stored in your browser and is never sent to any server." },
+  "onboarding.token.verify": { hu: "Ellenőrzés és tovább", en: "Verify and continue" },
+
+  // CompleteStep extra
+  "onboarding.complete.titleFull": { hu: "Minden kész!", en: "All set!" },
+  "onboarding.complete.descFull": { hu: "A beállítások rendben vannak. Az adataid a következő helyen tárolódnak:", en: "Settings are configured. Your data will be stored at:" },
+  "onboarding.complete.user": { hu: "Felhasználó:", en: "User:" },
+  "onboarding.complete.repo": { hu: "Repó:", en: "Repo:" },
+  "onboarding.complete.file": { hu: "Fájl:", en: "File:" },
+  "onboarding.complete.back": { hu: "Vissza", en: "Back" },
+  "onboarding.complete.launch": { hu: "Indítás", en: "Launch" },
+
+  // QuickSetup extra
+  "onboarding.quick.titleFull": { hu: "Gyors beállítás", en: "Quick Setup" },
+  "onboarding.quick.descFull": { hu: "Add meg a GitHub felhasználóneved és a tokent. A repónak ({repo}) már léteznie kell.", en: "Enter your GitHub username and token. The repo ({repo}) must already exist." },
+  "onboarding.quick.ownerLabel": { hu: "GitHub felhasználónév", en: "GitHub Username" },
+  "onboarding.quick.ownerPlaceholder": { hu: "pl. johndoe", en: "e.g. johndoe" },
+  "onboarding.quick.repoLabel": { hu: "Repó neve", en: "Repository Name" },
+  "onboarding.quick.tokenLabel": { hu: "Fine-grained PAT", en: "Fine-grained PAT" },
+  "onboarding.quick.tokenPlaceholder": { hu: "github_pat_...", en: "github_pat_..." },
+  "onboarding.quick.backBtn": { hu: "Vissza", en: "Back" },
+  "onboarding.quick.connect": { hu: "Csatlakozás", en: "Connect" },
+
+  // Common
+  "common.back": { hu: "Vissza", en: "Back" },
+  "common.next": { hu: "Tovább", en: "Next" },
+} as const;
+
+export type TranslationKey = keyof typeof translations;
+
+export function t(key: TranslationKey, lang: Language, params?: Record<string, string | number>): string {
+  const entry = translations[key];
+  let text: string = entry?.[lang] ?? entry?.["en"] ?? key;
+  if (params) {
+    for (const [k, v] of Object.entries(params)) {
+      text = text.replace(`{${k}}`, String(v));
+    }
+  }
+  return text;
+}
+
+export function useTranslation() {
+  // This is imported in components that also import useBatteryStore
+  // The actual language comes from the store
+  return { t: (key: TranslationKey, lang: Language, params?: Record<string, string | number>) => t(key, lang, params) };
+}

@@ -74,6 +74,7 @@ export interface GitHubConfig {
 }
 
 export type Theme = "light" | "dark" | "system";
+export type Language = "hu" | "en";
 
 export interface AppSettings {
   scrapThresholdPercent: number;
@@ -81,6 +82,7 @@ export interface AppSettings {
   defaultDischargeCurrent: number;
   devices: string[];
   theme: Theme;
+  language: Language;
 }
 
 export interface BatteryData {

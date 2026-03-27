@@ -17,6 +17,7 @@ import {
   PLATFORMS,
 } from "@/lib/constants";
 import { todayISO } from "@/lib/utils";
+import { t } from "@/lib/i18n";
 import type { Cell } from "@/lib/types";
 
 interface CellFormProps {
@@ -31,6 +32,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
   const updateCell = useBatteryStore((s) => s.updateCell);
   const cells = useBatteryStore((s) => s.cells);
   const settings = useBatteryStore((s) => s.settings);
+  const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
 
   const { toast } = useToast();
   const isEdit = !!cell;
@@ -75,17 +77,17 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
   const validate = (): boolean => {
     const errs: Record<string, string> = {};
 
-    if (!form.id.trim()) errs.id = "Sorszám kötelező";
+    if (!form.id.trim()) errs.id = t("validation.idRequired", lang);
     else if (!isEdit && cells.some((c) => c.id === form.id.trim())) {
-      errs.id = "Ez a sorszám már létezik";
+      errs.id = t("validation.idExists", lang);
     }
 
-    if (!form.brand.trim()) errs.brand = "Márka kötelező";
-    if (!form.nominalCapacity.trim()) errs.nominalCapacity = "Kapacitás kötelező";
-    else if (Number(form.nominalCapacity) <= 0) errs.nominalCapacity = "Érvénytelen kapacitás";
+    if (!form.brand.trim()) errs.brand = t("validation.brandRequired", lang);
+    if (!form.nominalCapacity.trim()) errs.nominalCapacity = t("validation.capacityRequired", lang);
+    else if (Number(form.nominalCapacity) <= 0) errs.nominalCapacity = t("validation.invalidCapacity", lang);
 
-    if (form.pricePerUnit && Number(form.pricePerUnit) < 0) errs.pricePerUnit = "Érvénytelen ár";
-    if (form.weight && Number(form.weight) <= 0) errs.weight = "Érvénytelen súly";
+    if (form.pricePerUnit && Number(form.pricePerUnit) < 0) errs.pricePerUnit = t("validation.invalidPrice", lang);
+    if (form.weight && Number(form.weight) <= 0) errs.weight = t("validation.invalidWeight", lang);
 
     setErrors(errs);
     return Object.keys(errs).length === 0;
@@ -120,11 +122,11 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
 
     if (isEdit) {
       updateCell(cell.id, cellData);
-      toast("Cella módosítva");
+      toast(t("cell.modified", lang));
       onSave?.();
     } else {
       addCell(cellData);
-      toast("Cella hozzáadva");
+      toast(t("cell.added", lang));
       router.push(`/cells?id=${cellData.id}`);
     }
   };
@@ -137,73 +139,73 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Alap adatok */}
       <fieldset>
-        <legend className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">Alap adatok</legend>
+        <legend className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">{t("form.basics", lang)}</legend>
         <div className="grid gap-4 sm:grid-cols-2">
           <Input
-            label="Sorszám (ID)"
-            placeholder="pl. 01"
+            label={t("form.id", lang)}
+            placeholder={t("form.idPlaceholder", lang)}
             value={form.id}
             onChange={(e) => set("id", e.target.value)}
             error={errors.id}
             disabled={isEdit}
           />
           <Input
-            label="Márka"
-            placeholder="pl. LG, Samsung, Sony"
+            label={t("form.brand", lang)}
+            placeholder={t("form.brandPlaceholder", lang)}
             value={form.brand}
             onChange={(e) => set("brand", e.target.value)}
             error={errors.brand}
           />
           <Input
-            label="Modell"
-            placeholder="pl. HE4, 30Q, VTC6"
+            label={t("form.model", lang)}
+            placeholder={t("form.modelPlaceholder", lang)}
             value={form.model}
             onChange={(e) => set("model", e.target.value)}
           />
           <Select
-            label="Form faktor"
+            label={t("form.formFactor", lang)}
             options={formFactorOptions}
             value={form.formFactor}
             onChange={(e) => set("formFactor", e.target.value)}
           />
           <Select
-            label="Kémia"
+            label={t("form.chemistry", lang)}
             options={chemistryOptions}
             value={form.chemistry}
             onChange={(e) => set("chemistry", e.target.value)}
           />
           <ComboBox
-            label="Katód típus"
+            label={t("form.cathodeType", lang)}
             options={CATHODE_TYPES}
             value={form.cathodeType}
             onChange={(v) => set("cathodeType", v)}
-            placeholder="pl. INR"
+            placeholder={t("form.cathodeTypePlaceholder", lang)}
           />
           <ComboBox
-            label="Érintkezés típusa"
+            label={t("form.contactType", lang)}
             options={CONTACT_TYPES}
             value={form.contactType}
             onChange={(v) => set("contactType", v)}
-            placeholder="pl. Flat top"
+            placeholder={t("form.contactTypePlaceholder", lang)}
           />
           <Input
-            label="Névleges kapacitás (mAh)"
+            label={t("form.nominalCapacity", lang)}
             type="number"
-            placeholder="pl. 3000"
+            placeholder={t("form.nominalCapacityPlaceholder", lang)}
             value={form.nominalCapacity}
             onChange={(e) => set("nominalCapacity", e.target.value)}
             error={errors.nominalCapacity}
           />
           <Input
-            label="Max merítési áram (A)"
+            label={t("form.maxDischargeCurrent", lang)}
             type="number"
             step="0.1"
-            placeholder="pl. 20"
+            placeholder={t("form.maxDischargeCurrentPlaceholder", lang)}
             value={form.maxDischargeCurrent}
             onChange={(e) => set("maxDischargeCurrent", e.target.value)}
           />
           <Select
-            label="Állapot"
+            label={t("form.status", lang)}
             options={statusOptions}
             value={form.status}
             onChange={(e) => set("status", e.target.value)}
@@ -213,31 +215,31 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
 
       {/* Beszerzés */}
       <fieldset>
-        <legend className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">Beszerzés</legend>
+        <legend className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">{t("form.purchase", lang)}</legend>
         <div className="grid gap-4 sm:grid-cols-2">
           <ComboBox
-            label="Platform"
+            label={t("form.platform", lang)}
             options={PLATFORMS}
             value={form.platform}
             onChange={(v) => set("platform", v)}
-            placeholder="pl. AliExpress"
+            placeholder={t("form.platformPlaceholder", lang)}
           />
           <Input
-            label="Eladó / Bolt"
-            placeholder="pl. Nkon"
+            label={t("form.seller", lang)}
+            placeholder={t("form.sellerPlaceholder", lang)}
             value={form.seller}
             onChange={(e) => set("seller", e.target.value)}
           />
           <Input
-            label="Beszerzés dátuma"
+            label={t("form.purchaseDate", lang)}
             type="date"
             value={form.purchaseDate}
             onChange={(e) => set("purchaseDate", e.target.value)}
           />
           <Input
-            label="Ár / db (Ft)"
+            label={t("form.pricePerUnit", lang)}
             type="number"
-            placeholder="pl. 1500"
+            placeholder={t("form.pricePerUnitPlaceholder", lang)}
             value={form.pricePerUnit}
             onChange={(e) => set("pricePerUnit", e.target.value)}
             error={errors.pricePerUnit}
@@ -247,28 +249,28 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
 
       {/* Fizikai adatok */}
       <fieldset>
-        <legend className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">Fizikai adatok és azonosítás</legend>
+        <legend className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">{t("form.physical", lang)}</legend>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Input
-            label="Súly (g)"
+            label={t("form.weight", lang)}
             type="number"
             step="0.1"
-            placeholder="pl. 48.5"
+            placeholder={t("form.weightPlaceholder", lang)}
             value={form.weight}
             onChange={(e) => set("weight", e.target.value)}
             error={errors.weight}
           />
           <Input
-            label="Tárolási feszültség (V)"
+            label={t("form.storageVoltage", lang)}
             type="number"
             step="0.01"
-            placeholder="pl. 3.70"
+            placeholder={t("form.storageVoltagePlaceholder", lang)}
             value={form.storageVoltage}
             onChange={(e) => set("storageVoltage", e.target.value)}
           />
           <Input
-            label="Gyártási tétel (batch)"
-            placeholder="pl. P298J242A0"
+            label={t("form.batchNumber", lang)}
+            placeholder={t("form.batchNumberPlaceholder", lang)}
             value={form.batchNumber}
             onChange={(e) => set("batchNumber", e.target.value)}
           />
@@ -277,18 +279,18 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
 
       {/* Felhasználás */}
       <fieldset>
-        <legend className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">Elhelyezés</legend>
+        <legend className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">{t("form.placement", lang)}</legend>
         <div className="grid gap-4 sm:grid-cols-2">
           <ComboBox
-            label="Jelenlegi eszköz"
+            label={t("form.currentDevice", lang)}
             options={settings.devices || []}
             value={form.currentDevice}
             onChange={(v) => set("currentDevice", v)}
-            placeholder="pl. Raktáron"
+            placeholder={t("form.currentDevicePlaceholder", lang)}
           />
           <Input
-            label="Csoport / Pakk"
-            placeholder="pl. E-bike 1. pakk"
+            label={t("form.group", lang)}
+            placeholder={t("form.groupPlaceholder", lang)}
             value={form.group}
             onChange={(e) => set("group", e.target.value)}
           />
@@ -297,10 +299,10 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
 
       {/* Megjegyzés */}
       <div>
-        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">Megjegyzés</label>
+        <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{t("form.notes", lang)}</label>
         <textarea
           rows={3}
-          placeholder="Egyéb információk..."
+          placeholder={t("form.notesPlaceholder", lang)}
           value={form.notes}
           onChange={(e) => set("notes", e.target.value)}
           className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm placeholder:text-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder:text-gray-500"
@@ -312,16 +314,16 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
         {isEdit ? (
           <>
             <Button type="button" variant="secondary" onClick={onSave}>
-              Mégse
+              {t("form.cancel", lang)}
             </Button>
-            <Button type="submit">Mentés</Button>
+            <Button type="submit">{t("form.save", lang)}</Button>
           </>
         ) : (
           <>
             <Button type="button" variant="secondary" onClick={() => router.back()}>
-              Mégse
+              {t("form.cancel", lang)}
             </Button>
-            <Button type="submit">Cella hozzáadása</Button>
+            <Button type="submit">{t("form.addCell", lang)}</Button>
           </>
         )}
       </div>

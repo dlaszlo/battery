@@ -1,7 +1,9 @@
 "use client";
 
+import { useBatteryStore } from "@/lib/store";
 import type { CellEvent, CellEventType } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
+import { t } from "@/lib/i18n";
 
 const EVENT_ICONS: Record<CellEventType, { icon: string; color: string }> = {
   created: { icon: "+", color: "bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300" },
@@ -18,9 +20,11 @@ interface EventLogProps {
 }
 
 export default function EventLog({ events }: EventLogProps) {
+  const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
+
   if (events.length === 0) {
     return (
-      <p className="text-sm text-gray-400 py-2 dark:text-gray-500">Nincs esemény.</p>
+      <p className="text-sm text-gray-400 py-2 dark:text-gray-500">{t("cell.noEvents", lang)}</p>
     );
   }
 

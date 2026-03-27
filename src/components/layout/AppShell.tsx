@@ -7,9 +7,12 @@ import Navbar from "./Navbar";
 import Footer from "./Footer";
 import ThemeProvider from "./ThemeProvider";
 import OnboardingWizard from "../onboarding/OnboardingWizard";
+import { t } from "@/lib/i18n";
+import { useBatteryStore } from "@/lib/store";
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const { initialized, isConfigured } = useSync();
+  const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
 
   if (!initialized) {
     return (
@@ -23,7 +26,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>
-            Betöltés...
+            {t("loading", lang)}
           </div>
         </div>
       </div>

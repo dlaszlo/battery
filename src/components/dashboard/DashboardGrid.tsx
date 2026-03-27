@@ -2,20 +2,23 @@
 
 import Link from "next/link";
 import { useCellStats } from "@/hooks/useCells";
+import { useBatteryStore } from "@/lib/store";
 import { formatDate } from "@/lib/utils";
 import { STATUS_COLORS } from "@/lib/constants";
 import type { CellStatus } from "@/lib/types";
+import { t } from "@/lib/i18n";
 import StatCard from "./StatCard";
 
 export default function DashboardGrid() {
   const stats = useCellStats();
+  const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
 
   return (
     <div className="space-y-8">
       {/* Stat cards */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard
-          label="Összes cella"
+          label={t("dashboard.totalCells", lang)}
           value={stats.total}
           color="blue"
           icon={
@@ -25,7 +28,7 @@ export default function DashboardGrid() {
           }
         />
         <StatCard
-          label="Aktív"
+          label={t("dashboard.activeCells", lang)}
           value={stats.active}
           color="green"
           icon={
@@ -35,7 +38,7 @@ export default function DashboardGrid() {
           }
         />
         <StatCard
-          label="Selejt"
+          label={t("dashboard.scrappedCells", lang)}
           value={stats.scrapped}
           color="red"
           icon={
@@ -45,7 +48,7 @@ export default function DashboardGrid() {
           }
         />
         <StatCard
-          label="Mérések"
+          label={t("dashboard.measurements", lang)}
           value={stats.totalMeasurements}
           color="amber"
           icon={
@@ -59,14 +62,14 @@ export default function DashboardGrid() {
       {/* Recent cells */}
       <div className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
         <div className="flex items-center justify-between border-b px-6 py-4 dark:border-gray-700">
-          <h2 className="font-semibold text-gray-900 dark:text-gray-100">Utoljára módosított cellák</h2>
+          <h2 className="font-semibold text-gray-900 dark:text-gray-100">{t("dashboard.recentCells", lang)}</h2>
           <Link href="/cells" className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
-            Összes &rarr;
+            {t("dashboard.allArrow", lang)} &rarr;
           </Link>
         </div>
         {stats.recentCells.length === 0 ? (
           <div className="px-6 py-12 text-center text-sm text-gray-400 dark:text-gray-500">
-            Még nincs cella. <Link href="/add" className="text-blue-600 hover:underline dark:text-blue-400">Adj hozzá egyet!</Link>
+            {t("dashboard.noCells", lang)} <Link href="/add" className="text-blue-600 hover:underline dark:text-blue-400">{t("dashboard.addFirst", lang)}</Link>
           </div>
         ) : (
           <div className="divide-y dark:divide-gray-700">
@@ -101,23 +104,23 @@ export default function DashboardGrid() {
       {stats.total > 0 && (
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-            <h3 className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">Kémia szerint</h3>
+            <h3 className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">{t("dashboard.byChemistry", lang)}</h3>
             <div className="space-y-2">
               {Object.entries(stats.byChemistry).map(([chem, count]) => (
                 <div key={chem} className="flex items-center justify-between text-sm">
                   <span className="text-gray-600 dark:text-gray-300">{chem}</span>
-                  <span className="font-medium text-gray-900 dark:text-gray-100">{count} db</span>
+                  <span className="font-medium text-gray-900 dark:text-gray-100">{count} {t("dashboard.pcs", lang)}</span>
                 </div>
               ))}
             </div>
           </div>
           <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-            <h3 className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">Form faktor szerint</h3>
+            <h3 className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">{t("dashboard.byFormFactor", lang)}</h3>
             <div className="space-y-2">
               {Object.entries(stats.byFormFactor).map(([ff, count]) => (
                 <div key={ff} className="flex items-center justify-between text-sm">
                   <span className="text-gray-600 dark:text-gray-300">{ff}</span>
-                  <span className="font-medium text-gray-900 dark:text-gray-100">{count} db</span>
+                  <span className="font-medium text-gray-900 dark:text-gray-100">{count} {t("dashboard.pcs", lang)}</span>
                 </div>
               ))}
             </div>

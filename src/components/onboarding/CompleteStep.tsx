@@ -4,6 +4,7 @@ import { useState } from "react";
 import Button from "../ui/Button";
 import { useBatteryStore } from "@/lib/store";
 import { DEFAULT_GITHUB_FILE_PATH } from "@/lib/constants";
+import { t } from "@/lib/i18n";
 import type { OnboardingData } from "./OnboardingWizard";
 
 interface CompleteStepProps {
@@ -12,6 +13,7 @@ interface CompleteStepProps {
 }
 
 export default function CompleteStep({ data, onBack }: CompleteStepProps) {
+  const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
   const setGitHubConfig = useBatteryStore((s) => s.setGitHubConfig);
   const initialize = useBatteryStore((s) => s.initialize);
   const [loading, setLoading] = useState(false);
@@ -35,24 +37,24 @@ export default function CompleteStep({ data, onBack }: CompleteStepProps) {
         </svg>
       </div>
 
-      <h2 className="mb-3 text-xl font-bold text-gray-900">Minden kész!</h2>
+      <h2 className="mb-3 text-xl font-bold text-gray-900">{t("onboarding.complete.titleFull", lang)}</h2>
 
       <p className="mb-6 text-sm text-gray-600 leading-relaxed">
-        A beállítások rendben vannak. Az adataid a következő helyen tárolódnak:
+        {t("onboarding.complete.descFull", lang)}
       </p>
 
       <div className="mb-8 rounded-lg bg-gray-50 p-4 text-left">
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
-            <span className="text-gray-500">Felhasználó:</span>
+            <span className="text-gray-500">{t("onboarding.complete.user", lang)}</span>
             <span className="font-medium text-gray-900">{data.owner}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">Repó:</span>
+            <span className="text-gray-500">{t("onboarding.complete.repo", lang)}</span>
             <span className="font-medium text-gray-900">{data.repo}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">Fájl:</span>
+            <span className="text-gray-500">{t("onboarding.complete.file", lang)}</span>
             <span className="font-mono text-xs text-gray-900">data.json</span>
           </div>
         </div>
@@ -60,10 +62,10 @@ export default function CompleteStep({ data, onBack }: CompleteStepProps) {
 
       <div className="flex justify-between">
         <Button variant="ghost" onClick={onBack} disabled={loading}>
-          Vissza
+          {t("onboarding.complete.back", lang)}
         </Button>
         <Button onClick={handleComplete} size="lg" loading={loading}>
-          Indítás
+          {t("onboarding.complete.launch", lang)}
         </Button>
       </div>
     </div>

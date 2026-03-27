@@ -6,6 +6,8 @@ import RepoStep from "./RepoStep";
 import TokenStep from "./TokenStep";
 import CompleteStep from "./CompleteStep";
 import QuickSetup from "./QuickSetup";
+import { useBatteryStore } from "@/lib/store";
+import { t } from "@/lib/i18n";
 
 export type OnboardingData = {
   owner: string;
@@ -13,9 +15,14 @@ export type OnboardingData = {
   token: string;
 };
 
-const STEPS = ["Üdvözlünk", "Repó", "Token", "Kész"];
-
 export default function OnboardingWizard() {
+  const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
+  const STEPS = [
+    t("onboarding.step.welcome", lang),
+    t("onboarding.step.repo", lang),
+    t("onboarding.step.token", lang),
+    t("onboarding.step.done", lang),
+  ];
   const [step, setStep] = useState(0);
   const [quickMode, setQuickMode] = useState(false);
   const [data, setData] = useState<OnboardingData>({

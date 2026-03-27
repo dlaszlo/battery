@@ -1,6 +1,8 @@
 "use client";
 
 import Button from "../ui/Button";
+import { useBatteryStore } from "@/lib/store";
+import { t } from "@/lib/i18n";
 
 interface WelcomeStepProps {
   onNext: () => void;
@@ -8,6 +10,7 @@ interface WelcomeStepProps {
 }
 
 export default function WelcomeStep({ onNext, onQuickSetup }: WelcomeStepProps) {
+  const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
   return (
     <div className="text-center">
       <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-100">
@@ -21,25 +24,24 @@ export default function WelcomeStep({ onNext, onQuickSetup }: WelcomeStepProps) 
       </h1>
 
       <p className="mb-6 text-gray-600 leading-relaxed">
-        Tartsd nyilván az összes akkumulátor celládat! Rögzítsd a mérési eredményeket,
-        kövesd a kapacitás-változásokat, és automatikusan kiszűrjük a selejt cellákat.
+        {t("onboarding.welcome.descFull", lang)}
       </p>
 
       <div className="mb-8 space-y-3 text-left">
-        <Feature icon="clipboard" text="Cellák nyilvántartása: márka, típus, kapacitás" />
-        <Feature icon="chart" text="Mérési előzmények és kapacitás trendek" />
-        <Feature icon="shield" text="Automatikus selejt-jelzés" />
-        <Feature icon="cloud" text="Adatok biztonságban a GitHub privát repódban" />
+        <Feature icon="clipboard" text={t("onboarding.welcome.feature.inventory", lang)} />
+        <Feature icon="chart" text={t("onboarding.welcome.feature.trends", lang)} />
+        <Feature icon="shield" text={t("onboarding.welcome.feature.scrap", lang)} />
+        <Feature icon="cloud" text={t("onboarding.welcome.feature.cloud", lang)} />
       </div>
 
       <Button onClick={onNext} size="lg" className="w-full">
-        Kezdjük el
+        {t("onboarding.welcome.start", lang)}
       </Button>
       <button
         onClick={onQuickSetup}
         className="mt-3 w-full text-center text-sm text-gray-500 hover:text-blue-600 transition-colors"
       >
-        Már van tokened? Gyors beállítás &rarr;
+        {t("onboarding.welcome.quickSetup", lang)} &rarr;
       </button>
     </div>
   );

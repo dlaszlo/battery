@@ -4,7 +4,9 @@ import { useState } from "react";
 import Button from "../ui/Button";
 import Input from "../ui/Input";
 import { useGitHubValidation } from "@/hooks/useGitHub";
+import { useBatteryStore } from "@/lib/store";
 import { DEFAULT_GITHUB_FILE_PATH } from "@/lib/constants";
+import { t } from "@/lib/i18n";
 import type { OnboardingData } from "./OnboardingWizard";
 
 interface TokenStepProps {
@@ -15,6 +17,7 @@ interface TokenStepProps {
 }
 
 export default function TokenStep({ data, onChange, onNext, onBack }: TokenStepProps) {
+  const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
   const { validate, validating, error } = useGitHubValidation();
   const [showToken, setShowToken] = useState(false);
 
@@ -33,20 +36,18 @@ export default function TokenStep({ data, onChange, onNext, onBack }: TokenStepP
 
   return (
     <div>
-      <h2 className="mb-2 text-xl font-bold text-gray-900">GitHub Token</h2>
+      <h2 className="mb-2 text-xl font-bold text-gray-900">{t("onboarding.token.title", lang)}</h2>
       <p className="mb-6 text-sm text-gray-600">
-        Generálj egy Fine-grained Personal Access Token-t, ami csak a{" "}
-        <code className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs">{data.repo}</code>{" "}
-        repóhoz fér hozzá.
+        {t("onboarding.token.descFull", lang, { repo: data.repo })}
       </p>
 
       <div className="mb-6 rounded-lg bg-amber-50 p-4">
-        <h3 className="mb-2 text-sm font-semibold text-amber-900">Lépések:</h3>
+        <h3 className="mb-2 text-sm font-semibold text-amber-900">{t("onboarding.token.stepsTitle", lang)}</h3>
         <ol className="space-y-2 text-sm text-amber-800">
           <li className="flex gap-2">
             <span className="font-bold">1.</span>
             <span>
-              Nyisd meg a{" "}
+              {t("onboarding.token.step1Open", lang)}{" "}
               <a
                 href={tokenSettingsUrl}
                 target="_blank"
@@ -55,7 +56,7 @@ export default function TokenStep({ data, onChange, onNext, onBack }: TokenStepP
               >
                 Fine-grained token
               </a>{" "}
-              létrehozó oldalt
+              {t("onboarding.token.step1Page", lang)}
             </span>
           </li>
           <li className="flex gap-2">
@@ -64,7 +65,7 @@ export default function TokenStep({ data, onChange, onNext, onBack }: TokenStepP
           </li>
           <li className="flex gap-2">
             <span className="font-bold">3.</span>
-            <span>Expiration: <strong>Custom</strong> (pl. 1 év)</span>
+            <span>Expiration: <strong>Custom</strong> ({t("onboarding.token.step3Exp", lang)})</span>
           </li>
           <li className="flex gap-2">
             <span className="font-bold">4.</span>
@@ -81,7 +82,7 @@ export default function TokenStep({ data, onChange, onNext, onBack }: TokenStepP
           </li>
           <li className="flex gap-2">
             <span className="font-bold">6.</span>
-            <span>Kattints a &quot;Generate token&quot; gombra és másold ki</span>
+            <span>{t("onboarding.token.step6", lang)}</span>
           </li>
         </ol>
       </div>
@@ -89,13 +90,13 @@ export default function TokenStep({ data, onChange, onNext, onBack }: TokenStepP
       <div className="space-y-4">
         <div className="relative">
           <Input
-            label="Personal Access Token"
-            placeholder="github_pat_..."
+            label={t("onboarding.token.tokenLabel", lang)}
+            placeholder={t("onboarding.token.tokenPlaceholder", lang)}
             type={showToken ? "text" : "password"}
             value={data.token}
             onChange={(e) => onChange({ token: e.target.value })}
             error={error || undefined}
-            hint={!error ? "A token csak a böngésződben tárolódik, semmilyen szerverre nem kerül." : undefined}
+            hint={!error ? t("onboarding.token.hint", lang) : undefined}
           />
           <button
             type="button"
@@ -118,10 +119,10 @@ export default function TokenStep({ data, onChange, onNext, onBack }: TokenStepP
 
       <div className="mt-6 flex justify-between">
         <Button variant="ghost" onClick={onBack}>
-          Vissza
+          {t("onboarding.token.back", lang)}
         </Button>
         <Button onClick={handleNext} disabled={!canProceed} loading={validating}>
-          Ellenőrzés és tovább
+          {t("onboarding.token.verify", lang)}
         </Button>
       </div>
     </div>

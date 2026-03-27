@@ -4,17 +4,20 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useBatteryStore } from "@/lib/store";
 import { useState } from "react";
+import { t } from "@/lib/i18n";
+import type { TranslationKey } from "@/lib/i18n";
 
-const navItems = [
-  { href: "/", label: "Főoldal" },
-  { href: "/cells", label: "Cellák" },
-  { href: "/add", label: "Új cella" },
-  { href: "/settings", label: "Beállítások" },
+const navItems: { href: string; labelKey: TranslationKey }[] = [
+  { href: "/", labelKey: "nav.home" },
+  { href: "/cells", labelKey: "nav.cells" },
+  { href: "/add", labelKey: "nav.addCell" },
+  { href: "/settings", labelKey: "nav.settings" },
 ];
 
 export default function Navbar() {
   const pathname = usePathname();
   const syncState = useBatteryStore((s) => s.syncState);
+  const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
@@ -47,7 +50,7 @@ export default function Navbar() {
                     }
                   `}
                 >
-                  {item.label}
+                  {t(item.labelKey, lang)}
                 </Link>
               );
             })}
@@ -90,7 +93,7 @@ export default function Navbar() {
                     }
                   `}
                 >
-                  {item.label}
+                  {t(item.labelKey, lang)}
                 </Link>
               );
             })}

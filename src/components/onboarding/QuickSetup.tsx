@@ -6,12 +6,14 @@ import Input from "@/components/ui/Input";
 import { useGitHubValidation } from "@/hooks/useGitHub";
 import { useBatteryStore } from "@/lib/store";
 import { DEFAULT_GITHUB_FILE_PATH, DEFAULT_GITHUB_REPO } from "@/lib/constants";
+import { t } from "@/lib/i18n";
 
 interface QuickSetupProps {
   onBack: () => void;
 }
 
 export default function QuickSetup({ onBack }: QuickSetupProps) {
+  const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
   const [owner, setOwner] = useState("");
   const [repo, setRepo] = useState(DEFAULT_GITHUB_REPO);
   const [token, setToken] = useState("");
@@ -41,27 +43,27 @@ export default function QuickSetup({ onBack }: QuickSetupProps) {
 
   return (
     <div>
-      <h2 className="mb-2 text-xl font-bold text-gray-900">Gyors beállítás</h2>
+      <h2 className="mb-2 text-xl font-bold text-gray-900">{t("onboarding.quick.titleFull", lang)}</h2>
       <p className="mb-6 text-sm text-gray-600">
-        Add meg a GitHub felhasználóneved és a tokent. A repónak (<code className="rounded bg-gray-100 px-1 py-0.5 font-mono text-xs">{repo}</code>) már léteznie kell.
+        {t("onboarding.quick.descFull", lang, { repo })}
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input
-          label="GitHub felhasználónév"
-          placeholder="pl. johndoe"
+          label={t("onboarding.quick.ownerLabel", lang)}
+          placeholder={t("onboarding.quick.ownerPlaceholder", lang)}
           value={owner}
           onChange={(e) => setOwner(e.target.value)}
         />
         <Input
-          label="Repó neve"
+          label={t("onboarding.quick.repoLabel", lang)}
           placeholder={DEFAULT_GITHUB_REPO}
           value={repo}
           onChange={(e) => setRepo(e.target.value)}
         />
         <Input
-          label="Fine-grained PAT"
-          placeholder="github_pat_..."
+          label={t("onboarding.quick.tokenLabel", lang)}
+          placeholder={t("onboarding.quick.tokenPlaceholder", lang)}
           type="password"
           value={token}
           onChange={(e) => setToken(e.target.value)}
@@ -70,10 +72,10 @@ export default function QuickSetup({ onBack }: QuickSetupProps) {
 
         <div className="flex justify-between pt-2">
           <Button type="button" variant="ghost" onClick={onBack}>
-            Vissza
+            {t("onboarding.quick.backBtn", lang)}
           </Button>
           <Button type="submit" disabled={!canSubmit} loading={validating || loading}>
-            Csatlakozás
+            {t("onboarding.quick.connect", lang)}
           </Button>
         </div>
       </form>
