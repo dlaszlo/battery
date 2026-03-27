@@ -1,0 +1,35 @@
+{
+    "name": "battery-cell-tracker",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "dev": "next dev",
+        "build": "next build",
+        "start": "next start",
+        "lint": "eslint src/"
+    },
+    "dependencies": {
+        "next": "^16.2.1",
+        "react": "^19.0.0",
+        "react-dom": "^19.0.0",
+        "recharts": "^2.15.3",
+        "uuid": "^11.1.0",
+        "zustand": "^5.0.5"
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.39.4",
+        "@tailwindcss/postcss": "^4",
+        "@types/node": "^22",
+        "@types/react": "^19",
+        "@types/react-dom": "^19",
+        "@types/uuid": "^10.0.0",
+        "@typescript-eslint/eslint-plugin": "^8.57.2",
+        "@typescript-eslint/parser": "^8.57.2",
+        "eslint": "^9",
+        "eslint-config-next": "^16.2.1",
+        "eslint-plugin-react": "^7.37.5",
+        "eslint-plugin-react-hooks": "^7.0.1",
+        "tailwindcss": "^4",
+        "typescript": "^5"
+    }
+}
