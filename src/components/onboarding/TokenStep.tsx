@@ -23,6 +23,7 @@ export default function TokenStep({ data, onChange, onNext, onBack }: TokenStepP
   const { validate, validating, error } = useGitHubValidation();
   const [showToken, setShowToken] = useState(false);
   const [showQr, setShowQr] = useState(false);
+  const [showQrHelp, setShowQrHelp] = useState(false);
 
   const handleNext = async () => {
     const valid = await validate({
@@ -130,17 +131,45 @@ export default function TokenStep({ data, onChange, onNext, onBack }: TokenStepP
                 )}
               </button>
             </div>
-            <button
-              type="button"
-              onClick={() => setShowQr(true)}
-              className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-            >
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75zM6.75 16.5h.75v.75h-.75v-.75zM16.5 6.75h.75v.75h-.75v-.75zM13.5 13.5h.75v.75h-.75v-.75zM13.5 19.5h.75v.75h-.75v-.75zM19.5 13.5h.75v.75h-.75v-.75zM19.5 19.5h.75v.75h-.75v-.75zM16.5 16.5h.75v.75h-.75v-.75z" />
-              </svg>
-              {t("onboarding.token.scanQr", lang)}
-            </button>
+            <div className="space-y-2">
+              <button
+                type="button"
+                onClick={() => setShowQr(true)}
+                className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+              >
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75zM6.75 16.5h.75v.75h-.75v-.75zM16.5 6.75h.75v.75h-.75v-.75zM13.5 13.5h.75v.75h-.75v-.75zM13.5 19.5h.75v.75h-.75v-.75zM19.5 13.5h.75v.75h-.75v-.75zM19.5 19.5h.75v.75h-.75v-.75zM16.5 16.5h.75v.75h-.75v-.75z" />
+                </svg>
+                {t("onboarding.token.scanQr", lang)}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowQrHelp(!showQrHelp)}
+                className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+              >
+                {t("onboarding.token.qrHelpToggle", lang)} {showQrHelp ? "▲" : "▼"}
+              </button>
+              {showQrHelp && (
+                <div className="rounded-lg bg-blue-50 dark:bg-blue-900/30 p-4 text-sm text-blue-800 dark:text-blue-200 space-y-2">
+                  <p className="font-medium">{t("onboarding.token.qrHelpTitle", lang)}</p>
+                  <p className="text-xs text-blue-700 dark:text-blue-300">{t("onboarding.token.qrHelpDesc", lang)}</p>
+                  <div className="space-y-1.5">
+                    <p className="text-xs font-medium text-blue-900 dark:text-blue-100">Linux / Mac:</p>
+                    <code className="block rounded bg-blue-100 dark:bg-blue-800 px-3 py-2 font-mono text-xs">
+                      sudo apt install qrencode<br />
+                      echo -n &quot;github_pat_...&quot; | qrencode -t UTF8
+                    </code>
+                    <p className="text-xs font-medium text-blue-900 dark:text-blue-100 mt-2">Windows (PowerShell):</p>
+                    <code className="block rounded bg-blue-100 dark:bg-blue-800 px-3 py-2 font-mono text-xs">
+                      Install-Module -Name QRCodeGenerator<br />
+                      New-QRCodeURI -URI &quot;github_pat_...&quot;
+                    </code>
+                  </div>
+                  <p className="text-xs text-blue-600 dark:text-blue-400">{t("onboarding.token.qrHelpNote", lang)}</p>
+                </div>
+              )}
+            </div>
           </>
         )}
       </div>

@@ -383,6 +383,10 @@ const translations = {
   "onboarding.token.hint": { hu: "A token csak a böngésződben tárolódik, semmilyen szerverre nem kerül.", en: "The token is only stored in your browser and is never sent to any server." },
   "onboarding.token.verify": { hu: "Ellenőrzés és tovább", en: "Verify and continue" },
   "onboarding.token.scanQr": { hu: "QR kód beolvasása kamerával", en: "Scan QR code with camera" },
+  "onboarding.token.qrHelpToggle": { hu: "Hogyan készíts QR kódot a tokenből?", en: "How to create a QR code from the token?" },
+  "onboarding.token.qrHelpTitle": { hu: "QR kód generálása számítógépen", en: "Generate QR code on your computer" },
+  "onboarding.token.qrHelpDesc": { hu: "Ha számítógépen generáltad a tokent és mobilon szeretnéd használni az appot, készíts QR kódot a terminálban:", en: "If you generated the token on your computer and want to use the app on mobile, create a QR code in the terminal:" },
+  "onboarding.token.qrHelpNote": { hu: "A QR kód a terminálban jelenik meg — olvasd be az app QR szkennerével. Soha ne használj online QR generátort tokenekhez!", en: "The QR code appears in the terminal — scan it with the app's QR scanner. Never use online QR generators for tokens!" },
 
   // CompleteStep extra
   "onboarding.complete.titleFull": { hu: "Minden kész!", en: "All set!" },

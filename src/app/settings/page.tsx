@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, lazy, Suspense } from "react";
 import AppShell from "@/components/layout/AppShell";
 import Button from "@/components/ui/Button";
+
+const QrScanner = lazy(() => import("@/components/ui/QrScanner"));
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
@@ -31,6 +33,7 @@ export default function SettingsPage() {
   const [showDisconnect, setShowDisconnect] = useState(false);
   const [showTokenUpdate, setShowTokenUpdate] = useState(false);
   const [newToken, setNewToken] = useState("");
+  const [showQrScanner, setShowQrScanner] = useState(false);
   const [newDevice, setNewDevice] = useState("");
   const [newTestDevice, setNewTestDevice] = useState("");
   const [importError, setImportError] = useState<string | null>(null);
@@ -314,13 +317,38 @@ export default function SettingsPage() {
               {showTokenUpdate ? (
                 <div className="space-y-3 rounded-lg border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/30 p-4">
                   <p className="text-sm font-medium text-amber-900 dark:text-amber-200">{t("settings.tokenNewTitle", lang)}</p>
-                  <Input
-                    placeholder="github_pat_..."
-                    type="password"
-                    value={newToken}
-                    onChange={(e) => setNewToken(e.target.value)}
-                    hint={t("settings.tokenHint", lang)}
-                  />
+                  {showQrScanner ? (
+                    <Suspense fallback={<div className="py-4 text-center text-sm text-gray-400">Loading...</div>}>
+                      <QrScanner
+                        onScan={(value) => {
+                          setNewToken(value);
+                          setShowQrScanner(false);
+                        }}
+                        onClose={() => setShowQrScanner(false)}
+                      />
+                    </Suspense>
+                  ) : (
+                    <>
+                      <Input
+                        placeholder="github_pat_..."
+                        type="password"
+                        value={newToken}
+                        onChange={(e) => setNewToken(e.target.value)}
+                        hint={t("settings.tokenHint", lang)}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowQrScanner(true)}
+                        className="flex items-center gap-2 text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                      >
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75zM6.75 16.5h.75v.75h-.75v-.75zM16.5 6.75h.75v.75h-.75v-.75zM13.5 13.5h.75v.75h-.75v-.75zM13.5 19.5h.75v.75h-.75v-.75zM19.5 13.5h.75v.75h-.75v-.75zM19.5 19.5h.75v.75h-.75v-.75zM16.5 16.5h.75v.75h-.75v-.75z" />
+                        </svg>
+                        {t("onboarding.token.scanQr", lang)}
+                      </button>
+                    </>
+                  )}
                   <div className="flex gap-2">
                     <Button
                       size="sm"
@@ -329,6 +357,7 @@ export default function SettingsPage() {
                         if (githubConfig) {
                           setGitHubConfig({ ...githubConfig, token: newToken });
                           setShowTokenUpdate(false);
+                          setShowQrScanner(false);
                           setNewToken("");
                           toast(t("settings.tokenUpdated", lang));
                           syncWithGitHub();
