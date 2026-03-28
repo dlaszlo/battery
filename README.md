@@ -62,7 +62,11 @@ The app uses the **GitHub Contents API** to read and write a single `data.json` 
 - **No server needed** — the app talks directly to GitHub from your browser
 - **Works offline** — data is cached in localStorage; GitHub sync happens in the background
 
-The app uses a **Fine-grained Personal Access Token** (PAT) scoped to a single repository with minimal permissions. Your token is stored only in your browser's localStorage and is never sent anywhere except the GitHub API.
+The app uses a **Fine-grained Personal Access Token** (PAT) scoped to a single repository with minimal permissions. Your token is **encrypted with a PIN code** using AES-GCM (Web Crypto API) and stored in your browser's localStorage. The token is never sent anywhere except the GitHub API.
+
+### PIN Protection
+
+During setup, you'll choose a 4-8 digit PIN code. This PIN is used to encrypt your GitHub token with AES-GCM (PBKDF2 key derivation). Every time you open the app, you'll need to enter your PIN to decrypt the token and enable GitHub sync. If you forget your PIN, you can disconnect and re-enter your token with a new PIN — no data is lost.
 
 ## Setup Guide
 
@@ -81,9 +85,9 @@ Go to [github.com/new](https://github.com/new) and create a new **private** repo
 
 ### Step 3: Open the App
 
-Go to **https://dlaszlo.github.io/battery/** and follow the setup wizard. Paste your token, enter your GitHub username, and you're done.
+Go to **https://dlaszlo.github.io/battery/** and follow the setup wizard. Paste your token, enter your GitHub username, set a PIN code, and you're done.
 
-If your token expires, you can generate a new one and update it in **Settings — Token refresh** without losing any data.
+Every time you open the app, you'll need to enter your PIN to unlock. If your token expires, you can generate a new one and update it in **Settings — Token refresh** without losing any data.
 
 ## Tech Stack
 

@@ -17,15 +17,33 @@ export default function QuickSetup({ onBack }: QuickSetupProps) {
   const [owner, setOwner] = useState("");
   const [repo, setRepo] = useState(DEFAULT_GITHUB_REPO);
   const [token, setToken] = useState("");
+  const [pin, setPin] = useState("");
+  const [confirmPin, setConfirmPin] = useState("");
+  const [pinError, setPinError] = useState<string | null>(null);
   const { validate, validating, error } = useGitHubValidation();
   const setGitHubConfig = useBatteryStore((s) => s.setGitHubConfig);
   const initialize = useBatteryStore((s) => s.initialize);
   const [loading, setLoading] = useState(false);
 
-  const canSubmit = owner.trim() !== "" && token.startsWith("github_pat_");
+  const canSubmit = owner.trim() !== "" && token.startsWith("github_pat_") && pin.length >= 4;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setPinError(null);
+
+    if (pin.length < 4 || pin.length > 8) {
+      setPinError(t("pin.lengthError", lang));
+      return;
+    }
+    if (!/^\d+$/.test(pin)) {
+      setPinError(t("pin.digitsOnly", lang));
+      return;
+    }
+    if (pin !== confirmPin) {
+      setPinError(t("pin.mismatch", lang));
+      return;
+    }
+
     const config = {
       token,
       owner: owner.trim(),
@@ -37,7 +55,7 @@ export default function QuickSetup({ onBack }: QuickSetupProps) {
     if (!valid) return;
 
     setLoading(true);
-    setGitHubConfig(config);
+    await setGitHubConfig(config, pin);
     await initialize();
   };
 
@@ -69,6 +87,32 @@ export default function QuickSetup({ onBack }: QuickSetupProps) {
           onChange={(e) => setToken(e.target.value)}
           error={error || undefined}
         />
+
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-3">
+          <p className="text-sm font-medium text-gray-700">{t("pin.setupTitle", lang)}</p>
+          <p className="text-xs text-gray-500">{t("pin.setupDescShort", lang)}</p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Input
+              label="PIN"
+              type="password"
+              inputMode="numeric"
+              maxLength={8}
+              value={pin}
+              onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
+              placeholder="****"
+            />
+            <Input
+              label={t("pin.confirm", lang)}
+              type="password"
+              inputMode="numeric"
+              maxLength={8}
+              value={confirmPin}
+              onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ""))}
+              placeholder="****"
+            />
+          </div>
+          {pinError && <p className="text-sm text-red-600">{pinError}</p>}
+        </div>
 
         <div className="flex justify-between pt-2">
           <Button type="button" variant="ghost" onClick={onBack}>

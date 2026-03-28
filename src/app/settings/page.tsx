@@ -25,6 +25,7 @@ export default function SettingsPage() {
   const cells = useBatteryStore((s) => s.cells);
 
   const lang = settings.language ?? "hu";
+  const pin = useBatteryStore((s) => s.pin);
   const { toast } = useToast();
   const setGitHubConfig = useBatteryStore((s) => s.setGitHubConfig);
   const syncWithGitHub = useBatteryStore((s) => s.syncWithGitHub);
@@ -353,9 +354,9 @@ export default function SettingsPage() {
                     <Button
                       size="sm"
                       disabled={!newToken.startsWith("github_pat_")}
-                      onClick={() => {
-                        if (githubConfig) {
-                          setGitHubConfig({ ...githubConfig, token: newToken });
+                      onClick={async () => {
+                        if (githubConfig && pin) {
+                          await setGitHubConfig({ ...githubConfig, token: newToken }, pin);
                           setShowTokenUpdate(false);
                           setShowQrScanner(false);
                           setNewToken("");

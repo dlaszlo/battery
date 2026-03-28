@@ -351,6 +351,7 @@ const translations = {
   "onboarding.step.welcome": { hu: "Üdvözlünk", en: "Welcome" },
   "onboarding.step.repo": { hu: "Repó", en: "Repo" },
   "onboarding.step.token": { hu: "Token", en: "Token" },
+  "onboarding.step.pin": { hu: "PIN", en: "PIN" },
   "onboarding.step.done": { hu: "Kész", en: "Done" },
 
   // WelcomeStep features
@@ -396,7 +397,17 @@ const translations = {
   "onboarding.complete.repo": { hu: "Repó:", en: "Repo:" },
   "onboarding.complete.file": { hu: "Fájl:", en: "File:" },
   "onboarding.complete.back": { hu: "Vissza", en: "Back" },
+  "onboarding.complete.next": { hu: "Tovább", en: "Next" },
   "onboarding.complete.launch": { hu: "Indítás", en: "Launch" },
+
+  // PIN
+  "pin.setupTitle": { hu: "PIN kód beállítása", en: "Set PIN Code" },
+  "pin.setupDesc": { hu: "Adj meg egy 4-8 jegyű PIN kódot a GitHub token védelméhez. Minden app induláskor meg kell adnod.", en: "Enter a 4-8 digit PIN to protect your GitHub token. You'll need to enter it every time you open the app." },
+  "pin.setupDescShort": { hu: "4-8 jegyű PIN kód a token védelméhez.", en: "4-8 digit PIN to protect your token." },
+  "pin.confirm": { hu: "PIN megerősítése", en: "Confirm PIN" },
+  "pin.lengthError": { hu: "A PIN kód 4-8 számjegyű legyen", en: "PIN must be 4-8 digits" },
+  "pin.digitsOnly": { hu: "Csak számjegyek használhatók", en: "Only digits allowed" },
+  "pin.mismatch": { hu: "A két PIN kód nem egyezik", en: "PINs do not match" },
 
   // QuickSetup extra
   "onboarding.quick.titleFull": { hu: "Gyors beállítás", en: "Quick Setup" },

@@ -20,12 +20,12 @@ export default function CompleteStep({ data, onBack }: CompleteStepProps) {
 
   const handleComplete = async () => {
     setLoading(true);
-    setGitHubConfig({
+    await setGitHubConfig({
       token: data.token,
       owner: data.owner,
       repo: data.repo,
       filePath: DEFAULT_GITHUB_FILE_PATH,
-    });
+    }, data.pin);
     await initialize();
   };
 

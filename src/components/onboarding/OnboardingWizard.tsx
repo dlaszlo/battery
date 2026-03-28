@@ -4,6 +4,7 @@ import { useState } from "react";
 import WelcomeStep from "./WelcomeStep";
 import RepoStep from "./RepoStep";
 import TokenStep from "./TokenStep";
+import PinStep from "./PinStep";
 import CompleteStep from "./CompleteStep";
 import QuickSetup from "./QuickSetup";
 import { useBatteryStore } from "@/lib/store";
@@ -13,6 +14,7 @@ export type OnboardingData = {
   owner: string;
   repo: string;
   token: string;
+  pin: string;
 };
 
 export default function OnboardingWizard() {
@@ -21,6 +23,7 @@ export default function OnboardingWizard() {
     t("onboarding.step.welcome", lang),
     t("onboarding.step.repo", lang),
     t("onboarding.step.token", lang),
+    t("onboarding.step.pin", lang),
     t("onboarding.step.done", lang),
   ];
   const [step, setStep] = useState(0);
@@ -29,6 +32,7 @@ export default function OnboardingWizard() {
     owner: "",
     repo: "battery-cell-data",
     token: "",
+    pin: "",
   });
 
   const updateData = (updates: Partial<OnboardingData>) => {
@@ -105,9 +109,18 @@ export default function OnboardingWizard() {
             />
           )}
           {step === 3 && (
+            <PinStep
+              onNext={(pin) => {
+                updateData({ pin });
+                setStep(4);
+              }}
+              onBack={() => setStep(2)}
+            />
+          )}
+          {step === 4 && (
             <CompleteStep
               data={data}
-              onBack={() => setStep(2)}
+              onBack={() => setStep(3)}
             />
           )}
         </div>

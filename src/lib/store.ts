@@ -15,7 +15,9 @@ import { shouldMarkAsScrap, getScrapNote } from "./scrap-detection";
 import {
   loadFromLocalStorage,
   saveToLocalStorage,
-  loadGitHubConfig,
+  getConfigState,
+  loadGitHubConfigWithPin,
+  loadGitHubConfigLegacy,
   saveGitHubConfig,
   clearGitHubConfig,
   pullFromGitHub,
@@ -24,6 +26,8 @@ import {
 } from "./sync";
 import { nowISO, todayISO } from "./utils";
 
+type ConfigState = null | "plaintext" | "encrypted" | "unlocked";
+
 interface BatteryStore {
   // State
   cells: Cell[];
@@ -31,9 +35,12 @@ interface BatteryStore {
   githubConfig: GitHubConfig | null;
   syncState: SyncState;
   initialized: boolean;
+  configState: ConfigState;
+  pin: string | null;
 
   // Init
   initialize: () => Promise<void>;
+  unlockWithPin: (pin: string) => Promise<boolean>;
 
   // Cell CRUD
   addCell: (cell: Omit<Cell, "measurements" | "events" | "createdAt" | "updatedAt">) => void;
@@ -49,7 +56,7 @@ interface BatteryStore {
   updateSettings: (settings: Partial<AppSettings>) => void;
 
   // GitHub config
-  setGitHubConfig: (config: GitHubConfig) => void;
+  setGitHubConfig: (config: GitHubConfig, pin: string) => Promise<void>;
   removeGitHubConfig: () => void;
 
   // Sync
@@ -96,10 +103,12 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
   githubConfig: null,
   syncState: { status: "idle", lastSynced: null, error: null },
   initialized: false,
+  configState: null,
+  pin: null,
 
   initialize: async () => {
-    const config = loadGitHubConfig();
     const local = loadFromLocalStorage();
+    const cfgState = getConfigState();
 
     // Detect browser language on first launch (no saved settings)
     const hasStoredData = typeof window !== "undefined" && localStorage.getItem("battery-data");
@@ -111,11 +120,26 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     set({
       cells: local.cells,
       settings: local.settings,
-      githubConfig: config,
+      configState: cfgState,
       initialized: true,
     });
 
-    if (config) {
+    // If no config, no need for PIN
+    // If plaintext or encrypted, AppShell will show PinDialog
+  },
+
+  unlockWithPin: async (pin: string) => {
+    try {
+      const config = await loadGitHubConfigWithPin(pin);
+      if (!config) return false;
+
+      set({
+        githubConfig: config,
+        configState: "unlocked",
+        pin,
+      });
+
+      // Sync with GitHub
       try {
         set({ syncState: { status: "syncing", lastSynced: null, error: null } });
         const remote = await pullFromGitHub(config);
@@ -136,6 +160,10 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
           },
         });
       }
+
+      return true;
+    } catch {
+      return false;
     }
   },
 
@@ -305,9 +333,9 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     }
   },
 
-  setGitHubConfig: (config) => {
-    saveGitHubConfig(config);
-    set({ githubConfig: config });
+  setGitHubConfig: async (config, pin) => {
+    await saveGitHubConfig(config, pin);
+    set({ githubConfig: config, configState: "unlocked", pin });
   },
 
   removeGitHubConfig: () => {

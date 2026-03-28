@@ -1,10 +1,22 @@
 import type { BatteryData, GitHubConfig } from "./types";
 import { fetchData, saveData } from "./github";
 import { DEFAULT_SETTINGS, DATA_VERSION } from "./constants";
+import { encryptToken, decryptToken } from "./crypto";
+import type { EncryptedData } from "./crypto";
 
 const STORAGE_KEY = "battery-data";
 const GITHUB_CONFIG_KEY = "battery-github-config";
 const SHA_KEY = "battery-github-sha";
+
+interface StoredConfig {
+  owner: string;
+  repo: string;
+  filePath: string;
+  // Old format (plaintext)
+  token?: string;
+  // New format (encrypted)
+  encrypted?: EncryptedData;
+}
 
 function emptyData(): BatteryData {
   return {
@@ -33,19 +45,114 @@ export function saveToLocalStorage(data: BatteryData): void {
 
 // --- GitHub config ---
 
-export function loadGitHubConfig(): GitHubConfig | null {
+/**
+ * Check if there is a stored config (encrypted or plaintext).
+ * Returns null if no config, "plaintext" if old format, "encrypted" if new format.
+ */
+export function getConfigState(): null | "plaintext" | "encrypted" {
   if (typeof window === "undefined") return null;
   const raw = localStorage.getItem(GITHUB_CONFIG_KEY);
   if (!raw) return null;
   try {
-    return JSON.parse(raw);
+    const stored: StoredConfig = JSON.parse(raw);
+    if (stored.encrypted) return "encrypted";
+    if (stored.token) return "plaintext";
+    return null;
   } catch {
     return null;
   }
 }
 
-export function saveGitHubConfig(config: GitHubConfig): void {
-  localStorage.setItem(GITHUB_CONFIG_KEY, JSON.stringify(config));
+/**
+ * Load stored config metadata (owner, repo, filePath) without the token.
+ */
+export function loadConfigMeta(): { owner: string; repo: string; filePath: string } | null {
+  if (typeof window === "undefined") return null;
+  const raw = localStorage.getItem(GITHUB_CONFIG_KEY);
+  if (!raw) return null;
+  try {
+    const stored: StoredConfig = JSON.parse(raw);
+    if (stored.owner && stored.repo) {
+      return { owner: stored.owner, repo: stored.repo, filePath: stored.filePath };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Decrypt the stored config with a PIN. Returns null if decryption fails (wrong PIN).
+ */
+export async function loadGitHubConfigWithPin(pin: string): Promise<GitHubConfig | null> {
+  if (typeof window === "undefined") return null;
+  const raw = localStorage.getItem(GITHUB_CONFIG_KEY);
+  if (!raw) return null;
+  try {
+    const stored: StoredConfig = JSON.parse(raw);
+
+    // Old plaintext format — decrypt not needed, but migrate to encrypted
+    if (stored.token && !stored.encrypted) {
+      const config: GitHubConfig = {
+        token: stored.token,
+        owner: stored.owner,
+        repo: stored.repo,
+        filePath: stored.filePath,
+      };
+      // Migrate: save as encrypted
+      await saveGitHubConfig(config, pin);
+      return config;
+    }
+
+    // Encrypted format
+    if (stored.encrypted) {
+      const token = await decryptToken(stored.encrypted, pin);
+      return {
+        token,
+        owner: stored.owner,
+        repo: stored.repo,
+        filePath: stored.filePath,
+      };
+    }
+
+    return null;
+  } catch {
+    return null; // Wrong PIN or corrupted data
+  }
+}
+
+/**
+ * Legacy: load config without PIN (only works with old plaintext format).
+ */
+export function loadGitHubConfigLegacy(): GitHubConfig | null {
+  if (typeof window === "undefined") return null;
+  const raw = localStorage.getItem(GITHUB_CONFIG_KEY);
+  if (!raw) return null;
+  try {
+    const stored: StoredConfig = JSON.parse(raw);
+    if (stored.token) {
+      return {
+        token: stored.token,
+        owner: stored.owner,
+        repo: stored.repo,
+        filePath: stored.filePath,
+      };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export async function saveGitHubConfig(config: GitHubConfig, pin: string): Promise<void> {
+  const encrypted = await encryptToken(config.token, pin);
+  const stored: StoredConfig = {
+    owner: config.owner,
+    repo: config.repo,
+    filePath: config.filePath,
+    encrypted,
+  };
+  localStorage.setItem(GITHUB_CONFIG_KEY, JSON.stringify(stored));
 }
 
 export function clearGitHubConfig(): void {

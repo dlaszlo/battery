@@ -13,9 +13,13 @@ export function useSync() {
     }
   }, [initialized, initialize]);
 
+  const configState = useBatteryStore((s) => s.configState);
+
+  // Configured = either unlocked (PIN entered) or has some config (needs PIN)
+  // Only show onboarding if there is NO config at all
   return {
     initialized,
     syncState,
-    isConfigured: !!githubConfig,
+    isConfigured: !!githubConfig || configState === "plaintext" || configState === "encrypted",
   };
 }
