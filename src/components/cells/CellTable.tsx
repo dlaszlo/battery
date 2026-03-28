@@ -43,9 +43,9 @@ export default function CellTable() {
     return <span className="text-blue-600 ml-1 dark:text-blue-400">{sortDir === "asc" ? "↑" : "↓"}</span>;
   };
 
-  const statusOptions = [{ value: "", label: t("cells.all", lang) }, ...CELL_STATUSES.map((s) => ({ value: s, label: s }))];
-  const chemOptions = [{ value: "", label: t("cells.all", lang) }, ...CHEMISTRIES.map((c) => ({ value: c, label: c }))];
-  const ffOptions = [{ value: "", label: t("cells.all", lang) }, ...FORM_FACTORS.map((f) => ({ value: f, label: f }))];
+  const statusOptions = [{ value: "", label: `${t("table.status", lang)}: ${t("cells.all", lang)}` }, ...CELL_STATUSES.map((s) => ({ value: s, label: s }))];
+  const chemOptions = [{ value: "", label: `${t("table.chemistry", lang)}: ${t("cells.all", lang)}` }, ...CHEMISTRIES.map((c) => ({ value: c, label: c }))];
+  const ffOptions = [{ value: "", label: `${t("table.form", lang)}: ${t("cells.all", lang)}` }, ...FORM_FACTORS.map((f) => ({ value: f, label: f }))];
 
   return (
     <div className="space-y-4">
@@ -57,19 +57,16 @@ export default function CellTable() {
           onChange={(e) => setSearch(e.target.value)}
         />
         <Select
-          label={t("table.status", lang)}
           options={statusOptions}
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as CellStatus | "")}
         />
         <Select
-          label={t("table.chemistry", lang)}
           options={chemOptions}
           value={chemistryFilter}
           onChange={(e) => setChemistryFilter(e.target.value as Chemistry | "")}
         />
         <Select
-          label={t("table.form", lang)}
           options={ffOptions}
           value={formFactorFilter}
           onChange={(e) => setFormFactorFilter(e.target.value as FormFactor | "")}
