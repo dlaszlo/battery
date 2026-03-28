@@ -42,7 +42,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
           {...props}
         >
           {placeholder && (
-            <option value="">{placeholder}</option>
+            <option value="" disabled hidden>{placeholder}</option>
           )}
           {options.map((opt) => (
             <option key={opt.value} value={opt.value}>

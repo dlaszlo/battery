@@ -57,22 +57,22 @@ export default function CellTable() {
           onChange={(e) => setSearch(e.target.value)}
         />
         <Select
+          label={t("table.status", lang)}
           options={statusOptions}
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value as CellStatus | "")}
-          placeholder={t("table.status", lang)}
         />
         <Select
+          label={t("table.chemistry", lang)}
           options={chemOptions}
           value={chemistryFilter}
           onChange={(e) => setChemistryFilter(e.target.value as Chemistry | "")}
-          placeholder={t("table.chemistry", lang)}
         />
         <Select
+          label={t("table.form", lang)}
           options={ffOptions}
           value={formFactorFilter}
           onChange={(e) => setFormFactorFilter(e.target.value as FormFactor | "")}
-          placeholder={t("table.form", lang)}
         />
       </div>
 
