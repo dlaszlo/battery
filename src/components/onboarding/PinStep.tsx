@@ -44,19 +44,19 @@ export default function PinStep({ onNext, onBack }: PinStepProps) {
   return (
     <div>
       <div className="mb-6 flex justify-center">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-100">
-          <svg className="h-7 w-7 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-100 dark:bg-blue-900/50">
+          <svg className="h-7 w-7 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
           </svg>
         </div>
       </div>
 
-      <h2 className="mb-2 text-center text-xl font-bold text-gray-900">{t("pin.setupTitle", lang)}</h2>
-      <p className="mb-6 text-center text-sm text-gray-600 leading-relaxed">{t("pin.setupDesc", lang)}</p>
+      <h2 className="mb-2 text-center text-xl font-bold text-gray-900 dark:text-gray-100">{t("pin.setupTitle", lang)}</h2>
+      <p className="mb-6 text-center text-sm text-gray-600 dark:text-gray-400 leading-relaxed">{t("pin.setupDesc", lang)}</p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">PIN</label>
+          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">PIN</label>
           <input
             ref={inputRef}
             type="password"
@@ -65,14 +65,14 @@ export default function PinStep({ onNext, onBack }: PinStepProps) {
             maxLength={8}
             value={pin}
             onChange={(e) => setPin(e.target.value.replace(/\D/g, ""))}
-            className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-center text-2xl font-mono tracking-[0.5em] placeholder:text-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 text-center text-2xl font-mono tracking-[0.5em] text-gray-900 dark:text-gray-100 placeholder:text-gray-300 dark:placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="****"
             autoComplete="off"
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-sm font-medium text-gray-700">{t("pin.confirm", lang)}</label>
+          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{t("pin.confirm", lang)}</label>
           <input
             type="password"
             inputMode="numeric"
@@ -80,7 +80,7 @@ export default function PinStep({ onNext, onBack }: PinStepProps) {
             maxLength={8}
             value={confirmPin}
             onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, ""))}
-            className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-center text-2xl font-mono tracking-[0.5em] placeholder:text-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-3 text-center text-2xl font-mono tracking-[0.5em] text-gray-900 dark:text-gray-100 placeholder:text-gray-300 dark:placeholder:text-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="****"
             autoComplete="off"
           />

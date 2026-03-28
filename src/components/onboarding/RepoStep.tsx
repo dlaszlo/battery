@@ -19,14 +19,14 @@ export default function RepoStep({ data, onChange, onNext, onBack }: RepoStepPro
 
   return (
     <div>
-      <h2 className="mb-2 text-xl font-bold text-gray-900">{t("onboarding.repo.setupTitle", lang)}</h2>
-      <p className="mb-6 text-sm text-gray-600">
+      <h2 className="mb-2 text-xl font-bold text-gray-900 dark:text-gray-100">{t("onboarding.repo.setupTitle", lang)}</h2>
+      <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
         {t("onboarding.repo.setupDesc", lang)}
       </p>
 
-      <div className="mb-6 rounded-lg bg-blue-50 p-4">
-        <h3 className="mb-2 text-sm font-semibold text-blue-900">{t("onboarding.repo.stepsTitle", lang)}</h3>
-        <ol className="space-y-2 text-sm text-blue-800">
+      <div className="mb-6 rounded-lg bg-blue-50 dark:bg-blue-900/30 p-4">
+        <h3 className="mb-2 text-sm font-semibold text-blue-900 dark:text-blue-200">{t("onboarding.repo.stepsTitle", lang)}</h3>
+        <ol className="space-y-2 text-sm text-blue-800 dark:text-blue-300">
           <li className="flex gap-2">
             <span className="font-bold">1.</span>
             <span>
@@ -45,7 +45,7 @@ export default function RepoStep({ data, onChange, onNext, onBack }: RepoStepPro
           <li className="flex gap-2">
             <span className="font-bold">2.</span>
             <span>
-              Repository name: <code className="rounded bg-blue-100 px-1.5 py-0.5 font-mono text-xs">{data.repo}</code>
+              Repository name: <code className="rounded bg-blue-100 dark:bg-blue-800 px-1.5 py-0.5 font-mono text-xs">{data.repo}</code>
             </span>
           </li>
           <li className="flex gap-2">

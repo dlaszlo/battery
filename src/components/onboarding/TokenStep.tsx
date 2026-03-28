@@ -40,14 +40,14 @@ export default function TokenStep({ data, onChange, onNext, onBack }: TokenStepP
 
   return (
     <div>
-      <h2 className="mb-2 text-xl font-bold text-gray-900">{t("onboarding.token.title", lang)}</h2>
-      <p className="mb-6 text-sm text-gray-600">
+      <h2 className="mb-2 text-xl font-bold text-gray-900 dark:text-gray-100">{t("onboarding.token.title", lang)}</h2>
+      <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
         {t("onboarding.token.descFull", lang, { repo: data.repo })}
       </p>
 
-      <div className="mb-6 rounded-lg bg-amber-50 p-4">
-        <h3 className="mb-2 text-sm font-semibold text-amber-900">{t("onboarding.token.stepsTitle", lang)}</h3>
-        <ol className="space-y-2 text-sm text-amber-800">
+      <div className="mb-6 rounded-lg bg-amber-50 dark:bg-amber-900/30 p-4">
+        <h3 className="mb-2 text-sm font-semibold text-amber-900 dark:text-amber-200">{t("onboarding.token.stepsTitle", lang)}</h3>
+        <ol className="space-y-2 text-sm text-amber-800 dark:text-amber-300">
           <li className="flex gap-2">
             <span className="font-bold">1.</span>
             <span>
@@ -75,7 +75,7 @@ export default function TokenStep({ data, onChange, onNext, onBack }: TokenStepP
             <span className="font-bold">4.</span>
             <span>
               Repository access: <strong>Only select repositories</strong> &rarr;{" "}
-              <code className="rounded bg-amber-100 px-1.5 py-0.5 font-mono text-xs">{data.repo}</code>
+              <code className="rounded bg-amber-100 dark:bg-amber-800 px-1.5 py-0.5 font-mono text-xs">{data.repo}</code>
             </span>
           </li>
           <li className="flex gap-2">
@@ -117,7 +117,7 @@ export default function TokenStep({ data, onChange, onNext, onBack }: TokenStepP
               <button
                 type="button"
                 onClick={() => setShowToken(!showToken)}
-                className="absolute right-3 top-7 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-7 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
               >
                 {showToken ? (
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>

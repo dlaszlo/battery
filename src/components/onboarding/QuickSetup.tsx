@@ -61,8 +61,8 @@ export default function QuickSetup({ onBack }: QuickSetupProps) {
 
   return (
     <div>
-      <h2 className="mb-2 text-xl font-bold text-gray-900">{t("onboarding.quick.titleFull", lang)}</h2>
-      <p className="mb-6 text-sm text-gray-600">
+      <h2 className="mb-2 text-xl font-bold text-gray-900 dark:text-gray-100">{t("onboarding.quick.titleFull", lang)}</h2>
+      <p className="mb-6 text-sm text-gray-600 dark:text-gray-400">
         {t("onboarding.quick.descFull", lang, { repo })}
       </p>
 
@@ -88,9 +88,9 @@ export default function QuickSetup({ onBack }: QuickSetupProps) {
           error={error || undefined}
         />
 
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-3">
-          <p className="text-sm font-medium text-gray-700">{t("pin.setupTitle", lang)}</p>
-          <p className="text-xs text-gray-500">{t("pin.setupDescShort", lang)}</p>
+        <div className="rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 p-4 space-y-3">
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{t("pin.setupTitle", lang)}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400">{t("pin.setupDescShort", lang)}</p>
           <div className="grid gap-3 sm:grid-cols-2">
             <Input
               label="PIN"

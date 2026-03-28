@@ -41,9 +41,9 @@ export default function OnboardingWizard() {
 
   if (quickMode) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-white to-green-50 p-4">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 p-4">
         <div className="w-full max-w-lg">
-          <div className="rounded-2xl bg-white p-8 shadow-xl shadow-gray-200/50">
+          <div className="rounded-2xl bg-white dark:bg-gray-800 p-8 shadow-xl shadow-gray-200/50 dark:shadow-black/30">
             <QuickSetup onBack={() => setQuickMode(false)} />
           </div>
         </div>
@@ -52,7 +52,7 @@ export default function OnboardingWizard() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-white to-green-50 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 p-4">
       <div className="w-full max-w-lg">
         {/* Progress indicator */}
         <div className="mb-8 flex items-center justify-center gap-2">
@@ -65,7 +65,7 @@ export default function OnboardingWizard() {
                     ? "bg-green-500 text-white"
                     : i === step
                       ? "bg-blue-600 text-white"
-                      : "bg-gray-200 text-gray-500"
+                      : "bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
                   }
                 `}
               >
@@ -78,14 +78,14 @@ export default function OnboardingWizard() {
                 )}
               </div>
               {i < STEPS.length - 1 && (
-                <div className={`h-0.5 w-8 transition-colors ${i < step ? "bg-green-500" : "bg-gray-200"}`} />
+                <div className={`h-0.5 w-8 transition-colors ${i < step ? "bg-green-500" : "bg-gray-200 dark:bg-gray-700"}`} />
               )}
             </div>
           ))}
         </div>
 
         {/* Step content */}
-        <div className="rounded-2xl bg-white p-8 shadow-xl shadow-gray-200/50">
+        <div className="rounded-2xl bg-white dark:bg-gray-800 p-8 shadow-xl shadow-gray-200/50 dark:shadow-black/30">
           {step === 0 && (
             <WelcomeStep
               onNext={() => setStep(1)}
