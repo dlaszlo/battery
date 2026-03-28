@@ -2,7 +2,11 @@
 
 A free, open-source web application for tracking your battery cells — 18650, 21700, AA, AAA, and more. Record measurements, monitor capacity degradation over time, and automatically detect cells that should be retired.
 
-**Your data stays yours.** Everything is stored in your own private GitHub repository as a single JSON file. There is no backend, no account to create, no subscription. The app runs entirely in your browser.
+**Your data stays yours.** Everything is stored in your own private GitHub repository. There is no backend, no account to create, no subscription. The app runs entirely in your browser.
+
+**No data collection.** The app does not collect, store, or transmit any personal data. Your GitHub token is encrypted in your browser and only sent to the GitHub API. No analytics, no cookies, no tracking.
+
+**No warranty.** The app is provided as-is, free of charge. Use it at your own risk. See the [LICENSE](LICENSE) file for details.
 
 ## Live App
 
@@ -19,8 +23,8 @@ Battery Cell Tracker helps you keep a detailed inventory of all your rechargeabl
 For each cell, you can record:
 
 - **Identity** — brand, model, form factor (18650, 21700, AA, etc.), chemistry (Li-ion, LiFePO4, NiMH, etc.), cathode type (INR, ICR, IMR, etc.), contact type (flat top, button top, tabbed, etc.)
-- **Specifications** — nominal capacity, max discharge current, weight
-- **Purchase info** — where you bought it, when, and for how much
+- **Specifications** — nominal capacity, continuous/peak discharge current, weight
+- **Purchase info** — where you bought it, when, how much, and a purchase URL
 - **Current status** — new, used, salvaged, or scrapped
 - **Location** — which device the cell is currently in (you manage your own device list)
 - **Grouping** — organize cells into packs or groups
@@ -36,9 +40,21 @@ Each time you test a cell (e.g., with a LiitoKala Lii-700 or similar charger/ana
 - Test device used
 - Notes
 
+### Cell Profile Card
+
+Each cell has a profile card showing key stats at a glance: best measured capacity, average internal resistance, measurement count, and last measurement date. Capacity retention bars show health per discharge current.
+
 ### Capacity Trend Chart
 
-A line chart for each cell shows how its capacity has changed over time. A reference line marks the nominal capacity, and another marks the scrap threshold — so you can see at a glance how much life is left.
+A line chart for each cell shows how its capacity has changed over time, with **separate lines per discharge current** (color-coded). Filter pills let you show/hide individual currents. Reference lines mark the nominal capacity and scrap threshold.
+
+### Cell Comparison
+
+Compare cells side by side with a dedicated comparison page. Select multiple cells, view their specs and measurements in a table, and use the **best pair matching** algorithm to find cells with the closest capacity at the same discharge current — perfect for building balanced battery packs.
+
+### Cell Templates
+
+Save reusable datasheet specs (brand, model, form factor, chemistry, capacity, discharge currents, weight) as templates. When adding a new cell, select a template to pre-fill the datasheet fields. Templates can be archived (soft delete) and restored.
 
 ### Automatic Scrap Detection
 
@@ -54,7 +70,7 @@ Switch between light, dark, or system-based theme in Settings.
 
 ## How Does Data Storage Work?
 
-The app uses the **GitHub Contents API** to read and write a single `data.json` file in a private repository on your GitHub account. This means:
+The app uses the **GitHub Contents API** to read and write data files in a private repository on your GitHub account. Data is split across three JSON files: `cells.json`, `settings.json`, and `templates.json`. This means:
 
 - **Your data is version-controlled** — every save creates a Git commit, so you have full history
 - **Your data is private** — only you can access your repository
