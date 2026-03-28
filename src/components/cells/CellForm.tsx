@@ -31,12 +31,36 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
   const addCell = useBatteryStore((s) => s.addCell);
   const updateCell = useBatteryStore((s) => s.updateCell);
   const cells = useBatteryStore((s) => s.cells);
+  const templates = useBatteryStore((s) => s.templates);
   const settings = useBatteryStore((s) => s.settings);
   const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
 
   const { toast } = useToast();
   const isEdit = !!cell;
   const src = cell ?? defaults;
+  const activeTemplates = templates.filter((t) => !t.archived);
+
+  const [selectedTemplateId, setSelectedTemplateId] = useState(src?.templateId ?? "");
+
+  const applyTemplate = (templateId: string) => {
+    setSelectedTemplateId(templateId);
+    if (!templateId) return;
+    const tmpl = templates.find((t) => t.id === templateId);
+    if (!tmpl) return;
+    setForm((prev) => ({
+      ...prev,
+      brand: tmpl.brand,
+      model: tmpl.model ?? "",
+      formFactor: tmpl.formFactor,
+      chemistry: tmpl.chemistry,
+      cathodeType: tmpl.cathodeType ?? "",
+      contactType: tmpl.contactType ?? "",
+      nominalCapacity: tmpl.nominalCapacity.toString(),
+      continuousDischargeCurrent: tmpl.continuousDischargeCurrent?.toString() ?? "",
+      peakDischargeCurrent: tmpl.peakDischargeCurrent?.toString() ?? "",
+      weight: tmpl.weight?.toString() ?? "",
+    }));
+  };
 
   const [form, setForm] = useState({
     id: src?.id ?? "",
@@ -102,6 +126,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
 
     const cellData = {
       id: form.id.trim(),
+      templateId: selectedTemplateId || undefined,
       brand: form.brand.trim(),
       model: form.model.trim() || undefined,
       formFactor: form.formFactor as Cell["formFactor"],
@@ -139,8 +164,28 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
   const chemistryOptions = CHEMISTRIES.map((c) => ({ value: c, label: c }));
   const statusOptions = CELL_STATUSES.map((s) => ({ value: s, label: s }));
 
+  const templateOptions = [
+    { value: "", label: t("templates.noTemplate", lang) },
+    ...activeTemplates.map((tmpl) => ({
+      value: tmpl.id,
+      label: `${tmpl.name} (${tmpl.brand} ${tmpl.formFactor})`,
+    })),
+  ];
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Sablon választó — csak új cella hozzáadásnál */}
+      {!isEdit && activeTemplates.length > 0 && (
+        <div className="rounded-lg border border-blue-200 bg-blue-50/50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+          <Select
+            label={t("templates.selectTemplate", lang)}
+            options={templateOptions}
+            value={selectedTemplateId}
+            onChange={(e) => applyTemplate(e.target.value)}
+          />
+        </div>
+      )}
+
       {/* Alap adatok */}
       <fieldset>
         <legend className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">{t("form.basics", lang)}</legend>

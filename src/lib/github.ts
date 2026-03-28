@@ -1,4 +1,4 @@
-import type { BatteryData, GitHubConfig } from "./types";
+import type { GitHubConfig } from "./types";
 
 interface GitHubFileResponse {
   sha: string;
@@ -54,10 +54,13 @@ function headers(token: string): HeadersInit {
   };
 }
 
-export async function fetchData(
-  config: GitHubConfig
-): Promise<{ data: BatteryData; sha: string } | null> {
-  const url = `${API_BASE}/repos/${config.owner}/${config.repo}/contents/${config.filePath}`;
+// Generic file operations
+
+export async function fetchFile<T>(
+  config: GitHubConfig,
+  filePath: string
+): Promise<{ data: T; sha: string } | null> {
+  const url = `${API_BASE}/repos/${config.owner}/${config.repo}/contents/${filePath}`;
 
   const response = await fetch(url, { headers: headers(config.token) });
 
@@ -73,22 +76,23 @@ export async function fetchData(
 
   const file: GitHubFileResponse = await response.json();
   const decoded = base64ToUtf8(file.content);
-  const data: BatteryData = JSON.parse(decoded);
+  const data: T = JSON.parse(decoded);
 
   return { data, sha: file.sha };
 }
 
-export async function saveData(
+export async function saveFile<T>(
   config: GitHubConfig,
-  data: BatteryData,
+  filePath: string,
+  data: T,
   sha: string | null,
   message?: string
 ): Promise<string> {
-  const url = `${API_BASE}/repos/${config.owner}/${config.repo}/contents/${config.filePath}`;
+  const url = `${API_BASE}/repos/${config.owner}/${config.repo}/contents/${filePath}`;
   const content = utf8ToBase64(JSON.stringify(data, null, 2));
 
   const body: Record<string, string> = {
-    message: message || `Update battery data (${new Date().toISOString()})`,
+    message: message || `Update ${filePath} (${new Date().toISOString()})`,
     content,
   };
 
@@ -112,6 +116,46 @@ export async function saveData(
 
   const result = await response.json();
   return result.content.sha;
+}
+
+export async function deleteFile(
+  config: GitHubConfig,
+  filePath: string,
+  sha: string,
+  message?: string
+): Promise<void> {
+  const url = `${API_BASE}/repos/${config.owner}/${config.repo}/contents/${filePath}`;
+
+  const response = await fetch(url, {
+    method: "DELETE",
+    headers: headers(config.token),
+    body: JSON.stringify({
+      message: message || `Delete ${filePath}`,
+      sha,
+    }),
+  });
+
+  if (!response.ok && response.status !== 404) {
+    throw new Error(sanitizeApiError(response.status));
+  }
+}
+
+// Legacy compatibility wrappers
+import type { BatteryData } from "./types";
+
+export async function fetchData(
+  config: GitHubConfig
+): Promise<{ data: BatteryData; sha: string } | null> {
+  return fetchFile<BatteryData>(config, config.filePath);
+}
+
+export async function saveData(
+  config: GitHubConfig,
+  data: BatteryData,
+  sha: string | null,
+  message?: string
+): Promise<string> {
+  return saveFile(config, config.filePath, data, sha, message);
 }
 
 export async function validateToken(

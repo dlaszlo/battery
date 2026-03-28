@@ -530,6 +530,29 @@ const translations = {
   "help.disclaimerPrivacy": { hu: "Az alkalmazás nem gyűjt semmilyen felhasználói adatot. Minden adat kizárólag a te saját privát GitHub repódban tárolódik. A GitHub token titkosítva van (AES-256), a PIN kód kizárólag a böngésződben marad — semmilyen adat nem kerül hozzánk vagy harmadik félhez. Ez egy statikus weboldal, szerver oldali feldolgozás nélkül.", en: "This application does not collect any user data. All data is stored exclusively in your own private GitHub repository. Your GitHub token is encrypted (AES-256) and your PIN never leaves your browser — no data is sent to us or any third party. This is a static website with no server-side processing." },
   "help.disclaimerLiability": { hu: "Az alkalmazás használata saját felelősségre történik. Az akkumulátor cellák tárolása, kezelése és ártalmatlanítása a felhasználó felelőssége. A fejlesztők semmilyen felelősséget nem vállalnak az alkalmazás használatából eredő esetleges károkért.", en: "Use of this application is at your own risk. The storage, handling, and disposal of battery cells is the user's responsibility. The developers accept no liability for any damages arising from the use of this application." },
   "help.disclaimerLicense": { hu: "Az alkalmazás MIT licenc alatt áll — részletekért lásd a LICENSE fájlt a projekt repójában.", en: "This application is licensed under the MIT License — see the LICENSE file in the project repository for details." },
+
+  // Templates
+  "nav.templates": { hu: "Sablonok", en: "Templates" },
+  "templates.title": { hu: "Cella sablonok", en: "Cell Templates" },
+  "templates.subtitle": { hu: "Adatlap adatok előre definiálva — új cella hozzáadásakor egy kattintással kitölthető", en: "Pre-defined datasheet specs — fill in new cell data with a single click" },
+  "templates.add": { hu: "+ Új sablon", en: "+ New Template" },
+  "templates.edit": { hu: "Szerkesztés", en: "Edit" },
+  "templates.archive": { hu: "Archiválás", en: "Archive" },
+  "templates.archived": { hu: "Archivált", en: "Archived" },
+  "templates.restore": { hu: "Visszaállítás", en: "Restore" },
+  "templates.showArchived": { hu: "Archivált sablonok mutatása", en: "Show archived templates" },
+  "templates.hideArchived": { hu: "Archivált sablonok elrejtése", en: "Hide archived templates" },
+  "templates.noTemplates": { hu: "Még nincs sablon. Hozz létre egyet, hogy az új cellák adatait gyorsabban töltsd ki!", en: "No templates yet. Create one to quickly fill in new cell data!" },
+  "templates.name": { hu: "Sablon neve", en: "Template Name" },
+  "templates.namePlaceholder": { hu: "pl. Sofrin 18650 3000mAh", en: "e.g. Sofrin 18650 3000mAh" },
+  "templates.save": { hu: "Mentés", en: "Save" },
+  "templates.cancel": { hu: "Mégse", en: "Cancel" },
+  "templates.saved": { hu: "Sablon mentve", en: "Template saved" },
+  "templates.archiveConfirm": { hu: "Sablon archiválva", en: "Template archived" },
+  "templates.restored": { hu: "Sablon visszaállítva", en: "Template restored" },
+  "templates.selectTemplate": { hu: "Válassz sablont...", en: "Select template..." },
+  "templates.noTemplate": { hu: "Nincs sablon (kézi kitöltés)", en: "No template (manual entry)" },
+  "templates.saveAsTemplate": { hu: "Mentés sablonként is", en: "Also save as template" },
 } as const;
 
 export type TranslationKey = keyof typeof translations;

@@ -4,6 +4,7 @@ import type {
   Cell,
   CellEvent,
   CellEventType,
+  CellTemplate,
   Measurement,
   AppSettings,
   BatteryData,
@@ -53,6 +54,7 @@ interface BatteryStore {
   // State
   cells: Cell[];
   settings: AppSettings;
+  templates: CellTemplate[];
   githubConfig: GitHubConfig | null;
   syncState: SyncState;
   initialized: boolean;
@@ -72,6 +74,12 @@ interface BatteryStore {
   // Measurement CRUD
   addMeasurement: (cellId: string, measurement: Omit<Measurement, "id">) => void;
   deleteMeasurement: (cellId: string, measurementId: string) => void;
+
+  // Template CRUD
+  addTemplate: (template: Omit<CellTemplate, "id" | "createdAt" | "updatedAt">) => void;
+  updateTemplate: (id: string, updates: Partial<CellTemplate>) => void;
+  archiveTemplate: (id: string) => void;
+  getTemplate: (id: string) => CellTemplate | undefined;
 
   // Settings
   updateSettings: (settings: Partial<AppSettings>) => void;
@@ -99,12 +107,11 @@ function createEvent(type: CellEventType, description: string): CellEvent {
 }
 
 function persist(store: BatteryStore) {
-  const data: BatteryData = {
-    version: DATA_VERSION,
+  saveToLocalStorage({
     settings: store.settings,
     cells: store.cells,
-  };
-  saveToLocalStorage(data);
+    templates: store.templates,
+  });
 }
 
 let syncTimer: ReturnType<typeof setTimeout> | null = null;
@@ -121,6 +128,7 @@ function debouncedSync(syncFn: () => Promise<void>) {
 export const useBatteryStore = create<BatteryStore>((set, get) => ({
   cells: [],
   settings: { ...DEFAULT_SETTINGS },
+  templates: [],
   githubConfig: null,
   syncState: { status: "idle", lastSynced: null, error: null },
   initialized: false,
@@ -142,6 +150,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
       set({
         cells: local.cells,
         settings: local.settings,
+        templates: local.templates,
         initialized: true,
       });
     } else {
@@ -149,6 +158,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
       set({
         cells: local.cells,
         settings: local.settings,
+        templates: local.templates,
         configState: cfgState,
         initialized: true,
       });
@@ -156,7 +166,6 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
   },
 
   unlockWithPin: async (pin: string) => {
-    // Check lockout delay
     const delay = getPinLockoutDelay();
     if (delay > 0) {
       await new Promise((r) => setTimeout(r, delay));
@@ -165,17 +174,14 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     try {
       const config = await loadGitHubConfigWithPin(pin);
       if (!config) {
-        // Wrong PIN — record failed attempt
         const result = recordFailedPinAttempt();
         if (result.wiped) {
-          // Config wiped — force re-onboarding
           set({ configState: null, githubConfig: null });
           return "wiped";
         }
         return false;
       }
 
-      // Success — reset attempts
       resetPinAttempts();
 
       set({
@@ -190,6 +196,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
         set({
           cells: remote.cells,
           settings: remote.settings,
+          templates: remote.templates,
           syncState: { status: "idle", lastSynced: nowISO(), error: null },
         });
       } catch (error) {
@@ -374,6 +381,65 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     }
   },
 
+  // Template CRUD
+
+  addTemplate: (templateData) => {
+    const now = nowISO();
+    const template: CellTemplate = {
+      ...templateData,
+      id: uuidv4(),
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    set((state) => {
+      const newState = { templates: [...state.templates, template] };
+      persist({ ...get(), ...newState });
+      return newState;
+    });
+
+    const store = get();
+    if (store.githubConfig) {
+      debouncedSync(() => store.syncWithGitHub());
+    }
+  },
+
+  updateTemplate: (id, updates) => {
+    set((state) => {
+      const newTemplates = state.templates.map((t) =>
+        t.id === id ? { ...t, ...updates, updatedAt: nowISO() } : t
+      );
+      const newState = { templates: newTemplates };
+      persist({ ...get(), ...newState });
+      return newState;
+    });
+
+    const store = get();
+    if (store.githubConfig) {
+      debouncedSync(() => store.syncWithGitHub());
+    }
+  },
+
+  archiveTemplate: (id) => {
+    set((state) => {
+      const newTemplates = state.templates.map((t) =>
+        t.id === id ? { ...t, archived: true, updatedAt: nowISO() } : t
+      );
+      const newState = { templates: newTemplates };
+      persist({ ...get(), ...newState });
+      return newState;
+    });
+
+    const store = get();
+    if (store.githubConfig) {
+      debouncedSync(() => store.syncWithGitHub());
+    }
+  },
+
+  getTemplate: (id) => {
+    return get().templates.find((t) => t.id === id);
+  },
+
   updateSettings: (updates) => {
     set((state) => {
       const newSettings = { ...state.settings, ...updates };
@@ -399,6 +465,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
       set({
         cells: remote.cells,
         settings: remote.settings,
+        templates: remote.templates,
         syncState: { status: "idle", lastSynced: nowISO(), error: null },
       });
     } catch (error) {
@@ -428,7 +495,11 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     set({ syncState: { status: "syncing", lastSynced: get().syncState.lastSynced, error: null } });
 
     try {
-      const data = get().exportData();
+      const data = {
+        cells: get().cells,
+        settings: get().settings,
+        templates: get().templates,
+      };
       await pushToGitHub(githubConfig, data);
       set({ syncState: { status: "idle", lastSynced: nowISO(), error: null } });
     } catch (error) {
@@ -450,7 +521,11 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     set({ syncState: { status: "syncing", lastSynced: get().syncState.lastSynced, error: null } });
 
     try {
-      const data = get().exportData();
+      const data = {
+        cells: get().cells,
+        settings: get().settings,
+        templates: get().templates,
+      };
       await forcePushToGitHub(githubConfig, data);
       set({ syncState: { status: "idle", lastSynced: nowISO(), error: null } });
     } catch (error) {
@@ -469,8 +544,13 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     set({
       cells: data.cells,
       settings: data.settings,
+      templates: data.templates || [],
     });
-    saveToLocalStorage(data);
+    saveToLocalStorage({
+      cells: data.cells,
+      settings: data.settings,
+      templates: data.templates || [],
+    });
 
     const store = get();
     if (store.githubConfig) {
@@ -482,5 +562,6 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     version: DATA_VERSION,
     settings: get().settings,
     cells: get().cells,
+    templates: get().templates,
   }),
 }));

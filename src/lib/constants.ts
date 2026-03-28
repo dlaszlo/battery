@@ -84,6 +84,11 @@ export const DEFAULT_SETTINGS: AppSettings = {
 export const DEFAULT_GITHUB_REPO = "battery-cell-data";
 export const DEFAULT_GITHUB_FILE_PATH = "data.json";
 
+// Multi-file paths
+export const CELLS_FILE_PATH = "cells.json";
+export const SETTINGS_FILE_PATH = "settings.json";
+export const TEMPLATES_FILE_PATH = "templates.json";
+
 export const DATA_VERSION = 1;
 
 export const STATUS_COLORS: Record<CellStatus, string> = {

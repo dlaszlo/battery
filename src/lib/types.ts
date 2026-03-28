@@ -40,8 +40,27 @@ export interface CellEvent {
   description: string;
 }
 
+export interface CellTemplate {
+  id: string;
+  name: string;
+  brand: string;
+  model?: string;
+  formFactor: FormFactor;
+  chemistry: Chemistry;
+  cathodeType?: string;
+  contactType?: string;
+  nominalCapacity: number;
+  continuousDischargeCurrent?: number;
+  peakDischargeCurrent?: number;
+  weight?: number;
+  archived?: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Cell {
   id: string;
+  templateId?: string;
   brand: string;
   model?: string;
   formFactor: FormFactor;
@@ -93,6 +112,22 @@ export interface BatteryData {
   version: number;
   settings: AppSettings;
   cells: Cell[];
+  templates?: CellTemplate[];
+}
+
+export interface CellsFile {
+  version: number;
+  cells: Cell[];
+}
+
+export interface SettingsFile {
+  version: number;
+  settings: AppSettings;
+}
+
+export interface TemplatesFile {
+  version: number;
+  templates: CellTemplate[];
 }
 
 export interface SyncState {
