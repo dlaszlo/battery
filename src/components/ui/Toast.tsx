@@ -8,10 +8,11 @@ interface Toast {
   id: number;
   message: string;
   type: ToastType;
+  duration: number;
 }
 
 interface ToastContextValue {
-  toast: (message: string, type?: ToastType) => void;
+  toast: (message: string, type?: ToastType, duration?: number) => void;
 }
 
 const ToastContext = createContext<ToastContextValue>({ toast: () => {} });
@@ -25,9 +26,9 @@ let nextId = 0;
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const toast = useCallback((message: string, type: ToastType = "success") => {
+  const toast = useCallback((message: string, type: ToastType = "success", duration: number = 3000) => {
     const id = nextId++;
-    setToasts((prev) => [...prev, { id, message, type }]);
+    setToasts((prev) => [...prev, { id, message, type, duration }]);
   }, []);
 
   const remove = useCallback((id: number) => {
@@ -48,9 +49,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 
 function ToastItem({ toast, onRemove }: { toast: Toast; onRemove: (id: number) => void }) {
   useEffect(() => {
-    const timer = setTimeout(() => onRemove(toast.id), 3000);
+    const timer = setTimeout(() => onRemove(toast.id), toast.duration);
     return () => clearTimeout(timer);
-  }, [toast.id, onRemove]);
+  }, [toast.id, toast.duration, onRemove]);
 
   const styles: Record<ToastType, string> = {
     success: "bg-green-600 dark:bg-green-700",

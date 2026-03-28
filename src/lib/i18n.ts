@@ -556,6 +556,22 @@ const translations = {
   "templates.selectTemplate": { hu: "Válassz sablont...", en: "Select template..." },
   "templates.noTemplate": { hu: "Nincs sablon (kézi kitöltés)", en: "No template (manual entry)" },
   "templates.saveAsTemplate": { hu: "Mentés sablonként is", en: "Also save as template" },
+
+  // Sync indicator
+  "sync.saved": { hu: "Mentve", en: "Saved" },
+  "sync.unsaved": { hu: "Mentetlen", en: "Unsaved" },
+  "sync.syncing": { hu: "Szinkronizálás...", en: "Syncing..." },
+  "sync.error": { hu: "Hiba", en: "Error" },
+  "sync.conflict": { hu: "Ütközés", en: "Conflict" },
+  "sync.clickRetry": { hu: "Kattints az újrapróbáláshoz", en: "Click to retry" },
+  "sync.clickOverwrite": { hu: "Kattints a felülíráshoz", en: "Click to overwrite" },
+  "sync.retrying": { hu: "Újrapróbálás...", en: "Retrying..." },
+  "sync.syncedToast": { hu: "Szinkronizálva a GitHub-bal", en: "Synced with GitHub" },
+  "sync.errorToast": { hu: "Szinkronizációs hiba", en: "Sync error" },
+  "sync.conflictToast": { hu: "Ütközés! Kattints a szinkron ikonra.", en: "Conflict! Click sync icon." },
+  "sync.timeAgo.justNow": { hu: "most", en: "just now" },
+  "sync.timeAgo.minutesAgo": { hu: "{n} perce", en: "{n}m ago" },
+  "sync.timeAgo.hoursAgo": { hu: "{n} órája", en: "{n}h ago" },
 } as const;
 
 export type TranslationKey = keyof typeof translations;

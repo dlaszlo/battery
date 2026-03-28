@@ -31,7 +31,8 @@ export type CellEventType =
   | "device_changed"
   | "measurement_added"
   | "measurement_deleted"
-  | "auto_scrapped";
+  | "auto_scrapped"
+  | "deleted";
 
 export interface CellEvent {
   id: string;
@@ -41,6 +42,7 @@ export interface CellEvent {
 }
 
 export interface CellTemplate {
+  internalId?: string;
   id: string;
   name: string;
   brand: string;
@@ -59,6 +61,7 @@ export interface CellTemplate {
 }
 
 export interface Cell {
+  internalId: string;
   id: string;
   templateId?: string;
   brand: string;
@@ -86,6 +89,7 @@ export interface Cell {
   events: CellEvent[];
   createdAt: string;
   updatedAt: string;
+  deletedAt?: string;
 }
 
 export interface GitHubConfig {
@@ -135,4 +139,6 @@ export interface SyncState {
   status: "idle" | "syncing" | "error" | "conflict";
   lastSynced: string | null;
   error: string | null;
+  pendingChanges: boolean;
+  retryCount: number;
 }

@@ -9,8 +9,9 @@ import { formatCapacity, formatDate, capacityPercent, formatResistance } from "@
 import type { Cell, Language } from "@/lib/types";
 
 export default function ComparePage() {
-  const cells = useBatteryStore((s) => s.cells);
+  const allCells = useBatteryStore((s) => s.cells);
   const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
+  const cells = useMemo(() => allCells.filter((c) => !c.deletedAt), [allCells]);
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [search, setSearch] = useState("");

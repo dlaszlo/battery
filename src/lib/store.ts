@@ -66,7 +66,7 @@ interface BatteryStore {
   lockSession: () => void;
 
   // Cell CRUD
-  addCell: (cell: Omit<Cell, "measurements" | "events" | "createdAt" | "updatedAt">) => void;
+  addCell: (cell: Omit<Cell, "internalId" | "measurements" | "events" | "createdAt" | "updatedAt">) => void;
   updateCell: (id: string, updates: Partial<Cell>) => void;
   deleteCell: (id: string) => void;
   getCell: (id: string) => Cell | undefined;
@@ -76,7 +76,7 @@ interface BatteryStore {
   deleteMeasurement: (cellId: string, measurementId: string) => void;
 
   // Template CRUD
-  addTemplate: (template: Omit<CellTemplate, "id" | "createdAt" | "updatedAt">) => void;
+  addTemplate: (template: Omit<CellTemplate, "internalId" | "id" | "createdAt" | "updatedAt">) => void;
   updateTemplate: (id: string, updates: Partial<CellTemplate>) => void;
   archiveTemplate: (id: string) => void;
   getTemplate: (id: string) => CellTemplate | undefined;
@@ -114,8 +114,21 @@ function persist(store: BatteryStore) {
   });
 }
 
+function markPending(set: (fn: (state: BatteryStore) => Partial<BatteryStore>) => void) {
+  changeCounter++;
+  set((state) => ({
+    syncState: { ...state.syncState, pendingChanges: true },
+  }));
+}
+
 let syncTimer: ReturnType<typeof setTimeout> | null = null;
 const SYNC_DEBOUNCE_MS = 3000;
+
+// Change counter: incremented on every mutation, captured before sync starts.
+// If counter differs after sync completes → new changes happened during sync → keep pendingChanges true.
+let changeCounter = 0;
+let syncInProgress = false;
+let resyncRequested = false;
 
 function debouncedSync(syncFn: () => Promise<void>) {
   if (syncTimer) clearTimeout(syncTimer);
@@ -130,7 +143,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
   settings: { ...DEFAULT_SETTINGS },
   templates: [],
   githubConfig: null,
-  syncState: { status: "idle", lastSynced: null, error: null },
+  syncState: { status: "idle", lastSynced: null, error: null, pendingChanges: false, retryCount: 0 },
   initialized: false,
   configState: null,
 
@@ -191,13 +204,13 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
 
       // Sync with GitHub
       try {
-        set({ syncState: { status: "syncing", lastSynced: null, error: null } });
+        set({ syncState: { status: "syncing", lastSynced: null, error: null, pendingChanges: false, retryCount: 0 } });
         const remote = await pullFromGitHub(config);
         set({
           cells: remote.cells,
           settings: remote.settings,
           templates: remote.templates,
-          syncState: { status: "idle", lastSynced: nowISO(), error: null },
+          syncState: { status: "idle", lastSynced: nowISO(), error: null, pendingChanges: false, retryCount: 0 },
         });
       } catch (error) {
         const code = error instanceof Error ? error.message : "";
@@ -206,6 +219,8 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
             status: "error",
             lastSynced: null,
             error: friendlyError(code),
+            pendingChanges: false,
+            retryCount: 0,
           },
         });
       }
@@ -225,7 +240,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     set({
       githubConfig: null,
       configState: getConfigState(),
-      syncState: { status: "idle", lastSynced: null, error: null },
+      syncState: { status: "idle", lastSynced: null, error: null, pendingChanges: false, retryCount: 0 },
     });
   },
 
@@ -233,6 +248,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     const now = nowISO();
     const cell: Cell = {
       ...cellData,
+      internalId: uuidv4(),
       measurements: [],
       events: [createEvent("created", "Cella létrehozva")],
       createdAt: now,
@@ -245,9 +261,9 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
       return newState;
     });
 
-    const store = get();
-    if (store.githubConfig) {
-      debouncedSync(() => store.syncWithGitHub());
+    if (get().githubConfig) {
+      markPending(set);
+      debouncedSync(() => get().syncWithGitHub());
     }
   },
 
@@ -282,22 +298,32 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
       return newState;
     });
 
-    const store = get();
-    if (store.githubConfig) {
-      debouncedSync(() => store.syncWithGitHub());
+    if (get().githubConfig) {
+      markPending(set);
+      debouncedSync(() => get().syncWithGitHub());
     }
   },
 
   deleteCell: (id) => {
     set((state) => {
-      const newState = { cells: state.cells.filter((c) => c.id !== id) };
+      const now = nowISO();
+      const newCells = state.cells.map((c) => {
+        if (c.id !== id || c.deletedAt) return c;
+        return {
+          ...c,
+          deletedAt: now,
+          updatedAt: now,
+          events: [...(c.events || []), createEvent("deleted", "Cella törölve")],
+        };
+      });
+      const newState = { cells: newCells };
       persist({ ...get(), ...newState });
       return newState;
     });
 
-    const store = get();
-    if (store.githubConfig) {
-      debouncedSync(() => store.syncWithGitHub());
+    if (get().githubConfig) {
+      markPending(set);
+      debouncedSync(() => get().syncWithGitHub());
     }
   },
 
@@ -349,9 +375,9 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
       return newState;
     });
 
-    const store = get();
-    if (store.githubConfig) {
-      debouncedSync(() => store.syncWithGitHub());
+    if (get().githubConfig) {
+      markPending(set);
+      debouncedSync(() => get().syncWithGitHub());
     }
   },
 
@@ -375,9 +401,9 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
       return newState;
     });
 
-    const store = get();
-    if (store.githubConfig) {
-      debouncedSync(() => store.syncWithGitHub());
+    if (get().githubConfig) {
+      markPending(set);
+      debouncedSync(() => get().syncWithGitHub());
     }
   },
 
@@ -387,6 +413,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     const now = nowISO();
     const template: CellTemplate = {
       ...templateData,
+      internalId: uuidv4(),
       id: uuidv4(),
       createdAt: now,
       updatedAt: now,
@@ -398,9 +425,9 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
       return newState;
     });
 
-    const store = get();
-    if (store.githubConfig) {
-      debouncedSync(() => store.syncWithGitHub());
+    if (get().githubConfig) {
+      markPending(set);
+      debouncedSync(() => get().syncWithGitHub());
     }
   },
 
@@ -414,9 +441,9 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
       return newState;
     });
 
-    const store = get();
-    if (store.githubConfig) {
-      debouncedSync(() => store.syncWithGitHub());
+    if (get().githubConfig) {
+      markPending(set);
+      debouncedSync(() => get().syncWithGitHub());
     }
   },
 
@@ -430,9 +457,9 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
       return newState;
     });
 
-    const store = get();
-    if (store.githubConfig) {
-      debouncedSync(() => store.syncWithGitHub());
+    if (get().githubConfig) {
+      markPending(set);
+      debouncedSync(() => get().syncWithGitHub());
     }
   },
 
@@ -448,9 +475,9 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
       return newState;
     });
 
-    const store = get();
-    if (store.githubConfig) {
-      debouncedSync(() => store.syncWithGitHub());
+    if (get().githubConfig) {
+      markPending(set);
+      debouncedSync(() => get().syncWithGitHub());
     }
   },
 
@@ -460,13 +487,13 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
 
     // Initial sync with GitHub after config setup
     try {
-      set({ syncState: { status: "syncing", lastSynced: null, error: null } });
+      set({ syncState: { status: "syncing", lastSynced: null, error: null, pendingChanges: false, retryCount: 0 } });
       const remote = await pullFromGitHub(config);
       set({
         cells: remote.cells,
         settings: remote.settings,
         templates: remote.templates,
-        syncState: { status: "idle", lastSynced: nowISO(), error: null },
+        syncState: { status: "idle", lastSynced: nowISO(), error: null, pendingChanges: false, retryCount: 0 },
       });
     } catch (error) {
       const code = error instanceof Error ? error.message : "";
@@ -475,6 +502,8 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
           status: "error",
           lastSynced: null,
           error: friendlyError(code),
+          pendingChanges: false,
+          retryCount: 0,
         },
       });
     }
@@ -484,7 +513,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     clearGitHubConfig();
     set({
       githubConfig: null,
-      syncState: { status: "idle", lastSynced: null, error: null },
+      syncState: { status: "idle", lastSynced: null, error: null, pendingChanges: false, retryCount: 0 },
     });
   },
 
@@ -492,7 +521,18 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     const { githubConfig } = get();
     if (!githubConfig) return;
 
-    set({ syncState: { status: "syncing", lastSynced: get().syncState.lastSynced, error: null } });
+    // Guard: if a sync is already in progress, flag re-sync needed and return
+    if (syncInProgress) {
+      resyncRequested = true;
+      return;
+    }
+
+    syncInProgress = true;
+    resyncRequested = false;
+    const counterAtStart = changeCounter;
+
+    const prevSyncState = get().syncState;
+    set({ syncState: { ...prevSyncState, status: "syncing", error: null } });
 
     try {
       const data = {
@@ -500,17 +540,55 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
         settings: get().settings,
         templates: get().templates,
       };
-      await pushToGitHub(githubConfig, data);
-      set({ syncState: { status: "idle", lastSynced: nowISO(), error: null } });
-    } catch (error) {
-      const code = error instanceof Error ? error.message : "";
+      const merged = await pushToGitHub(githubConfig, data);
+
+      // Apply merge result: remote may have had cells/templates we didn't have locally
+      const stillPending = changeCounter !== counterAtStart;
       set({
-        syncState: {
-          status: code === "CONFLICT" ? "conflict" : "error",
-          lastSynced: get().syncState.lastSynced,
-          error: friendlyError(code),
-        },
+        cells: stillPending ? get().cells : merged.cells,
+        templates: stillPending ? get().templates : merged.templates,
+        syncState: { status: "idle", lastSynced: nowISO(), error: null, pendingChanges: stillPending, retryCount: 0 },
       });
+      if (!stillPending) {
+        saveToLocalStorage({ cells: merged.cells, settings: merged.settings, templates: merged.templates });
+      }
+
+      syncInProgress = false;
+
+      // If new changes came in during sync, schedule another sync
+      if (stillPending || resyncRequested) {
+        resyncRequested = false;
+        debouncedSync(() => get().syncWithGitHub());
+      }
+    } catch (error) {
+      syncInProgress = false;
+      const code = error instanceof Error ? error.message : "";
+      const currentRetry = get().syncState.retryCount;
+      const isRetryable = !["TOKEN_EXPIRED", "REPO_NOT_FOUND", "VALIDATION_ERROR"].includes(code);
+
+      if (isRetryable && currentRetry < 3) {
+        set({
+          syncState: {
+            status: "error",
+            lastSynced: prevSyncState.lastSynced,
+            error: friendlyError(code),
+            pendingChanges: true,
+            retryCount: currentRetry + 1,
+          },
+        });
+        // Auto-retry with exponential backoff
+        setTimeout(() => get().syncWithGitHub(), 2000 * Math.pow(2, currentRetry));
+      } else {
+        set({
+          syncState: {
+            status: code === "CONFLICT" ? "conflict" : "error",
+            lastSynced: prevSyncState.lastSynced,
+            error: friendlyError(code),
+            pendingChanges: true,
+            retryCount: 0,
+          },
+        });
+      }
     }
   },
 
@@ -518,7 +596,15 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     const { githubConfig } = get();
     if (!githubConfig) return;
 
-    set({ syncState: { status: "syncing", lastSynced: get().syncState.lastSynced, error: null } });
+    // Force sync waits if another sync is running, then runs
+    if (syncInProgress) {
+      resyncRequested = false; // force takes priority
+    }
+    syncInProgress = true;
+    const counterAtStart = changeCounter;
+
+    const prevSyncState = get().syncState;
+    set({ syncState: { ...prevSyncState, status: "syncing", error: null } });
 
     try {
       const data = {
@@ -527,14 +613,24 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
         templates: get().templates,
       };
       await forcePushToGitHub(githubConfig, data);
-      set({ syncState: { status: "idle", lastSynced: nowISO(), error: null } });
+      const stillPending = changeCounter !== counterAtStart;
+      set({ syncState: { status: "idle", lastSynced: nowISO(), error: null, pendingChanges: stillPending, retryCount: 0 } });
+      syncInProgress = false;
+
+      if (stillPending || resyncRequested) {
+        resyncRequested = false;
+        debouncedSync(() => get().syncWithGitHub());
+      }
     } catch (error) {
+      syncInProgress = false;
       const code = error instanceof Error ? error.message : "";
       set({
         syncState: {
           status: "error",
-          lastSynced: get().syncState.lastSynced,
+          lastSynced: prevSyncState.lastSynced,
           error: friendlyError(code),
+          pendingChanges: true,
+          retryCount: 0,
         },
       });
     }
@@ -552,16 +648,16 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
       templates: data.templates || [],
     });
 
-    const store = get();
-    if (store.githubConfig) {
-      debouncedSync(() => store.syncWithGitHub());
+    if (get().githubConfig) {
+      markPending(set);
+      debouncedSync(() => get().syncWithGitHub());
     }
   },
 
   exportData: () => ({
     version: DATA_VERSION,
     settings: get().settings,
-    cells: get().cells,
+    cells: get().cells.filter((c) => !c.deletedAt),
     templates: get().templates,
   }),
 }));

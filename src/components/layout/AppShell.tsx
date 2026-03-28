@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode, useState, useEffect, useCallback, useRef } from "react";
-import { useSync } from "@/hooks/useSync";
+import { useSync, useSyncToasts } from "@/hooks/useSync";
 import { ToastProvider } from "@/components/ui/Toast";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
@@ -187,6 +187,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
   return (
     <ToastProvider>
       <ThemeProvider>
+        <SyncToastWatcher />
         <div className="flex min-h-screen flex-col bg-gray-50 dark:bg-gray-900">
           <Navbar />
           <main className="flex-1">
@@ -197,4 +198,9 @@ export default function AppShell({ children }: { children: ReactNode }) {
       </ThemeProvider>
     </ToastProvider>
   );
+}
+
+function SyncToastWatcher() {
+  useSyncToasts();
+  return null;
 }

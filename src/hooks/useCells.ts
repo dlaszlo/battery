@@ -21,7 +21,7 @@ export function useCells(
   const cells = useBatteryStore((s) => s.cells);
 
   return useMemo(() => {
-    let filtered = [...cells];
+    let filtered = cells.filter((c) => !c.deletedAt);
 
     if (filters?.search) {
       const q = filters.search.toLowerCase();
@@ -66,23 +66,24 @@ export function useCellStats() {
   const cells = useBatteryStore((s) => s.cells);
 
   return useMemo(() => {
-    const total = cells.length;
-    const active = cells.filter((c) => c.status !== "Selejt").length;
-    const scrapped = cells.filter((c) => c.status === "Selejt").length;
-    const totalValue = cells.reduce((sum, c) => sum + c.pricePerUnit, 0);
-    const totalMeasurements = cells.reduce((sum, c) => sum + c.measurements.length, 0);
+    const activeCells = cells.filter((c) => !c.deletedAt);
+    const total = activeCells.length;
+    const active = activeCells.filter((c) => c.status !== "Selejt").length;
+    const scrapped = activeCells.filter((c) => c.status === "Selejt").length;
+    const totalValue = activeCells.reduce((sum, c) => sum + c.pricePerUnit, 0);
+    const totalMeasurements = activeCells.reduce((sum, c) => sum + c.measurements.length, 0);
 
     const byStatus: Record<string, number> = {};
     const byChemistry: Record<string, number> = {};
     const byFormFactor: Record<string, number> = {};
 
-    for (const cell of cells) {
+    for (const cell of activeCells) {
       byStatus[cell.status] = (byStatus[cell.status] || 0) + 1;
       byChemistry[cell.chemistry] = (byChemistry[cell.chemistry] || 0) + 1;
       byFormFactor[cell.formFactor] = (byFormFactor[cell.formFactor] || 0) + 1;
     }
 
-    const recentCells = [...cells]
+    const recentCells = [...activeCells]
       .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
       .slice(0, 5);
 
@@ -105,7 +106,7 @@ export function useGroups(): string[] {
 
   return useMemo(() => {
     const groups = new Set<string>();
-    for (const cell of cells) {
+    for (const cell of cells.filter((c) => !c.deletedAt)) {
       if (cell.group) groups.add(cell.group);
     }
     return Array.from(groups).sort((a, b) => a.localeCompare(b, "hu"));

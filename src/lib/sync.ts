@@ -1,4 +1,4 @@
-import type { BatteryData, GitHubConfig, CellsFile, SettingsFile, TemplatesFile, CellTemplate } from "./types";
+import type { BatteryData, GitHubConfig, CellsFile, SettingsFile, TemplatesFile, CellTemplate, Cell } from "./types";
 import { fetchFile, saveFile, fetchData, deleteFile } from "./github";
 import { DEFAULT_SETTINGS, DATA_VERSION, CELLS_FILE_PATH, SETTINGS_FILE_PATH, TEMPLATES_FILE_PATH } from "./constants";
 import { encryptToken, decryptToken } from "./crypto";
@@ -118,7 +118,7 @@ export function loadFromLocalStorage(): AppData {
     } catch { /* ignore */ }
   }
 
-  return { cells, settings, templates };
+  return { cells: ensureCellInternalIds(cells), settings, templates: ensureTemplateInternalIds(templates) };
 }
 
 export function saveToLocalStorage(data: AppData): void {
@@ -301,9 +301,9 @@ async function pullMultiFile(config: GitHubConfig): Promise<AppData> {
   ]);
 
   const appData: AppData = {
-    cells: cellsResult?.data.cells || [],
+    cells: ensureCellInternalIds(cellsResult?.data.cells || []),
     settings: settingsResult?.data.settings || { ...DEFAULT_SETTINGS },
-    templates: templatesResult?.data.templates || [],
+    templates: ensureTemplateInternalIds(templatesResult?.data.templates || []),
   };
 
   // If files don't exist, create them
@@ -336,55 +336,195 @@ async function pullMultiFile(config: GitHubConfig): Promise<AppData> {
   return appData;
 }
 
+// --- internalId migration ---
+
+function ensureCellInternalIds(cells: Cell[]): Cell[] {
+  let changed = false;
+  const result = cells.map((c) => {
+    if (c.internalId) return c;
+    changed = true;
+    return { ...c, internalId: crypto.randomUUID() };
+  });
+  return changed ? result : cells;
+}
+
+function ensureTemplateInternalIds(templates: CellTemplate[]): CellTemplate[] {
+  let changed = false;
+  const result = templates.map((t) => {
+    if (t.internalId) return t;
+    changed = true;
+    return { ...t, internalId: crypto.randomUUID() };
+  });
+  return changed ? result : templates;
+}
+
+// --- Merge logic ---
+
+function mergeCells(local: Cell[], remote: Cell[]): Cell[] {
+  const merged = new Map<string, Cell>();
+
+  for (const cell of remote) {
+    if (cell.internalId) merged.set(cell.internalId, cell);
+  }
+
+  for (const cell of local) {
+    if (!cell.internalId) continue;
+    const existing = merged.get(cell.internalId);
+    if (!existing) {
+      merged.set(cell.internalId, cell);
+    } else {
+      // Newer updatedAt wins
+      if (cell.updatedAt > existing.updatedAt) {
+        merged.set(cell.internalId, cell);
+      }
+    }
+  }
+
+  const result = Array.from(merged.values());
+
+  // Resolve sorszám (id) conflicts among active cells
+  const activeById = new Map<string, Cell[]>();
+  for (const cell of result) {
+    if (cell.deletedAt) continue;
+    const list = activeById.get(cell.id) || [];
+    list.push(cell);
+    activeById.set(cell.id, list);
+  }
+  for (const [, duplicates] of activeById) {
+    if (duplicates.length <= 1) continue;
+    // Sort by updatedAt: newest keeps the original id
+    duplicates.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+    for (let i = 1; i < duplicates.length; i++) {
+      duplicates[i].id = `${duplicates[i].id}-${i + 1}`;
+    }
+  }
+
+  return result;
+}
+
+function mergeTemplates(local: CellTemplate[], remote: CellTemplate[]): CellTemplate[] {
+  const merged = new Map<string, CellTemplate>();
+
+  for (const tmpl of remote) {
+    const key = tmpl.internalId || tmpl.id;
+    merged.set(key, tmpl);
+  }
+
+  for (const tmpl of local) {
+    const key = tmpl.internalId || tmpl.id;
+    const existing = merged.get(key);
+    if (!existing) {
+      merged.set(key, tmpl);
+    } else {
+      if (tmpl.updatedAt > existing.updatedAt) {
+        merged.set(key, tmpl);
+      }
+    }
+  }
+
+  return Array.from(merged.values());
+}
+
+function mergeCellsFile(local: CellsFile, remote: CellsFile): CellsFile {
+  return {
+    version: Math.max(local.version, remote.version),
+    cells: mergeCells(local.cells, remote.cells),
+  };
+}
+
+function mergeTemplatesFile(local: TemplatesFile, remote: TemplatesFile): TemplatesFile {
+  return {
+    version: Math.max(local.version, remote.version),
+    templates: mergeTemplates(local.templates, remote.templates),
+  };
+}
+
+// --- Retry helpers ---
+
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+const MAX_FILE_RETRIES = 3;
+const NON_RETRYABLE_ERRORS = ["TOKEN_EXPIRED", "REPO_NOT_FOUND", "VALIDATION_ERROR"];
+
+async function saveFileWithRetry<T>(
+  config: GitHubConfig,
+  filePath: string,
+  data: T,
+  shaKey: string,
+  mergeFn?: (local: T, remote: T) => T,
+  message?: string,
+): Promise<T> {
+  let sha = loadShaFor(shaKey);
+  let currentData = data;
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt < MAX_FILE_RETRIES; attempt++) {
+    try {
+      const newSha = await saveFile(config, filePath, currentData, sha, message);
+      saveShaFor(shaKey, newSha);
+      return currentData;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+
+      if (NON_RETRYABLE_ERRORS.includes(lastError.message)) {
+        throw lastError;
+      }
+
+      if (lastError.message === "CONFLICT") {
+        // Re-fetch remote content + SHA
+        const current = await fetchFile<T>(config, filePath);
+        sha = current?.sha ?? null;
+        if (sha) saveShaFor(shaKey, sha);
+
+        // Merge if callback provided, otherwise retry with same data
+        if (mergeFn && current) {
+          currentData = mergeFn(data, current.data);
+        }
+      } else {
+        // Server error or rate limit: exponential backoff
+        await delay(1000 * Math.pow(2, attempt));
+      }
+    }
+  }
+
+  throw lastError || new Error("MAX_RETRIES");
+}
+
 // --- GitHub sync (public API) ---
 
 export async function pullFromGitHub(config: GitHubConfig): Promise<AppData> {
   return migrateToMultiFile(config);
 }
 
-export async function pushToGitHub(config: GitHubConfig, data: AppData): Promise<void> {
+export async function pushToGitHub(config: GitHubConfig, data: AppData): Promise<AppData> {
   const cellsFile: CellsFile = { version: DATA_VERSION, cells: data.cells };
   const settingsFile: SettingsFile = { version: DATA_VERSION, settings: data.settings };
   const templatesFile: TemplatesFile = { version: DATA_VERSION, templates: data.templates };
 
-  const cellsSha = loadShaFor(SHA_CELLS_KEY);
-  const settingsSha = loadShaFor(SHA_SETTINGS_KEY);
-  const templatesSha = loadShaFor(SHA_TEMPLATES_KEY);
+  // Sequential with optimistic merge: push with local SHA,
+  // on CONFLICT → fetch remote + merge → retry with merged data
+  const mergedCells = await saveFileWithRetry(config, CELLS_FILE_PATH, cellsFile, SHA_CELLS_KEY, mergeCellsFile);
+  await saveFileWithRetry(config, SETTINGS_FILE_PATH, settingsFile, SHA_SETTINGS_KEY);
+  const mergedTemplates = await saveFileWithRetry(config, TEMPLATES_FILE_PATH, templatesFile, SHA_TEMPLATES_KEY, mergeTemplatesFile);
 
-  const [newCellsSha, newSettingsSha, newTemplatesSha] = await Promise.all([
-    saveFile(config, CELLS_FILE_PATH, cellsFile, cellsSha),
-    saveFile(config, SETTINGS_FILE_PATH, settingsFile, settingsSha),
-    saveFile(config, TEMPLATES_FILE_PATH, templatesFile, templatesSha),
-  ]);
-
-  saveShaFor(SHA_CELLS_KEY, newCellsSha);
-  saveShaFor(SHA_SETTINGS_KEY, newSettingsSha);
-  saveShaFor(SHA_TEMPLATES_KEY, newTemplatesSha);
-  saveToLocalStorage(data);
+  return {
+    cells: mergedCells.cells,
+    settings: data.settings,
+    templates: mergedTemplates.templates,
+  };
 }
 
 export async function forcePushToGitHub(config: GitHubConfig, data: AppData): Promise<void> {
-  // Fetch current SHAs to avoid conflicts
-  const [cellsResult, settingsResult, templatesResult] = await Promise.all([
-    fetchFile<CellsFile>(config, CELLS_FILE_PATH),
-    fetchFile<SettingsFile>(config, SETTINGS_FILE_PATH),
-    fetchFile<TemplatesFile>(config, TEMPLATES_FILE_PATH),
-  ]);
-
   const cellsFile: CellsFile = { version: DATA_VERSION, cells: data.cells };
   const settingsFile: SettingsFile = { version: DATA_VERSION, settings: data.settings };
   const templatesFile: TemplatesFile = { version: DATA_VERSION, templates: data.templates };
 
-  const [newCellsSha, newSettingsSha, newTemplatesSha] = await Promise.all([
-    saveFile(config, CELLS_FILE_PATH, cellsFile, cellsResult?.sha ?? null, "Force re-sync cells"),
-    saveFile(config, SETTINGS_FILE_PATH, settingsFile, settingsResult?.sha ?? null, "Force re-sync settings"),
-    saveFile(config, TEMPLATES_FILE_PATH, templatesFile, templatesResult?.sha ?? null, "Force re-sync templates"),
-  ]);
-
-  saveShaFor(SHA_CELLS_KEY, newCellsSha);
-  saveShaFor(SHA_SETTINGS_KEY, newSettingsSha);
-  saveShaFor(SHA_TEMPLATES_KEY, newTemplatesSha);
-  saveToLocalStorage(data);
+  // Force: no merge — overwrite remote with local data
+  await saveFileWithRetry(config, CELLS_FILE_PATH, cellsFile, SHA_CELLS_KEY, undefined, "Force re-sync cells");
+  await saveFileWithRetry(config, SETTINGS_FILE_PATH, settingsFile, SHA_SETTINGS_KEY, undefined, "Force re-sync settings");
+  await saveFileWithRetry(config, TEMPLATES_FILE_PATH, templatesFile, SHA_TEMPLATES_KEY, undefined, "Force re-sync templates");
 }
 
 // --- JSON file export/import ---
