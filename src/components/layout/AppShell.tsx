@@ -21,6 +21,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const unlockWithPin = useBatteryStore((s) => s.unlockWithPin);
   const lockSession = useBatteryStore((s) => s.lockSession);
 
+  const [isOnline, setIsOnline] = useState(typeof navigator !== "undefined" ? navigator.onLine : true);
   const [pinError, setPinError] = useState<string | null>(null);
   const [pinLoading, setPinLoading] = useState(false);
   const [wiped, setWiped] = useState(false);
@@ -50,6 +51,42 @@ export default function AppShell({ children }: { children: ReactNode }) {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, [configState, resetTimer]);
+
+  // Online/offline detection
+  useEffect(() => {
+    const goOnline = () => setIsOnline(true);
+    const goOffline = () => setIsOnline(false);
+    window.addEventListener("online", goOnline);
+    window.addEventListener("offline", goOffline);
+    return () => {
+      window.removeEventListener("online", goOnline);
+      window.removeEventListener("offline", goOffline);
+    };
+  }, []);
+
+  if (!isOnline) {
+    return (
+      <ThemeProvider>
+        <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+          <div className="w-full max-w-sm text-center">
+            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-100 dark:bg-amber-900/50">
+              <svg className="h-8 w-8 text-amber-600 dark:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.288 15.038a5.25 5.25 0 017.424 0M5.106 11.856c3.807-3.808 9.98-3.808 13.788 0M1.924 8.674c5.565-5.565 14.587-5.565 20.152 0M12 18.75h.007v.008H12v-.008z" />
+              </svg>
+            </div>
+            <h2 className="mb-2 text-xl font-bold text-gray-900 dark:text-gray-100">
+              {lang === "hu" ? "Nincs internetkapcsolat" : "No internet connection"}
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {lang === "hu"
+                ? "Az alkalmazás működéséhez internetkapcsolat szükséges a GitHub szinkronizáció miatt. Ellenőrizd a hálózati kapcsolatot."
+                : "This app requires an internet connection for GitHub sync. Please check your network connection."}
+            </p>
+          </div>
+        </div>
+      </ThemeProvider>
+    );
+  }
 
   if (!initialized) {
     return (
