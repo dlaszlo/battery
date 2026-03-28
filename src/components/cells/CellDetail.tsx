@@ -159,6 +159,11 @@ export default function CellDetail({ cell }: CellDetailProps) {
         )}
       </div>
 
+      {/* Cell profile card */}
+      {cell.measurements.length > 0 && (
+        <CellProfileCard measurements={cell.measurements} nominalCapacity={cell.nominalCapacity} lang={lang} />
+      )}
+
       {/* Storage warnings */}
       {storageMonths >= 3 && (
         <div className="flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 px-5 py-4 dark:border-amber-700 dark:bg-amber-900/30">
@@ -209,6 +214,7 @@ export default function CellDetail({ cell }: CellDetailProps) {
               <MeasurementForm
                 cellId={cell.id}
                 onDone={() => setShowMeasurementForm(false)}
+                lastDischargeCurrent={lastMeasurement?.dischargeCurrent}
               />
             </div>
           )}
@@ -268,6 +274,117 @@ function InfoRow({ label, value }: { label: string; value: string }) {
     <div className="flex justify-between sm:flex-col sm:gap-0.5">
       <span className="text-xs text-gray-500 dark:text-gray-400">{label}</span>
       <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{value}</span>
+    </div>
+  );
+}
+
+function CellProfileCard({
+  measurements,
+  nominalCapacity,
+  lang,
+}: {
+  measurements: import("@/lib/types").Measurement[];
+  nominalCapacity: number;
+  lang: import("@/lib/types").Language;
+}) {
+  // Group by discharge current
+  const byCurrent = new Map<number, typeof measurements>();
+  measurements.forEach((m) => {
+    const arr = byCurrent.get(m.dischargeCurrent) || [];
+    arr.push(m);
+    byCurrent.set(m.dischargeCurrent, arr);
+  });
+
+  // Best capacity per current
+  const bestPerCurrent: { current: number; best: number; pct: number }[] = [];
+  byCurrent.forEach((ms, current) => {
+    const best = Math.max(...ms.map((m) => m.measuredCapacity));
+    bestPerCurrent.push({ current, best, pct: Math.round((best / nominalCapacity) * 100) });
+  });
+  bestPerCurrent.sort((a, b) => a.current - b.current);
+
+  // Overall best
+  const overallBest = bestPerCurrent.reduce((a, b) => (a.best > b.best ? a : b));
+
+  // Average internal resistance (if available)
+  const resistanceMeasurements = measurements.filter((m) => m.internalResistance != null);
+  const avgResistance = resistanceMeasurements.length > 0
+    ? Math.round(resistanceMeasurements.reduce((sum, m) => sum + m.internalResistance!, 0) / resistanceMeasurements.length * 10) / 10
+    : null;
+
+  // Last measurement date
+  const lastDate = measurements.reduce((a, b) => (a.date > b.date ? a : b)).date;
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <div className="border-b px-6 py-4 dark:border-gray-700">
+        <h3 className="font-semibold text-gray-900 dark:text-gray-100">{t("profile.title", lang)}</h3>
+      </div>
+      <div className="grid gap-4 px-6 py-4 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Best capacity */}
+        <div className="rounded-lg bg-blue-50 dark:bg-blue-900/30 p-4">
+          <p className="text-xs font-medium text-blue-600 dark:text-blue-400">{t("profile.bestCapacity", lang)}</p>
+          <p className="mt-1 text-2xl font-bold text-blue-700 dark:text-blue-300">
+            {formatCapacity(overallBest.best)}
+          </p>
+          <p className="text-xs text-blue-500 dark:text-blue-400">
+            {t("profile.atCurrent", lang, { current: overallBest.current.toString() })} — {overallBest.pct}%
+          </p>
+        </div>
+
+        {/* Avg resistance */}
+        <div className="rounded-lg bg-purple-50 dark:bg-purple-900/30 p-4">
+          <p className="text-xs font-medium text-purple-600 dark:text-purple-400">{t("profile.avgResistance", lang)}</p>
+          <p className="mt-1 text-2xl font-bold text-purple-700 dark:text-purple-300">
+            {avgResistance != null ? `${avgResistance} mΩ` : "—"}
+          </p>
+          <p className="text-xs text-purple-500 dark:text-purple-400">
+            {resistanceMeasurements.length} {t("profile.measurementCount", lang).toLowerCase()}
+          </p>
+        </div>
+
+        {/* Measurement count */}
+        <div className="rounded-lg bg-emerald-50 dark:bg-emerald-900/30 p-4">
+          <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400">{t("profile.measurementCount", lang)}</p>
+          <p className="mt-1 text-2xl font-bold text-emerald-700 dark:text-emerald-300">
+            {measurements.length}
+          </p>
+          <p className="text-xs text-emerald-500 dark:text-emerald-400">
+            {byCurrent.size} {lang === "hu" ? "áramerősség" : "current(s)"}
+          </p>
+        </div>
+
+        {/* Last measured */}
+        <div className="rounded-lg bg-amber-50 dark:bg-amber-900/30 p-4">
+          <p className="text-xs font-medium text-amber-600 dark:text-amber-400">{t("profile.lastMeasured", lang)}</p>
+          <p className="mt-1 text-2xl font-bold text-amber-700 dark:text-amber-300">
+            {formatDate(lastDate)}
+          </p>
+        </div>
+      </div>
+
+      {/* Capacity retention per current */}
+      {bestPerCurrent.length > 1 && (
+        <div className="border-t px-6 py-4 dark:border-gray-700">
+          <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">{t("profile.capacityRetention", lang)}</p>
+          <div className="space-y-2">
+            {bestPerCurrent.map(({ current, best, pct }) => (
+              <div key={current} className="flex items-center gap-3">
+                <span className="w-20 text-xs text-gray-600 dark:text-gray-300 font-medium">{current} mA</span>
+                <div className="flex-1 h-2 rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${pct >= 80 ? "bg-green-500" : pct >= 60 ? "bg-amber-500" : "bg-red-500"}`}
+                    style={{ width: `${Math.min(pct, 100)}%` }}
+                  />
+                </div>
+                <span className="w-20 text-right text-xs font-medium text-gray-700 dark:text-gray-300">
+                  {formatCapacity(best)} ({pct}%)
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

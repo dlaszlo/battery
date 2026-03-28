@@ -12,9 +12,10 @@ import { t } from "@/lib/i18n";
 interface MeasurementFormProps {
   cellId: string;
   onDone: () => void;
+  lastDischargeCurrent?: number;
 }
 
-export default function MeasurementForm({ cellId, onDone }: MeasurementFormProps) {
+export default function MeasurementForm({ cellId, onDone, lastDischargeCurrent }: MeasurementFormProps) {
   const addMeasurement = useBatteryStore((s) => s.addMeasurement);
   const settings = useBatteryStore((s) => s.settings);
   const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
@@ -102,6 +103,16 @@ export default function MeasurementForm({ cellId, onDone }: MeasurementFormProps
           onChange={(e) => set("dischargeCurrent", e.target.value)}
           error={errors.dischargeCurrent}
         />
+        {lastDischargeCurrent != null && form.dischargeCurrent && Number(form.dischargeCurrent) !== lastDischargeCurrent && (
+          <div className="sm:col-span-2 flex items-start gap-2 rounded-lg bg-amber-50 dark:bg-amber-900/30 p-3">
+            <svg className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+            <p className="text-xs text-amber-700 dark:text-amber-300">
+              {t("measurement.currentWarning", lang, { prev: lastDischargeCurrent.toString() })}
+            </p>
+          </div>
+        )}
         <Input
           label={t("measurement.chargeCurrent", lang)}
           tooltip={t("tooltip.chargeCurrent", lang)}

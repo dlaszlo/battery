@@ -6,6 +6,7 @@ const translations = {
   "nav.cells": { hu: "Cellák", en: "Cells" },
   "nav.addCell": { hu: "Új cella", en: "New Cell" },
   "nav.settings": { hu: "Beállítások", en: "Settings" },
+  "nav.compare": { hu: "Összehasonlítás", en: "Compare" },
   "nav.help": { hu: "Súgó", en: "Help" },
 
   // Dashboard
@@ -347,6 +348,40 @@ const translations = {
   // Chart extra
   "chart.minDataRequired": { hu: "Legalább 2 mérés szükséges a grafikon megjelenítéséhez.", en: "At least 2 measurements are needed for the chart." },
   "chart.scrapBorder": { hu: "Selejt határ", en: "Scrap Limit" },
+  "chart.allCurrents": { hu: "Összes", en: "All" },
+  "chart.currentLabel": { hu: "{current} mA", en: "{current} mA" },
+  "chart.noDataForCurrent": { hu: "Nincs elég mérés ehhez a merítési áramhoz.", en: "Not enough measurements for this discharge current." },
+
+  // Cell profile card
+  "profile.title": { hu: "Cella profil", en: "Cell Profile" },
+  "profile.bestCapacity": { hu: "Legjobb kapacitás", en: "Best Capacity" },
+  "profile.atCurrent": { hu: "{current} mA-nál", en: "at {current} mA" },
+  "profile.avgResistance": { hu: "Átl. belső ellenállás", en: "Avg. Internal Resistance" },
+  "profile.capacityRetention": { hu: "Kapacitás megtartás", en: "Capacity Retention" },
+  "profile.measurementCount": { hu: "Mérések száma", en: "Measurement Count" },
+  "profile.noMeasurements": { hu: "Még nincs mérés", en: "No measurements yet" },
+  "profile.lastMeasured": { hu: "Utolsó mérés", en: "Last Measured" },
+
+  // Measurement form warning
+  "measurement.currentWarning": { hu: "Az előző mérés {prev} mA-nál volt. Eltérő áramnál mért eredmények nem összehasonlíthatók az öregedés szempontjából.", en: "The previous measurement was at {prev} mA. Results at different currents are not comparable for aging analysis." },
+
+  // Compare page
+  "compare.title": { hu: "Cella összehasonlítás", en: "Cell Comparison" },
+  "compare.subtitle": { hu: "Válassz cellákat az összehasonlításhoz", en: "Select cells to compare" },
+  "compare.select": { hu: "Cellák kiválasztása", en: "Select Cells" },
+  "compare.selectPlaceholder": { hu: "Keresés ID, márka...", en: "Search ID, brand..." },
+  "compare.noSelection": { hu: "Válassz ki legalább 2 cellát az összehasonlításhoz.", en: "Select at least 2 cells to compare." },
+  "compare.atCurrent": { hu: "Merítési áram", en: "Discharge Current" },
+  "compare.bestCapacity": { hu: "Legjobb kapacitás", en: "Best Capacity" },
+  "compare.retention": { hu: "Megtartás", en: "Retention" },
+  "compare.resistance": { hu: "Ellenállás", en: "Resistance" },
+  "compare.lastMeasured": { hu: "Utolsó mérés", en: "Last Measured" },
+  "compare.matchScore": { hu: "Párosítási pontszám", en: "Match Score" },
+  "compare.bestPairs": { hu: "Legjobb párok", en: "Best Pairs" },
+  "compare.bestPairsDesc": { hu: "A legközelebb álló kapacitású cellák (azonos áramnál mérve)", en: "Cells with closest capacity values (measured at the same current)" },
+  "compare.noPairs": { hu: "Nincs elegendő azonos áramnál mért cella a párosításhoz.", en: "Not enough cells measured at the same current for pairing." },
+  "compare.difference": { hu: "Eltérés", en: "Difference" },
+  "compare.remove": { hu: "Eltávolítás", en: "Remove" },
 
   // Dashboard extra
   "dashboard.allArrow": { hu: "Összes", en: "All" },
