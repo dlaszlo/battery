@@ -12,6 +12,7 @@ const navItems: { href: string; labelKey: TranslationKey }[] = [
   { href: "/cells", labelKey: "nav.cells" },
   { href: "/add", labelKey: "nav.addCell" },
   { href: "/settings", labelKey: "nav.settings" },
+  { href: "/help", labelKey: "nav.help" },
 ];
 
 export default function Navbar() {

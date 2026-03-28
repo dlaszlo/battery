@@ -6,6 +6,7 @@ const translations = {
   "nav.cells": { hu: "Cellák", en: "Cells" },
   "nav.addCell": { hu: "Új cella", en: "New Cell" },
   "nav.settings": { hu: "Beállítások", en: "Settings" },
+  "nav.help": { hu: "Súgó", en: "Help" },
 
   // Dashboard
   "dashboard.title": { hu: "Főoldal", en: "Home" },
@@ -411,6 +412,62 @@ const translations = {
   // Common
   "common.back": { hu: "Vissza", en: "Back" },
   "common.next": { hu: "Tovább", en: "Next" },
+  // Help page
+  "help.title": { hu: "Súgó", en: "Help" },
+  "help.subtitle": { hu: "Minden, amit az alkalmazásról tudni kell", en: "Everything you need to know about the app" },
+
+  "help.whatIsTitle": { hu: "Mi ez az alkalmazás?", en: "What is this app?" },
+  "help.whatIsDesc": { hu: "Ingyenes, nyílt forráskódú webalkalmazás akkumulátor cellák nyilvántartásához. Rögzítheted a méréseket, követheted a kapacitás változását, és automatikusan jelzi, ha egy cella selejtezésre érett. Az adataid a saját privát GitHub repódban tárolódnak — nincs szerver, nincs fiók, nincs előfizetés.", en: "A free, open-source web app for tracking battery cells. Record measurements, monitor capacity degradation, and automatically detect cells that should be retired. Your data is stored in your own private GitHub repository — no server, no account, no subscription." },
+
+  "help.cellInventoryTitle": { hu: "Cella nyilvántartás", en: "Cell Inventory" },
+  "help.cellInventoryDesc": { hu: "Minden celláról részletes adatokat rögzíthetsz:", en: "You can record detailed data for each cell:" },
+  "help.cellField1": { hu: "Azonosítás — márka, modell, form faktor (18650, 21700, AA stb.), kémia (Li-ion, LiFePO4, NiMH stb.)", en: "Identity — brand, model, form factor (18650, 21700, AA, etc.), chemistry (Li-ion, LiFePO4, NiMH, etc.)" },
+  "help.cellField2": { hu: "Specifikáció — névleges kapacitás, max lemerítési áram, súly", en: "Specs — nominal capacity, max discharge current, weight" },
+  "help.cellField3": { hu: "Beszerzés — platform, eladó, dátum, ár", en: "Purchase — platform, seller, date, price" },
+  "help.cellField4": { hu: "Állapot — új, használt, bontott, vagy selejt", en: "Status — new, used, salvaged, or scrapped" },
+  "help.cellField5": { hu: "Elhelyezés — melyik eszközben van (saját eszközlistát kezelhetsz)", en: "Location — which device it's in (you manage your own device list)" },
+  "help.cellField6": { hu: "Csoportosítás — cellák szervezése pakkokba, batch szám, tárolási feszültség, megjegyzések", en: "Grouping — organize cells into packs, batch number, storage voltage, notes" },
+
+  "help.measurementsTitle": { hu: "Mérések", en: "Measurements" },
+  "help.measurementsDesc": { hu: "Minden teszteléskor (pl. LiitoKala, XTAR töltővel) rögzítheted:", en: "Each time you test a cell (e.g., with a LiitoKala or XTAR charger), you can log:" },
+  "help.measureField1": { hu: "Mért kapacitás (mAh) — a tényleges kapacitás, amit a tesztelő mért", en: "Measured capacity (mAh) — the actual capacity your tester measured" },
+  "help.measureField2": { hu: "Lemerítési és töltési áram (mA) — az összehasonlításhoz azonos áram kell", en: "Discharge and charge current (mA) — use the same current for comparison" },
+  "help.measureField3": { hu: "Belső ellenállás (mOhm) — alacsonyabb = jobb, öregedéssel nő", en: "Internal resistance (mOhm) — lower is better, increases with age" },
+  "help.measureField4": { hu: "Tesztelő eszköz és megjegyzések", en: "Test device and notes" },
+
+  "help.scrapTitle": { hu: "Automatikus selejtezés", en: "Automatic Scrap Detection" },
+  "help.scrapDesc": { hu: "Ha egy mérés a névleges kapacitás beállított százaléka alá esik (alapértelmezés: 60%), a cella automatikusan selejtnek jelölődik. A küszöbértéket a Beállításokban módosíthatod.", en: "When a measurement drops below the configured percentage of nominal capacity (default: 60%), the cell is automatically flagged as scrapped. You can adjust the threshold in Settings." },
+
+  "help.storageTitle": { hu: "Tárolási tippek", en: "Storage Tips" },
+  "help.storageDesc": { hu: "Li-ion cellák helyes tárolása:", en: "Proper storage of Li-ion cells:" },
+  "help.storageTip1": { hu: "Merítsd le ~3.6-3.7V-ra (40-50% töltöttség) — a 4.2V-on tárolt cellák gyorsabban degradálódnak", en: "Discharge to ~3.6-3.7V (40-50% charge) — cells stored at 4.2V degrade faster" },
+  "help.storageTip2": { hu: "Száraz, hűvös helyen tárold (15-25°C ideális)", en: "Store in a dry, cool place (15-25°C ideal)" },
+  "help.storageTip3": { hu: "Hosszú tárolás után (3+ hónap) ellenőrizd a feszültséget — az app figyelmeztet erre", en: "After long storage (3+ months) check the voltage — the app will remind you" },
+
+  "help.dataTitle": { hu: "Adattárolás", en: "Data Storage" },
+  "help.dataDesc": { hu: "Az app a GitHub Contents API-n keresztül egyetlen JSON fájlt olvas/ír a privát repódban:", en: "The app reads/writes a single JSON file in your private repo via the GitHub Contents API:" },
+  "help.dataPerk1": { hu: "Verziókövetett — minden mentés egy Git commit, teljes előzmény", en: "Version-controlled — every save is a Git commit, full history" },
+  "help.dataPerk2": { hu: "Privát — csak te férsz hozzá a repódhoz", en: "Private — only you can access your repository" },
+  "help.dataPerk3": { hu: "Hordozható — klónolhatod a repót, vagy exportálhatod JSON-ként", en: "Portable — clone the repo or export as JSON" },
+  "help.dataPerk4": { hu: "Offline is működik — localStorage cache, háttérben szinkronizál", en: "Works offline — localStorage cache, syncs in the background" },
+
+  "help.setupTitle": { hu: "Beállítás lépésről lépésre", en: "Setup Guide" },
+  "help.setupStep1": { hu: "Hozz létre egy privát repót \"battery-cell-data\" néven:", en: "Create a private repo named \"battery-cell-data\":" },
+  "help.setupStep2": { hu: "Generálj egy Fine-grained Personal Access Token-t:", en: "Generate a Fine-grained Personal Access Token:" },
+  "help.setupStep3": { hu: "Nyisd meg az appot, kövesd a beállító varázslót, illeszd be a tokent.", en: "Open the app, follow the setup wizard, paste the token." },
+  "help.setupTokenTip": { hu: "Token beállítások:", en: "Token settings:" },
+
+  "help.mobileTitle": { hu: "Mobil használat", en: "Mobile Usage" },
+  "help.mobileDesc": { hu: "Az app mobilon is teljes értékűen használható. Telepítheted az eszközödre, és a tokent QR kóddal is beolvashatod.", en: "The app works fully on mobile. You can install it on your device and scan the token via QR code." },
+  "help.installTitle": { hu: "Telepítés a kezdőképernyőre:", en: "Install to home screen:" },
+  "help.installIos": { hu: "iOS: Safari → Megosztás → \"Hozzáadás a Főképernyőhöz\"", en: "iOS: Safari → Share → \"Add to Home Screen\"" },
+  "help.installAndroid": { hu: "Android: Chrome → menü (⋮) → \"Hozzáadás a főképernyőhöz\" vagy \"Alkalmazás telepítése\"", en: "Android: Chrome → menu (⋮) → \"Add to Home screen\" or \"Install app\"" },
+  "help.qrTitle": { hu: "Token átvitele QR kóddal", en: "Transfer Token via QR Code" },
+  "help.qrDesc": { hu: "Ha számítógépen generáltad a tokent, a terminálban QR kóddá alakíthatod, majd mobilon beolvashatod:", en: "If you generated the token on your computer, you can convert it to a QR code in the terminal, then scan it on mobile:" },
+  "help.qrWarning": { hu: "Soha ne használj online QR generátort tokenekhez! A token jelszóként kezelendő — csak offline eszközzel generálj QR kódot.", en: "Never use online QR generators for tokens! Treat the token as a password — only generate QR codes with offline tools." },
+
+  "help.exportTitle": { hu: "Export / Import", en: "Export / Import" },
+  "help.exportDesc": { hu: "A Beállítások oldalon bármikor exportálhatod az összes adatodat JSON fájlként (backup), vagy importálhatsz egy korábban mentett fájlt. Ez a GitHub szinkrontól független, helyi mentés.", en: "In Settings you can export all your data as a JSON file (backup) anytime, or import a previously saved file. This is a local backup, independent of GitHub sync." },
 } as const;
 
 export type TranslationKey = keyof typeof translations;
