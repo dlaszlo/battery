@@ -36,6 +36,8 @@ export default function CellDetail({ cell }: CellDetailProps) {
   const [duplicating, setDuplicating] = useState(false);
   const [showMeasurementForm, setShowMeasurementForm] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
+  const [showScrap, setShowScrap] = useState(false);
+  const updateCell = useBatteryStore((s) => s.updateCell);
 
   const lastMeasurement =
     cell.measurements.length > 0
@@ -99,13 +101,18 @@ export default function CellDetail({ cell }: CellDetailProps) {
             {cell.formFactor} &middot; {cell.chemistry} &middot; {formatCapacity(cell.nominalCapacity)}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="secondary" size="sm" onClick={() => setDuplicating(true)}>
             {t("cell.duplicate", lang)}
           </Button>
           <Button variant="secondary" size="sm" onClick={() => setEditing(true)}>
             {t("cell.edit", lang)}
           </Button>
+          {cell.status !== "Selejt" && (
+            <Button variant="danger" size="sm" onClick={() => setShowScrap(true)}>
+              {t("cell.scrap", lang)}
+            </Button>
+          )}
           <Button variant="danger" size="sm" onClick={() => setShowDelete(true)}>
             {t("cell.delete", lang)}
           </Button>
@@ -224,6 +231,20 @@ export default function CellDetail({ cell }: CellDetailProps) {
           <EventLog events={cell.events || []} />
         </div>
       </div>
+
+      {/* Scrap dialog */}
+      <ConfirmDialog
+        open={showScrap}
+        onClose={() => setShowScrap(false)}
+        onConfirm={() => {
+          updateCell(cell.id, { status: "Selejt" });
+          setShowScrap(false);
+          toast(t("cell.scrapped", lang));
+        }}
+        title={t("cell.scrapTitle", lang)}
+        message={t("cell.scrapDisclaimer", lang)}
+        confirmLabel={t("cell.scrapConfirm", lang)}
+      />
 
       {/* Delete dialog */}
       <ConfirmDialog
