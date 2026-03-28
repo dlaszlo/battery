@@ -76,7 +76,7 @@ The app uses the **GitHub Contents API** to read and write data files in a priva
 - **Your data is private** — only you can access your repository
 - **Your data is portable** — you can clone the repo, read the JSON, or export it from the app
 - **No server needed** — the app talks directly to GitHub from your browser
-- **Works offline** — data is cached in localStorage; GitHub sync happens in the background
+- **Online required** — internet connection is required to prevent data consistency issues
 
 The app uses a **Fine-grained Personal Access Token** (PAT) scoped to a single repository with minimal permissions. Your token is **encrypted with a PIN code** using AES-GCM (Web Crypto API) and stored in your browser's localStorage. The token is never sent anywhere except the GitHub API.
 
@@ -119,6 +119,15 @@ Every time you open the app, you'll need to enter your PIN to unlock. If your to
 - Zustand (state management)
 - Recharts (charts)
 - GitHub Contents API
+
+## Documentation
+
+Detailed documentation is available in the [`docs/`](docs/) directory:
+
+- [Functional Specification](docs/functional-specification.md) — features, requirements, use cases, data model
+- [Technical Specification](docs/technical-specification.md) — tech stack, architecture, components, APIs, security
+- [Git Sync & Merge Specification](docs/git-sync-merge-specification.md) — three-way merge algorithm, conflict resolution, sync triggers
+- [Architecture](docs/architecture.md) — zero-backend philosophy, data flow, deployment, decision records
 
 ## Development
 
