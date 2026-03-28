@@ -133,7 +133,8 @@ export default function CellDetail({ cell }: CellDetailProps) {
           <InfoRow label={t("info.cathodeType", lang)} value={cell.cathodeType || "—"} />
           <InfoRow label={t("info.contactType", lang)} value={cell.contactType || "—"} />
           <InfoRow label={t("info.nominalCapacity", lang)} value={formatCapacity(cell.nominalCapacity)} />
-          <InfoRow label={t("info.maxDischargeCurrent", lang)} value={cell.maxDischargeCurrent ? `${cell.maxDischargeCurrent} A` : "—"} />
+          <InfoRow label={t("info.continuousDischargeCurrent", lang)} value={cell.continuousDischargeCurrent ? `${cell.continuousDischargeCurrent} A` : "—"} />
+          <InfoRow label={t("info.peakDischargeCurrent", lang)} value={cell.peakDischargeCurrent ? `${cell.peakDischargeCurrent} A` : "—"} />
           <InfoRow label={t("info.status", lang)} value={cell.status} />
           <InfoRow label={t("info.currentDevice", lang)} value={cell.currentDevice || "—"} />
           <InfoRow label={t("info.platform", lang)} value={cell.platform || "—"} />

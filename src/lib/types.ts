@@ -53,7 +53,8 @@ export interface Cell {
   purchaseDate: string;
   pricePerUnit: number;
   nominalCapacity: number;
-  maxDischargeCurrent?: number;
+  continuousDischargeCurrent?: number;
+  peakDischargeCurrent?: number;
   weight?: number;
   storageVoltage?: number;
   batchNumber?: string;

@@ -51,7 +51,8 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
     purchaseDate: src?.purchaseDate ?? todayISO(),
     pricePerUnit: src?.pricePerUnit?.toString() ?? "",
     nominalCapacity: src?.nominalCapacity?.toString() ?? "",
-    maxDischargeCurrent: src?.maxDischargeCurrent?.toString() ?? "",
+    continuousDischargeCurrent: src?.continuousDischargeCurrent?.toString() ?? "",
+    peakDischargeCurrent: src?.peakDischargeCurrent?.toString() ?? "",
     weight: src?.weight?.toString() ?? "",
     storageVoltage: src?.storageVoltage?.toString() ?? "",
     batchNumber: src?.batchNumber ?? "",
@@ -112,7 +113,8 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
       purchaseDate: form.purchaseDate,
       pricePerUnit: Number(form.pricePerUnit) || 0,
       nominalCapacity: Number(form.nominalCapacity),
-      maxDischargeCurrent: form.maxDischargeCurrent ? Number(form.maxDischargeCurrent) : undefined,
+      continuousDischargeCurrent: form.continuousDischargeCurrent ? Number(form.continuousDischargeCurrent) : undefined,
+      peakDischargeCurrent: form.peakDischargeCurrent ? Number(form.peakDischargeCurrent) : undefined,
       weight: form.weight ? Number(form.weight) : undefined,
       storageVoltage: form.storageVoltage ? Number(form.storageVoltage) : undefined,
       batchNumber: form.batchNumber.trim() || undefined,
@@ -212,13 +214,22 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
             error={errors.nominalCapacity}
           />
           <Input
-            label={t("form.maxDischargeCurrent", lang)}
-            tooltip={t("tooltip.maxDischargeCurrent", lang)}
+            label={t("form.continuousDischargeCurrent", lang)}
+            tooltip={t("tooltip.continuousDischargeCurrent", lang)}
             type="number"
             step="0.1"
-            placeholder={t("form.maxDischargeCurrentPlaceholder", lang)}
-            value={form.maxDischargeCurrent}
-            onChange={(e) => set("maxDischargeCurrent", e.target.value)}
+            placeholder={t("form.continuousDischargeCurrentPlaceholder", lang)}
+            value={form.continuousDischargeCurrent}
+            onChange={(e) => set("continuousDischargeCurrent", e.target.value)}
+          />
+          <Input
+            label={t("form.peakDischargeCurrent", lang)}
+            tooltip={t("tooltip.peakDischargeCurrent", lang)}
+            type="number"
+            step="0.1"
+            placeholder={t("form.peakDischargeCurrentPlaceholder", lang)}
+            value={form.peakDischargeCurrent}
+            onChange={(e) => set("peakDischargeCurrent", e.target.value)}
           />
           <Select
             label={t("form.status", lang)}
