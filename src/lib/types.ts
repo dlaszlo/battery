@@ -70,6 +70,7 @@ export interface Cell {
   platform: string;
   seller: string;
   purchaseDate: string;
+  purchaseUrl?: string;
   pricePerUnit: number;
   nominalCapacity: number;
   continuousDischargeCurrent?: number;

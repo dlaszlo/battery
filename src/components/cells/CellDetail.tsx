@@ -139,6 +139,21 @@ export default function CellDetail({ cell }: CellDetailProps) {
           <InfoRow label={t("info.currentDevice", lang)} value={cell.currentDevice || "—"} />
           <InfoRow label={t("info.platform", lang)} value={cell.platform || "—"} />
           <InfoRow label={t("info.seller", lang)} value={cell.seller || "—"} />
+          {cell.purchaseUrl ? (
+            <div className="flex justify-between sm:flex-col sm:gap-0.5">
+              <span className="text-xs text-gray-500 dark:text-gray-400">{t("info.purchaseUrl", lang)}</span>
+              <a
+                href={cell.purchaseUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400 truncate max-w-[200px]"
+              >
+                {new URL(cell.purchaseUrl).hostname.replace("www.", "")}
+              </a>
+            </div>
+          ) : (
+            <InfoRow label={t("info.purchaseUrl", lang)} value="—" />
+          )}
           <InfoRow label={t("info.purchaseDate", lang)} value={cell.purchaseDate ? formatDate(cell.purchaseDate) : "—"} />
           <InfoRow label={t("info.pricePerUnit", lang)} value={cell.pricePerUnit ? formatCurrency(cell.pricePerUnit) : "—"} />
           <InfoRow label={t("info.weight", lang)} value={cell.weight ? `${cell.weight} g` : "—"} />

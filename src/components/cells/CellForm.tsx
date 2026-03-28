@@ -73,6 +73,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
     platform: src?.platform ?? "",
     seller: src?.seller ?? "",
     purchaseDate: src?.purchaseDate ?? todayISO(),
+    purchaseUrl: src?.purchaseUrl ?? "",
     pricePerUnit: src?.pricePerUnit?.toString() ?? "",
     nominalCapacity: src?.nominalCapacity?.toString() ?? "",
     continuousDischargeCurrent: src?.continuousDischargeCurrent?.toString() ?? "",
@@ -136,6 +137,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
       platform: form.platform,
       seller: form.seller.trim(),
       purchaseDate: form.purchaseDate,
+      purchaseUrl: form.purchaseUrl.trim() || undefined,
       pricePerUnit: Number(form.pricePerUnit) || 0,
       nominalCapacity: Number(form.nominalCapacity),
       continuousDischargeCurrent: form.continuousDischargeCurrent ? Number(form.continuousDischargeCurrent) : undefined,
@@ -304,6 +306,13 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
             placeholder={t("form.sellerPlaceholder", lang)}
             value={form.seller}
             onChange={(e) => set("seller", e.target.value)}
+          />
+          <Input
+            label={t("form.purchaseUrl", lang)}
+            type="url"
+            placeholder={t("form.purchaseUrlPlaceholder", lang)}
+            value={form.purchaseUrl}
+            onChange={(e) => set("purchaseUrl", e.target.value)}
           />
           <Input
             label={t("form.purchaseDate", lang)}
