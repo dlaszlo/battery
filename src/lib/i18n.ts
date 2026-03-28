@@ -484,6 +484,13 @@ const translations = {
 
   "help.exportTitle": { hu: "Export / Import", en: "Export / Import" },
   "help.exportDesc": { hu: "A Beállítások oldalon bármikor exportálhatod az összes adatodat JSON fájlként (backup), vagy importálhatsz egy korábban mentett fájlt. Ez a GitHub szinkrontól független, helyi mentés.", en: "In Settings you can export all your data as a JSON file (backup) anytime, or import a previously saved file. This is a local backup, independent of GitHub sync." },
+
+  // Help - Disclaimer
+  "help.disclaimerTitle": { hu: "Jogi nyilatkozat", en: "Disclaimer" },
+  "help.disclaimerFree": { hu: "Ez az alkalmazás ingyenes és nyílt forráskódú. Bárki szabadon használhatja a saját GitHub fiókjával.", en: "This application is free and open source. Anyone can use it freely with their own GitHub account." },
+  "help.disclaimerPrivacy": { hu: "Az alkalmazás nem gyűjt semmilyen felhasználói adatot. Minden adat kizárólag a te saját privát GitHub repódban tárolódik. A GitHub token titkosítva van (AES-256), a PIN kód kizárólag a böngésződben marad — semmilyen adat nem kerül hozzánk vagy harmadik félhez. Ez egy statikus weboldal, szerver oldali feldolgozás nélkül.", en: "This application does not collect any user data. All data is stored exclusively in your own private GitHub repository. Your GitHub token is encrypted (AES-256) and your PIN never leaves your browser — no data is sent to us or any third party. This is a static website with no server-side processing." },
+  "help.disclaimerLiability": { hu: "Az alkalmazás használata saját felelősségre történik. Az akkumulátor cellák tárolása, kezelése és ártalmatlanítása a felhasználó felelőssége. A fejlesztők semmilyen felelősséget nem vállalnak az alkalmazás használatából eredő esetleges károkért.", en: "Use of this application is at your own risk. The storage, handling, and disposal of battery cells is the user's responsibility. The developers accept no liability for any damages arising from the use of this application." },
+  "help.disclaimerLicense": { hu: "Az alkalmazás MIT licenc alatt áll — részletekért lásd a LICENSE fájlt a projekt repójában.", en: "This application is licensed under the MIT License — see the LICENSE file in the project repository for details." },
 } as const;
 
 export type TranslationKey = keyof typeof translations;

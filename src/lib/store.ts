@@ -128,7 +128,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
 
   initialize: async () => {
     const local = loadFromLocalStorage();
-    const cfgState = getConfigState();
+    const currentState = get();
 
     // Detect browser language on first launch (no saved settings)
     const hasStoredData = typeof window !== "undefined" && localStorage.getItem("battery-data");
@@ -137,15 +137,22 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
       local.settings.language = browserLang.startsWith("hu") ? "hu" : "en";
     }
 
-    set({
-      cells: local.cells,
-      settings: local.settings,
-      configState: cfgState,
-      initialized: true,
-    });
-
-    // If no config, no need for PIN
-    // If plaintext or encrypted, AppShell will show PinDialog
+    // Don't overwrite unlocked state (e.g. after setGitHubConfig just set it)
+    if (currentState.configState === "unlocked" && currentState.githubConfig) {
+      set({
+        cells: local.cells,
+        settings: local.settings,
+        initialized: true,
+      });
+    } else {
+      const cfgState = getConfigState();
+      set({
+        cells: local.cells,
+        settings: local.settings,
+        configState: cfgState,
+        initialized: true,
+      });
+    }
   },
 
   unlockWithPin: async (pin: string) => {
@@ -384,6 +391,26 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
   setGitHubConfig: async (config, pin) => {
     await saveGitHubConfig(config, pin);
     set({ githubConfig: config, configState: "unlocked" });
+
+    // Initial sync with GitHub after config setup
+    try {
+      set({ syncState: { status: "syncing", lastSynced: null, error: null } });
+      const remote = await pullFromGitHub(config);
+      set({
+        cells: remote.cells,
+        settings: remote.settings,
+        syncState: { status: "idle", lastSynced: nowISO(), error: null },
+      });
+    } catch (error) {
+      const code = error instanceof Error ? error.message : "";
+      set({
+        syncState: {
+          status: "error",
+          lastSynced: null,
+          error: friendlyError(code),
+        },
+      });
+    }
   },
 
   removeGitHubConfig: () => {

@@ -158,6 +158,17 @@ export default function HelpPage() {
         <HelpSection title={t("help.exportTitle", lang)}>
           <p>{t("help.exportDesc", lang)}</p>
         </HelpSection>
+
+        {/* Jogi nyilatkozat */}
+        <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-6">
+          <h2 className="mb-3 text-lg font-semibold text-gray-900 dark:text-gray-100">{t("help.disclaimerTitle", lang)}</h2>
+          <div className="text-sm text-gray-500 dark:text-gray-400 space-y-2">
+            <p>{t("help.disclaimerFree", lang)}</p>
+            <p>{t("help.disclaimerPrivacy", lang)}</p>
+            <p>{t("help.disclaimerLiability", lang)}</p>
+            <p>{t("help.disclaimerLicense", lang)}</p>
+          </div>
+        </div>
       </div>
     </AppShell>
   );
