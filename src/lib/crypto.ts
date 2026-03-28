@@ -1,6 +1,7 @@
 // AES-GCM encryption/decryption with PBKDF2 key derivation from PIN
 
-const ITERATIONS = 200000;
+const CURRENT_ITERATIONS = 200000;
+const LEGACY_ITERATIONS = 100000;
 const KEY_LENGTH = 256;
 
 function arrayBufferToBase64(buffer: ArrayBuffer | Uint8Array): string {
@@ -21,7 +22,7 @@ function base64ToUint8Array(base64: string): Uint8Array {
   return bytes;
 }
 
-async function deriveKey(pin: string, salt: Uint8Array): Promise<CryptoKey> {
+async function deriveKey(pin: string, salt: Uint8Array, iterations: number): Promise<CryptoKey> {
   const encoder = new TextEncoder();
   const keyMaterial = await crypto.subtle.importKey(
     "raw",
@@ -35,7 +36,7 @@ async function deriveKey(pin: string, salt: Uint8Array): Promise<CryptoKey> {
     {
       name: "PBKDF2",
       salt: salt as BufferSource,
-      iterations: ITERATIONS,
+      iterations,
       hash: "SHA-256",
     },
     keyMaterial,
@@ -49,12 +50,20 @@ export interface EncryptedData {
   ciphertext: string; // base64
   salt: string; // base64
   iv: string; // base64
+  iterations?: number; // stored for forward compatibility
+}
+
+function assertCryptoAvailable(): void {
+  if (typeof crypto === "undefined" || !crypto.subtle) {
+    throw new Error("CRYPTO_UNAVAILABLE");
+  }
 }
 
 export async function encryptToken(token: string, pin: string): Promise<EncryptedData> {
+  assertCryptoAvailable();
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const iv = crypto.getRandomValues(new Uint8Array(12));
-  const key = await deriveKey(pin, salt);
+  const key = await deriveKey(pin, salt, CURRENT_ITERATIONS);
 
   const encoder = new TextEncoder();
   const encrypted = await crypto.subtle.encrypt(
@@ -67,14 +76,19 @@ export async function encryptToken(token: string, pin: string): Promise<Encrypte
     ciphertext: arrayBufferToBase64(encrypted),
     salt: arrayBufferToBase64(salt),
     iv: arrayBufferToBase64(iv),
+    iterations: CURRENT_ITERATIONS,
   };
 }
 
 export async function decryptToken(data: EncryptedData, pin: string): Promise<string> {
+  assertCryptoAvailable();
   const salt = base64ToUint8Array(data.salt);
   const iv = base64ToUint8Array(data.iv);
   const ciphertext = base64ToUint8Array(data.ciphertext);
-  const key = await deriveKey(pin, salt);
+
+  // Use stored iterations, fall back to legacy for old data without the field
+  const iterations = data.iterations ?? LEGACY_ITERATIONS;
+  const key = await deriveKey(pin, salt, iterations);
 
   const decrypted = await crypto.subtle.decrypt(
     { name: "AES-GCM", iv: iv as BufferSource },

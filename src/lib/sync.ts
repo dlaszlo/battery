@@ -175,28 +175,6 @@ export async function loadGitHubConfigWithPin(pin: string): Promise<GitHubConfig
   }
 }
 
-/**
- * Legacy: load config without PIN (only works with old plaintext format).
- */
-export function loadGitHubConfigLegacy(): GitHubConfig | null {
-  if (typeof window === "undefined") return null;
-  const raw = localStorage.getItem(GITHUB_CONFIG_KEY);
-  if (!raw) return null;
-  try {
-    const stored: StoredConfig = JSON.parse(raw);
-    if (stored.token) {
-      return {
-        token: stored.token,
-        owner: stored.owner,
-        repo: stored.repo,
-        filePath: stored.filePath,
-      };
-    }
-    return null;
-  } catch {
-    return null;
-  }
-}
 
 export async function saveGitHubConfig(config: GitHubConfig, pin: string): Promise<void> {
   const encrypted = await encryptToken(config.token, pin);

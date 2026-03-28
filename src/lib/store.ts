@@ -17,7 +17,6 @@ import {
   saveToLocalStorage,
   getConfigState,
   loadGitHubConfigWithPin,
-  loadGitHubConfigLegacy,
   saveGitHubConfig,
   clearGitHubConfig,
   pullFromGitHub,
@@ -43,6 +42,8 @@ function friendlyError(code: string): string {
       return "Túl sok kérés a GitHub felé. Várj néhány percet.";
     case "VALIDATION_ERROR":
       return "Érvénytelen adatformátum.";
+    case "CRYPTO_UNAVAILABLE":
+      return "A böngésző nem támogatja a titkosítást (Web Crypto API). Használj modern böngészőt HTTPS-en.";
     default:
       return "Szinkronizációs hiba. Próbáld újra később.";
   }
