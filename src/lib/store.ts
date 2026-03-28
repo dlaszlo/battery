@@ -101,6 +101,13 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     const config = loadGitHubConfig();
     const local = loadFromLocalStorage();
 
+    // Detect browser language on first launch (no saved settings)
+    const hasStoredData = typeof window !== "undefined" && localStorage.getItem("battery-data");
+    if (!hasStoredData && typeof navigator !== "undefined") {
+      const browserLang = navigator.language?.toLowerCase() ?? "";
+      local.settings.language = browserLang.startsWith("hu") ? "hu" : "en";
+    }
+
     set({
       cells: local.cells,
       settings: local.settings,

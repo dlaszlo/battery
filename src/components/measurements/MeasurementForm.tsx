@@ -85,6 +85,7 @@ export default function MeasurementForm({ cellId, onDone }: MeasurementFormProps
         <Input
           label={t("measurement.capacity", lang)}
           tooltip={t("tooltip.measuredCapacity", lang)}
+          isRequired
           type="number"
           placeholder={t("measurement.capacityPlaceholder", lang)}
           value={form.measuredCapacity}
@@ -94,6 +95,7 @@ export default function MeasurementForm({ cellId, onDone }: MeasurementFormProps
         <Input
           label={t("measurement.dischargeCurrent", lang)}
           tooltip={t("tooltip.dischargeCurrent", lang)}
+          isRequired
           type="number"
           placeholder="pl. 500"
           value={form.dischargeCurrent}

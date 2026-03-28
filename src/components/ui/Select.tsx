@@ -7,12 +7,13 @@ interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   error?: string;
   tooltip?: string;
+  isRequired?: boolean;
   options: { value: string; label: string }[];
   placeholder?: string;
 }
 
 const Select = forwardRef<HTMLSelectElement, SelectProps>(
-  ({ label, error, tooltip, options, placeholder, id, className = "", ...props }, ref) => {
+  ({ label, error, tooltip, isRequired, options, placeholder, id, className = "", ...props }, ref) => {
     const selectId = id || label?.toLowerCase().replace(/\s+/g, "-");
 
     return (
@@ -20,6 +21,7 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
         {label && (
           <label htmlFor={selectId} className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
             {label}
+            {isRequired && <span className="ml-0.5 text-red-500">*</span>}
             {tooltip && <Tooltip text={tooltip} />}
           </label>
         )}

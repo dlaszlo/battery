@@ -7,6 +7,7 @@ interface ComboBoxProps {
   label?: string;
   error?: string;
   tooltip?: string;
+  isRequired?: boolean;
   options: string[];
   value: string;
   onChange: (value: string) => void;
@@ -14,7 +15,7 @@ interface ComboBoxProps {
 }
 
 const ComboBox = forwardRef<HTMLInputElement, ComboBoxProps>(
-  ({ label, error, tooltip, options, value, onChange, placeholder }, ref) => {
+  ({ label, error, tooltip, isRequired, options, value, onChange, placeholder }, ref) => {
     const [open, setOpen] = useState(false);
     const [filter, setFilter] = useState("");
     const wrapperRef = useRef<HTMLDivElement>(null);
@@ -40,6 +41,7 @@ const ComboBox = forwardRef<HTMLInputElement, ComboBoxProps>(
         {label && (
           <label htmlFor={inputId} className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
             {label}
+            {isRequired && <span className="ml-0.5 text-red-500">*</span>}
             {tooltip && <Tooltip text={tooltip} />}
           </label>
         )}

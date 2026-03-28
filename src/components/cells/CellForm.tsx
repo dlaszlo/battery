@@ -78,7 +78,9 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
     const errs: Record<string, string> = {};
 
     if (!form.id.trim()) errs.id = t("validation.idRequired", lang);
-    else if (!isEdit && cells.some((c) => c.id === form.id.trim())) {
+    else if (!/^[a-zA-Z0-9_-]+$/.test(form.id.trim())) {
+      errs.id = t("validation.idInvalid", lang);
+    } else if (!isEdit && cells.some((c) => c.id === form.id.trim())) {
       errs.id = t("validation.idExists", lang);
     }
 
@@ -144,6 +146,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
           <Input
             label={t("form.id", lang)}
             tooltip={t("tooltip.id", lang)}
+            isRequired
             placeholder={t("form.idPlaceholder", lang)}
             value={form.id}
             onChange={(e) => set("id", e.target.value)}
@@ -153,6 +156,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
           <Input
             label={t("form.brand", lang)}
             tooltip={t("tooltip.brand", lang)}
+            isRequired
             placeholder={t("form.brandPlaceholder", lang)}
             value={form.brand}
             onChange={(e) => set("brand", e.target.value)}
@@ -168,6 +172,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
           <Select
             label={t("form.formFactor", lang)}
             tooltip={t("tooltip.formFactor", lang)}
+            isRequired
             options={formFactorOptions}
             value={form.formFactor}
             onChange={(e) => set("formFactor", e.target.value)}
@@ -175,6 +180,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
           <Select
             label={t("form.chemistry", lang)}
             tooltip={t("tooltip.chemistry", lang)}
+            isRequired
             options={chemistryOptions}
             value={form.chemistry}
             onChange={(e) => set("chemistry", e.target.value)}
@@ -198,6 +204,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
           <Input
             label={t("form.nominalCapacity", lang)}
             tooltip={t("tooltip.nominalCapacity", lang)}
+            isRequired
             type="number"
             placeholder={t("form.nominalCapacityPlaceholder", lang)}
             value={form.nominalCapacity}
@@ -216,6 +223,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
           <Select
             label={t("form.status", lang)}
             tooltip={t("tooltip.status", lang)}
+            isRequired
             options={statusOptions}
             value={form.status}
             onChange={(e) => set("status", e.target.value)}

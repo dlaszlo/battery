@@ -129,6 +129,7 @@ const translations = {
 
   // Form validation
   "validation.idRequired": { hu: "Sorszám kötelező", en: "Serial number is required" },
+  "validation.idInvalid": { hu: "Csak betűk (a-z, A-Z), számok (0-9), kötőjel (-) és aláhúzásjel (_) használható", en: "Only letters (a-z, A-Z), numbers (0-9), hyphens (-) and underscores (_) are allowed" },
   "validation.idExists": { hu: "Ez a sorszám már létezik", en: "This serial number already exists" },
   "validation.brandRequired": { hu: "Márka kötelező", en: "Brand is required" },
   "validation.capacityRequired": { hu: "Kapacitás kötelező", en: "Capacity is required" },
@@ -381,6 +382,7 @@ const translations = {
   "onboarding.token.step6": { hu: "Kattints a \"Generate token\" gombra és másold ki", en: "Click \"Generate token\" and copy it" },
   "onboarding.token.hint": { hu: "A token csak a böngésződben tárolódik, semmilyen szerverre nem kerül.", en: "The token is only stored in your browser and is never sent to any server." },
   "onboarding.token.verify": { hu: "Ellenőrzés és tovább", en: "Verify and continue" },
+  "onboarding.token.scanQr": { hu: "QR kód beolvasása kamerával", en: "Scan QR code with camera" },
 
   // CompleteStep extra
   "onboarding.complete.titleFull": { hu: "Minden kész!", en: "All set!" },

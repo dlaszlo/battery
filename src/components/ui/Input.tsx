@@ -8,10 +8,11 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: string;
   hint?: string;
   tooltip?: string;
+  isRequired?: boolean;
 }
 
 const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ label, error, hint, tooltip, id, className = "", ...props }, ref) => {
+  ({ label, error, hint, tooltip, isRequired, id, className = "", ...props }, ref) => {
     const inputId = id || label?.toLowerCase().replace(/\s+/g, "-");
 
     return (
@@ -19,6 +20,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label htmlFor={inputId} className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
             {label}
+            {isRequired && <span className="ml-0.5 text-red-500">*</span>}
             {tooltip && <Tooltip text={tooltip} />}
           </label>
         )}
