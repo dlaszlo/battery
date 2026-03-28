@@ -89,7 +89,6 @@ export interface Cell {
   events: CellEvent[];
   createdAt: string;
   updatedAt: string;
-  deletedAt?: string;
 }
 
 export interface GitHubConfig {

@@ -21,7 +21,7 @@ export function useCells(
   const cells = useBatteryStore((s) => s.cells);
 
   return useMemo(() => {
-    let filtered = cells.filter((c) => !c.deletedAt);
+    let filtered = [...cells];
 
     if (filters?.search) {
       const q = filters.search.toLowerCase();
@@ -66,7 +66,7 @@ export function useCellStats() {
   const cells = useBatteryStore((s) => s.cells);
 
   return useMemo(() => {
-    const activeCells = cells.filter((c) => !c.deletedAt);
+    const activeCells = cells;
     const total = activeCells.length;
     const active = activeCells.filter((c) => c.status !== "Selejt").length;
     const scrapped = activeCells.filter((c) => c.status === "Selejt").length;
@@ -106,7 +106,7 @@ export function useGroups(): string[] {
 
   return useMemo(() => {
     const groups = new Set<string>();
-    for (const cell of cells.filter((c) => !c.deletedAt)) {
+    for (const cell of cells) {
       if (cell.group) groups.add(cell.group);
     }
     return Array.from(groups).sort((a, b) => a.localeCompare(b, "hu"));

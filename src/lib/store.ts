@@ -21,12 +21,12 @@ import {
   saveGitHubConfig,
   clearGitHubConfig,
   pullFromGitHub,
-  pushToGitHub,
-  forcePushToGitHub,
+  fullSync,
   recordFailedPinAttempt,
   resetPinAttempts,
   getPinLockoutDelay,
 } from "./sync";
+import type { DirtyFlags } from "./sync";
 import { nowISO, todayISO } from "./utils";
 
 type ConfigState = null | "plaintext" | "encrypted" | "unlocked";
@@ -59,6 +59,7 @@ interface BatteryStore {
   syncState: SyncState;
   initialized: boolean;
   configState: ConfigState;
+  dirtyFlags: DirtyFlags;
 
   // Init
   initialize: () => Promise<void>;
@@ -90,7 +91,6 @@ interface BatteryStore {
 
   // Sync
   syncWithGitHub: () => Promise<void>;
-  forceSyncToGitHub: () => Promise<void>;
 
   // Import/Export
   importData: (data: BatteryData) => void;
@@ -114,18 +114,23 @@ function persist(store: BatteryStore) {
   });
 }
 
-function markPending(set: (fn: (state: BatteryStore) => Partial<BatteryStore>) => void) {
+function markDirty(
+  set: (fn: (state: BatteryStore) => Partial<BatteryStore>) => void,
+  file: "cells" | "settings" | "templates",
+) {
   changeCounter++;
   set((state) => ({
     syncState: { ...state.syncState, pendingChanges: true },
+    dirtyFlags: {
+      ...state.dirtyFlags,
+      [`${file}Dirty`]: true,
+    },
   }));
 }
 
 let syncTimer: ReturnType<typeof setTimeout> | null = null;
 const SYNC_DEBOUNCE_MS = 3000;
 
-// Change counter: incremented on every mutation, captured before sync starts.
-// If counter differs after sync completes → new changes happened during sync → keep pendingChanges true.
 let changeCounter = 0;
 let syncInProgress = false;
 let resyncRequested = false;
@@ -138,6 +143,12 @@ function debouncedSync(syncFn: () => Promise<void>) {
   }, SYNC_DEBOUNCE_MS);
 }
 
+const DEFAULT_DIRTY_FLAGS: DirtyFlags = {
+  cellsDirty: false,
+  settingsDirty: false,
+  templatesDirty: false,
+};
+
 export const useBatteryStore = create<BatteryStore>((set, get) => ({
   cells: [],
   settings: { ...DEFAULT_SETTINGS },
@@ -146,19 +157,18 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
   syncState: { status: "idle", lastSynced: null, error: null, pendingChanges: false, retryCount: 0 },
   initialized: false,
   configState: null,
+  dirtyFlags: { ...DEFAULT_DIRTY_FLAGS },
 
   initialize: async () => {
     const local = loadFromLocalStorage();
     const currentState = get();
 
-    // Detect browser language on first launch (no saved settings)
     const hasStoredData = typeof window !== "undefined" && localStorage.getItem("battery-data");
     if (!hasStoredData && typeof navigator !== "undefined") {
       const browserLang = navigator.language?.toLowerCase() ?? "";
       local.settings.language = browserLang.startsWith("hu") ? "hu" : "en";
     }
 
-    // Don't overwrite unlocked state (e.g. after setGitHubConfig just set it)
     if (currentState.configState === "unlocked" && currentState.githubConfig) {
       set({
         cells: local.cells,
@@ -179,9 +189,9 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
   },
 
   unlockWithPin: async (pin: string) => {
-    const delay = getPinLockoutDelay();
-    if (delay > 0) {
-      await new Promise((r) => setTimeout(r, delay));
+    const lockoutDelay = getPinLockoutDelay();
+    if (lockoutDelay > 0) {
+      await new Promise((r) => setTimeout(r, lockoutDelay));
     }
 
     try {
@@ -202,7 +212,6 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
         configState: "unlocked",
       });
 
-      // Sync with GitHub
       try {
         set({ syncState: { status: "syncing", lastSynced: null, error: null, pendingChanges: false, retryCount: 0 } });
         const remote = await pullFromGitHub(config);
@@ -211,6 +220,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
           settings: remote.settings,
           templates: remote.templates,
           syncState: { status: "idle", lastSynced: nowISO(), error: null, pendingChanges: false, retryCount: 0 },
+          dirtyFlags: { ...DEFAULT_DIRTY_FLAGS },
         });
       } catch (error) {
         const code = error instanceof Error ? error.message : "";
@@ -241,6 +251,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
       githubConfig: null,
       configState: getConfigState(),
       syncState: { status: "idle", lastSynced: null, error: null, pendingChanges: false, retryCount: 0 },
+      dirtyFlags: { ...DEFAULT_DIRTY_FLAGS },
     });
   },
 
@@ -262,7 +273,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     });
 
     if (get().githubConfig) {
-      markPending(set);
+      markDirty(set, "cells");
       debouncedSync(() => get().syncWithGitHub());
     }
   },
@@ -299,30 +310,21 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     });
 
     if (get().githubConfig) {
-      markPending(set);
+      markDirty(set, "cells");
       debouncedSync(() => get().syncWithGitHub());
     }
   },
 
   deleteCell: (id) => {
     set((state) => {
-      const now = nowISO();
-      const newCells = state.cells.map((c) => {
-        if (c.id !== id || c.deletedAt) return c;
-        return {
-          ...c,
-          deletedAt: now,
-          updatedAt: now,
-          events: [...(c.events || []), createEvent("deleted", "Cella törölve")],
-        };
-      });
+      const newCells = state.cells.filter((c) => c.id !== id);
       const newState = { cells: newCells };
       persist({ ...get(), ...newState });
       return newState;
     });
 
     if (get().githubConfig) {
-      markPending(set);
+      markDirty(set, "cells");
       debouncedSync(() => get().syncWithGitHub());
     }
   },
@@ -354,7 +356,6 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
           updatedAt: nowISO(),
         };
 
-        // Auto-scrap detection
         if (
           updated.status !== "Selejt" &&
           shouldMarkAsScrap(updated, state.settings)
@@ -376,7 +377,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     });
 
     if (get().githubConfig) {
-      markPending(set);
+      markDirty(set, "cells");
       debouncedSync(() => get().syncWithGitHub());
     }
   },
@@ -402,7 +403,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     });
 
     if (get().githubConfig) {
-      markPending(set);
+      markDirty(set, "cells");
       debouncedSync(() => get().syncWithGitHub());
     }
   },
@@ -426,7 +427,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     });
 
     if (get().githubConfig) {
-      markPending(set);
+      markDirty(set, "templates");
       debouncedSync(() => get().syncWithGitHub());
     }
   },
@@ -442,7 +443,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     });
 
     if (get().githubConfig) {
-      markPending(set);
+      markDirty(set, "templates");
       debouncedSync(() => get().syncWithGitHub());
     }
   },
@@ -458,7 +459,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     });
 
     if (get().githubConfig) {
-      markPending(set);
+      markDirty(set, "templates");
       debouncedSync(() => get().syncWithGitHub());
     }
   },
@@ -476,7 +477,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     });
 
     if (get().githubConfig) {
-      markPending(set);
+      markDirty(set, "settings");
       debouncedSync(() => get().syncWithGitHub());
     }
   },
@@ -485,7 +486,6 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     await saveGitHubConfig(config, pin);
     set({ githubConfig: config, configState: "unlocked" });
 
-    // Initial sync with GitHub after config setup
     try {
       set({ syncState: { status: "syncing", lastSynced: null, error: null, pendingChanges: false, retryCount: 0 } });
       const remote = await pullFromGitHub(config);
@@ -494,6 +494,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
         settings: remote.settings,
         templates: remote.templates,
         syncState: { status: "idle", lastSynced: nowISO(), error: null, pendingChanges: false, retryCount: 0 },
+        dirtyFlags: { ...DEFAULT_DIRTY_FLAGS },
       });
     } catch (error) {
       const code = error instanceof Error ? error.message : "";
@@ -514,6 +515,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     set({
       githubConfig: null,
       syncState: { status: "idle", lastSynced: null, error: null, pendingChanges: false, retryCount: 0 },
+      dirtyFlags: { ...DEFAULT_DIRTY_FLAGS },
     });
   },
 
@@ -521,7 +523,6 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     const { githubConfig } = get();
     if (!githubConfig) return;
 
-    // Guard: if a sync is already in progress, flag re-sync needed and return
     if (syncInProgress) {
       resyncRequested = true;
       return;
@@ -535,19 +536,21 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     set({ syncState: { ...prevSyncState, status: "syncing", error: null } });
 
     try {
-      const data = {
+      const localData = {
         cells: get().cells,
         settings: get().settings,
         templates: get().templates,
       };
-      const merged = await pushToGitHub(githubConfig, data);
+      const currentDirtyFlags = { ...get().dirtyFlags };
+      const merged = await fullSync(githubConfig, localData, currentDirtyFlags);
 
-      // Apply merge result: remote may have had cells/templates we didn't have locally
       const stillPending = changeCounter !== counterAtStart;
       set({
         cells: stillPending ? get().cells : merged.cells,
+        settings: stillPending ? get().settings : merged.settings,
         templates: stillPending ? get().templates : merged.templates,
         syncState: { status: "idle", lastSynced: nowISO(), error: null, pendingChanges: stillPending, retryCount: 0 },
+        dirtyFlags: stillPending ? get().dirtyFlags : { ...DEFAULT_DIRTY_FLAGS },
       });
       if (!stillPending) {
         saveToLocalStorage({ cells: merged.cells, settings: merged.settings, templates: merged.templates });
@@ -555,7 +558,6 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
 
       syncInProgress = false;
 
-      // If new changes came in during sync, schedule another sync
       if (stillPending || resyncRequested) {
         resyncRequested = false;
         debouncedSync(() => get().syncWithGitHub());
@@ -566,7 +568,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
       const currentRetry = get().syncState.retryCount;
       const isRetryable = !["TOKEN_EXPIRED", "REPO_NOT_FOUND", "VALIDATION_ERROR"].includes(code);
 
-      if (isRetryable && currentRetry < 3) {
+      if (isRetryable && currentRetry < 5) {
         set({
           syncState: {
             status: "error",
@@ -576,7 +578,6 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
             retryCount: currentRetry + 1,
           },
         });
-        // Auto-retry with exponential backoff
         setTimeout(() => get().syncWithGitHub(), 2000 * Math.pow(2, currentRetry));
       } else {
         set({
@@ -589,50 +590,6 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
           },
         });
       }
-    }
-  },
-
-  forceSyncToGitHub: async () => {
-    const { githubConfig } = get();
-    if (!githubConfig) return;
-
-    // Force sync waits if another sync is running, then runs
-    if (syncInProgress) {
-      resyncRequested = false; // force takes priority
-    }
-    syncInProgress = true;
-    const counterAtStart = changeCounter;
-
-    const prevSyncState = get().syncState;
-    set({ syncState: { ...prevSyncState, status: "syncing", error: null } });
-
-    try {
-      const data = {
-        cells: get().cells,
-        settings: get().settings,
-        templates: get().templates,
-      };
-      await forcePushToGitHub(githubConfig, data);
-      const stillPending = changeCounter !== counterAtStart;
-      set({ syncState: { status: "idle", lastSynced: nowISO(), error: null, pendingChanges: stillPending, retryCount: 0 } });
-      syncInProgress = false;
-
-      if (stillPending || resyncRequested) {
-        resyncRequested = false;
-        debouncedSync(() => get().syncWithGitHub());
-      }
-    } catch (error) {
-      syncInProgress = false;
-      const code = error instanceof Error ? error.message : "";
-      set({
-        syncState: {
-          status: "error",
-          lastSynced: prevSyncState.lastSynced,
-          error: friendlyError(code),
-          pendingChanges: true,
-          retryCount: 0,
-        },
-      });
     }
   },
 
@@ -649,7 +606,9 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     });
 
     if (get().githubConfig) {
-      markPending(set);
+      markDirty(set, "cells");
+      markDirty(set, "settings");
+      markDirty(set, "templates");
       debouncedSync(() => get().syncWithGitHub());
     }
   },
@@ -657,7 +616,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
   exportData: () => ({
     version: DATA_VERSION,
     settings: get().settings,
-    cells: get().cells.filter((c) => !c.deletedAt),
+    cells: get().cells,
     templates: get().templates,
   }),
 }));

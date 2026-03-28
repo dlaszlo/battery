@@ -23,7 +23,6 @@ export default function Navbar() {
   const syncState = useBatteryStore((s) => s.syncState);
   const githubConfig = useBatteryStore((s) => s.githubConfig);
   const syncWithGitHub = useBatteryStore((s) => s.syncWithGitHub);
-  const forceSyncToGitHub = useBatteryStore((s) => s.forceSyncToGitHub);
   const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -75,7 +74,7 @@ export default function Navbar() {
                 syncState={syncState}
                 lang={lang}
                 onRetry={syncWithGitHub}
-                onForceSync={forceSyncToGitHub}
+                onSync={syncWithGitHub}
               />
             )}
 
@@ -150,10 +149,10 @@ interface SyncIndicatorProps {
   syncState: SyncState;
   lang: Language;
   onRetry: () => void;
-  onForceSync: () => void;
+  onSync: () => void;
 }
 
-function SyncIndicator({ syncState, lang, onRetry, onForceSync }: SyncIndicatorProps) {
+function SyncIndicator({ syncState, lang, onRetry, onSync }: SyncIndicatorProps) {
   const { status, lastSynced, error, pendingChanges, retryCount } = syncState;
   const timeAgo = useRelativeTime(lastSynced, lang);
 
@@ -205,7 +204,7 @@ function SyncIndicator({ syncState, lang, onRetry, onForceSync }: SyncIndicatorP
   if (status === "conflict") {
     return (
       <button
-        onClick={onForceSync}
+        onClick={onSync}
         className="flex items-center gap-1.5 text-xs text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 cursor-pointer transition-colors"
         title={error ? `${error} — ${t("sync.clickOverwrite", lang)}` : t("sync.clickOverwrite", lang)}
       >

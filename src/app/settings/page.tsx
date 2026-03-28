@@ -28,7 +28,6 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const setGitHubConfig = useBatteryStore((s) => s.setGitHubConfig);
   const syncWithGitHub = useBatteryStore((s) => s.syncWithGitHub);
-  const forceSyncToGitHub = useBatteryStore((s) => s.forceSyncToGitHub);
   const [showReset, setShowReset] = useState(false);
   const [showDisconnect, setShowDisconnect] = useState(false);
   const [showTokenUpdate, setShowTokenUpdate] = useState(false);
@@ -400,7 +399,7 @@ export default function SettingsPage() {
                     variant="secondary"
                     size="sm"
                     onClick={async () => {
-                      await forceSyncToGitHub();
+                      await syncWithGitHub();
                       toast(t("settings.resynced", lang));
                     }}
                   >

@@ -106,7 +106,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
     if (!form.id.trim()) errs.id = t("validation.idRequired", lang);
     else if (!/^[a-zA-Z0-9_-]+$/.test(form.id.trim())) {
       errs.id = t("validation.idInvalid", lang);
-    } else if (!isEdit && cells.some((c) => c.id === form.id.trim() && !c.deletedAt)) {
+    } else if (!isEdit && cells.some((c) => c.id === form.id.trim())) {
       errs.id = t("validation.idExists", lang);
     }
 
