@@ -6,7 +6,6 @@ import Input from "@/components/ui/Input";
 import ComboBox from "@/components/ui/ComboBox";
 import { useToast } from "@/components/ui/Toast";
 import { useBatteryStore } from "@/lib/store";
-import { TEST_DEVICES } from "@/lib/constants";
 import { todayISO } from "@/lib/utils";
 import { t } from "@/lib/i18n";
 
@@ -25,6 +24,7 @@ export default function MeasurementForm({ cellId, onDone }: MeasurementFormProps
     date: todayISO(),
     measuredCapacity: "",
     dischargeCurrent: settings.defaultDischargeCurrent.toString(),
+    chargeCurrent: (settings.defaultChargeCurrent ?? "").toString(),
     internalResistance: "",
     testDevice: settings.defaultTestDevice,
     notes: "",
@@ -63,6 +63,7 @@ export default function MeasurementForm({ cellId, onDone }: MeasurementFormProps
       date: form.date,
       measuredCapacity: Number(form.measuredCapacity),
       dischargeCurrent: Number(form.dischargeCurrent),
+      chargeCurrent: form.chargeCurrent ? Number(form.chargeCurrent) : undefined,
       internalResistance: form.internalResistance ? Number(form.internalResistance) : undefined,
       testDevice: form.testDevice,
       notes: form.notes.trim() || undefined,
@@ -83,6 +84,7 @@ export default function MeasurementForm({ cellId, onDone }: MeasurementFormProps
         />
         <Input
           label={t("measurement.capacity", lang)}
+          tooltip={t("tooltip.measuredCapacity", lang)}
           type="number"
           placeholder={t("measurement.capacityPlaceholder", lang)}
           value={form.measuredCapacity}
@@ -91,6 +93,7 @@ export default function MeasurementForm({ cellId, onDone }: MeasurementFormProps
         />
         <Input
           label={t("measurement.dischargeCurrent", lang)}
+          tooltip={t("tooltip.dischargeCurrent", lang)}
           type="number"
           placeholder="pl. 500"
           value={form.dischargeCurrent}
@@ -98,7 +101,16 @@ export default function MeasurementForm({ cellId, onDone }: MeasurementFormProps
           error={errors.dischargeCurrent}
         />
         <Input
+          label={t("measurement.chargeCurrent", lang)}
+          tooltip={t("tooltip.chargeCurrent", lang)}
+          type="number"
+          placeholder="pl. 1000"
+          value={form.chargeCurrent}
+          onChange={(e) => set("chargeCurrent", e.target.value)}
+        />
+        <Input
           label={t("measurement.internalResistance", lang)}
+          tooltip={t("tooltip.internalResistance", lang)}
           type="number"
           step="0.1"
           placeholder={t("measurement.internalResistancePlaceholder", lang)}
@@ -107,7 +119,8 @@ export default function MeasurementForm({ cellId, onDone }: MeasurementFormProps
         />
         <ComboBox
           label={t("measurement.testDevice", lang)}
-          options={TEST_DEVICES}
+          tooltip={t("tooltip.testDevice", lang)}
+          options={settings.testDevices || []}
           value={form.testDevice}
           onChange={(v) => set("testDevice", v)}
           placeholder={t("measurement.testDevicePlaceholder", lang)}

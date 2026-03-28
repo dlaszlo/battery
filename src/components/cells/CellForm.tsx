@@ -143,6 +143,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
         <div className="grid gap-4 sm:grid-cols-2">
           <Input
             label={t("form.id", lang)}
+            tooltip={t("tooltip.id", lang)}
             placeholder={t("form.idPlaceholder", lang)}
             value={form.id}
             onChange={(e) => set("id", e.target.value)}
@@ -151,6 +152,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
           />
           <Input
             label={t("form.brand", lang)}
+            tooltip={t("tooltip.brand", lang)}
             placeholder={t("form.brandPlaceholder", lang)}
             value={form.brand}
             onChange={(e) => set("brand", e.target.value)}
@@ -158,24 +160,28 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
           />
           <Input
             label={t("form.model", lang)}
+            tooltip={t("tooltip.model", lang)}
             placeholder={t("form.modelPlaceholder", lang)}
             value={form.model}
             onChange={(e) => set("model", e.target.value)}
           />
           <Select
             label={t("form.formFactor", lang)}
+            tooltip={t("tooltip.formFactor", lang)}
             options={formFactorOptions}
             value={form.formFactor}
             onChange={(e) => set("formFactor", e.target.value)}
           />
           <Select
             label={t("form.chemistry", lang)}
+            tooltip={t("tooltip.chemistry", lang)}
             options={chemistryOptions}
             value={form.chemistry}
             onChange={(e) => set("chemistry", e.target.value)}
           />
           <ComboBox
             label={t("form.cathodeType", lang)}
+            tooltip={t("tooltip.cathodeType", lang)}
             options={CATHODE_TYPES}
             value={form.cathodeType}
             onChange={(v) => set("cathodeType", v)}
@@ -183,6 +189,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
           />
           <ComboBox
             label={t("form.contactType", lang)}
+            tooltip={t("tooltip.contactType", lang)}
             options={CONTACT_TYPES}
             value={form.contactType}
             onChange={(v) => set("contactType", v)}
@@ -190,6 +197,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
           />
           <Input
             label={t("form.nominalCapacity", lang)}
+            tooltip={t("tooltip.nominalCapacity", lang)}
             type="number"
             placeholder={t("form.nominalCapacityPlaceholder", lang)}
             value={form.nominalCapacity}
@@ -198,6 +206,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
           />
           <Input
             label={t("form.maxDischargeCurrent", lang)}
+            tooltip={t("tooltip.maxDischargeCurrent", lang)}
             type="number"
             step="0.1"
             placeholder={t("form.maxDischargeCurrentPlaceholder", lang)}
@@ -206,6 +215,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
           />
           <Select
             label={t("form.status", lang)}
+            tooltip={t("tooltip.status", lang)}
             options={statusOptions}
             value={form.status}
             onChange={(e) => set("status", e.target.value)}
@@ -219,6 +229,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
         <div className="grid gap-4 sm:grid-cols-2">
           <ComboBox
             label={t("form.platform", lang)}
+            tooltip={t("tooltip.platform", lang)}
             options={PLATFORMS}
             value={form.platform}
             onChange={(v) => set("platform", v)}
@@ -253,6 +264,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Input
             label={t("form.weight", lang)}
+            tooltip={t("tooltip.weight", lang)}
             type="number"
             step="0.1"
             placeholder={t("form.weightPlaceholder", lang)}
@@ -262,6 +274,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
           />
           <Input
             label={t("form.storageVoltage", lang)}
+            tooltip={t("tooltip.storageVoltage", lang)}
             type="number"
             step="0.01"
             placeholder={t("form.storageVoltagePlaceholder", lang)}
@@ -270,6 +283,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
           />
           <Input
             label={t("form.batchNumber", lang)}
+            tooltip={t("tooltip.batchNumber", lang)}
             placeholder={t("form.batchNumberPlaceholder", lang)}
             value={form.batchNumber}
             onChange={(e) => set("batchNumber", e.target.value)}
@@ -281,15 +295,27 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
       <fieldset>
         <legend className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">{t("form.placement", lang)}</legend>
         <div className="grid gap-4 sm:grid-cols-2">
-          <ComboBox
-            label={t("form.currentDevice", lang)}
-            options={settings.devices || []}
-            value={form.currentDevice}
-            onChange={(v) => set("currentDevice", v)}
-            placeholder={t("form.currentDevicePlaceholder", lang)}
-          />
+          <div>
+            <ComboBox
+              label={t("form.currentDevice", lang)}
+              tooltip={t("tooltip.currentDevice", lang)}
+              options={settings.devices || []}
+              value={form.currentDevice}
+              onChange={(v) => set("currentDevice", v)}
+              placeholder={t("form.currentDevicePlaceholder", lang)}
+            />
+            {form.currentDevice === "Raktáron" && (
+              <p className="mt-1.5 flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
+                <svg className="h-3.5 w-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                </svg>
+                {t("warning.storageVoltage", lang)}
+              </p>
+            )}
+          </div>
           <Input
             label={t("form.group", lang)}
+            tooltip={t("tooltip.group", lang)}
             placeholder={t("form.groupPlaceholder", lang)}
             value={form.group}
             onChange={(e) => set("group", e.target.value)}

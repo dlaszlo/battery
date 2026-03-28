@@ -218,8 +218,11 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
       const newCells = state.cells.map((cell) => {
         if (cell.id !== cellId) return cell;
 
+        const currentInfo = measurement.chargeCurrent
+          ? `${measurement.dischargeCurrent}/${measurement.chargeCurrent} mA`
+          : `${measurement.dischargeCurrent} mA`;
         const newEvents: CellEvent[] = [
-          createEvent("measurement_added", `Mérés: ${measurement.measuredCapacity} mAh (${measurement.dischargeCurrent} mA)`),
+          createEvent("measurement_added", `Mérés: ${measurement.measuredCapacity} mAh (${currentInfo})`),
         ];
 
         const updated: Cell = {

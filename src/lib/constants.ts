@@ -62,20 +62,21 @@ export const DEFAULT_DEVICES = [
   "Tesztelés alatt",
 ];
 
-export const TEST_DEVICES = [
+export const DEFAULT_TEST_DEVICES = [
   "LiitoKala Lii-700",
   "LiitoKala Lii-500",
   "LiitoKala Lii-M4S",
   "XTAR VC4SL",
   "Opus BT-C3100",
-  "Egyéb",
 ];
 
 export const DEFAULT_SETTINGS: AppSettings = {
   scrapThresholdPercent: 60,
   defaultTestDevice: "LiitoKala Lii-700",
   defaultDischargeCurrent: 500,
+  defaultChargeCurrent: 1000,
   devices: [...DEFAULT_DEVICES],
+  testDevices: [...DEFAULT_TEST_DEVICES],
   theme: "system",
   language: "hu",
 };

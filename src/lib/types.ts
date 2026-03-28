@@ -18,6 +18,7 @@ export interface Measurement {
   date: string;
   measuredCapacity: number;
   dischargeCurrent: number;
+  chargeCurrent?: number;
   internalResistance?: number;
   testDevice: string;
   notes?: string;
@@ -80,7 +81,9 @@ export interface AppSettings {
   scrapThresholdPercent: number;
   defaultTestDevice: string;
   defaultDischargeCurrent: number;
+  defaultChargeCurrent: number;
   devices: string[];
+  testDevices: string[];
   theme: Theme;
   language: Language;
 }

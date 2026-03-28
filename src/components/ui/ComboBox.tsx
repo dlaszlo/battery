@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useRef, useEffect, forwardRef } from "react";
+import Tooltip from "./Tooltip";
 
 interface ComboBoxProps {
   label?: string;
   error?: string;
+  tooltip?: string;
   options: string[];
   value: string;
   onChange: (value: string) => void;
@@ -12,7 +14,7 @@ interface ComboBoxProps {
 }
 
 const ComboBox = forwardRef<HTMLInputElement, ComboBoxProps>(
-  ({ label, error, options, value, onChange, placeholder }, ref) => {
+  ({ label, error, tooltip, options, value, onChange, placeholder }, ref) => {
     const [open, setOpen] = useState(false);
     const [filter, setFilter] = useState("");
     const wrapperRef = useRef<HTMLDivElement>(null);
@@ -36,8 +38,9 @@ const ComboBox = forwardRef<HTMLInputElement, ComboBoxProps>(
     return (
       <div className="space-y-1" ref={wrapperRef}>
         {label && (
-          <label htmlFor={inputId} className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label htmlFor={inputId} className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
             {label}
+            {tooltip && <Tooltip text={tooltip} />}
           </label>
         )}
         <div className="relative">

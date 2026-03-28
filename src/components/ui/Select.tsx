@@ -1,23 +1,26 @@
 "use client";
 
 import { SelectHTMLAttributes, forwardRef } from "react";
+import Tooltip from "./Tooltip";
 
 interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   error?: string;
+  tooltip?: string;
   options: { value: string; label: string }[];
   placeholder?: string;
 }
 
 const Select = forwardRef<HTMLSelectElement, SelectProps>(
-  ({ label, error, options, placeholder, id, className = "", ...props }, ref) => {
+  ({ label, error, tooltip, options, placeholder, id, className = "", ...props }, ref) => {
     const selectId = id || label?.toLowerCase().replace(/\s+/g, "-");
 
     return (
       <div className="space-y-1">
         {label && (
-          <label htmlFor={selectId} className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label htmlFor={selectId} className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300">
             {label}
+            {tooltip && <Tooltip text={tooltip} />}
           </label>
         )}
         <select

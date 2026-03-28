@@ -9,7 +9,6 @@ import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { useToast } from "@/components/ui/Toast";
 import { useBatteryStore } from "@/lib/store";
 import { exportToFile, importFromFile } from "@/lib/sync";
-import { TEST_DEVICES } from "@/lib/constants";
 import { formatDate } from "@/lib/utils";
 import { t } from "@/lib/i18n";
 
@@ -33,6 +32,7 @@ export default function SettingsPage() {
   const [showTokenUpdate, setShowTokenUpdate] = useState(false);
   const [newToken, setNewToken] = useState("");
   const [newDevice, setNewDevice] = useState("");
+  const [newTestDevice, setNewTestDevice] = useState("");
   const [importError, setImportError] = useState<string | null>(null);
   const [importSuccess, setImportSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -61,7 +61,7 @@ export default function SettingsPage() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const deviceOptions = TEST_DEVICES.map((d) => ({ value: d, label: d }));
+  const testDeviceOptions = (settings.testDevices || []).map((d) => ({ value: d, label: d }));
 
   return (
     <AppShell>
@@ -146,10 +146,10 @@ export default function SettingsPage() {
 
         {/* Default mérési értékek */}
         <Section title={t("settings.defaultMeasurement", lang)} description={t("settings.defaultMeasurementDesc", lang)}>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-3">
             <Select
               label={t("settings.testDevice", lang)}
-              options={deviceOptions}
+              options={testDeviceOptions}
               value={settings.defaultTestDevice}
               onChange={(e) => updateSettings({ defaultTestDevice: e.target.value })}
             />
@@ -159,6 +159,64 @@ export default function SettingsPage() {
               value={settings.defaultDischargeCurrent.toString()}
               onChange={(e) => updateSettings({ defaultDischargeCurrent: Number(e.target.value) || 500 })}
             />
+            <Input
+              label={t("settings.chargeCurrent", lang)}
+              type="number"
+              value={(settings.defaultChargeCurrent ?? 1000).toString()}
+              onChange={(e) => updateSettings({ defaultChargeCurrent: Number(e.target.value) || 1000 })}
+            />
+          </div>
+        </Section>
+
+        {/* Tesztelő eszközök */}
+        <Section title={t("settings.testDevices", lang)} description={t("settings.testDevicesDesc", lang)}>
+          <div className="space-y-3">
+            <div className="flex flex-wrap gap-2">
+              {(settings.testDevices || []).map((device) => (
+                <span
+                  key={device}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 dark:bg-gray-700 px-3 py-1 text-sm text-gray-700 dark:text-gray-300"
+                >
+                  {device}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      updateSettings({
+                        testDevices: (settings.testDevices || []).filter((d) => d !== device),
+                      });
+                      toast(`"${device}" ${t("settings.testDeviceRemoved", lang)}`);
+                    }}
+                    className="ml-0.5 text-gray-400 hover:text-red-500 transition-colors"
+                  >
+                    &times;
+                  </button>
+                </span>
+              ))}
+              {(settings.testDevices || []).length === 0 && (
+                <p className="text-sm text-gray-400">{t("settings.noTestDevices", lang)}</p>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <Input
+                placeholder={t("settings.newTestDevicePlaceholder", lang)}
+                value={newTestDevice}
+                onChange={(e) => setNewTestDevice(e.target.value)}
+              />
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={!newTestDevice.trim() || (settings.testDevices || []).includes(newTestDevice.trim())}
+                onClick={() => {
+                  updateSettings({
+                    testDevices: [...(settings.testDevices || []), newTestDevice.trim()],
+                  });
+                  setNewTestDevice("");
+                  toast(`"${newTestDevice.trim()}" ${t("settings.testDeviceAdded", lang)}`);
+                }}
+              >
+                {t("settings.addTestDevice", lang)}
+              </Button>
+            </div>
           </div>
         </Section>
 

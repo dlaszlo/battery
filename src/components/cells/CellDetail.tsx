@@ -42,6 +42,17 @@ export default function CellDetail({ cell }: CellDetailProps) {
       ? cell.measurements.reduce((a, b) => (a.date > b.date ? a : b))
       : null;
 
+  // Storage warning: check if cell has been in "Raktáron" for a long time
+  const storageMonths = (() => {
+    if (cell.currentDevice !== "Raktáron") return 0;
+    const deviceEvent = [...(cell.events || [])]
+      .reverse()
+      .find((e) => e.type === "device_changed" && e.description.includes("Raktáron"));
+    const sinceDate = deviceEvent ? deviceEvent.date : cell.updatedAt;
+    const diffMs = Date.now() - new Date(sinceDate).getTime();
+    return Math.floor(diffMs / (1000 * 60 * 60 * 24 * 30));
+  })();
+
   if (editing) {
     return (
       <div className="space-y-4">
@@ -140,6 +151,23 @@ export default function CellDetail({ cell }: CellDetailProps) {
           </div>
         )}
       </div>
+
+      {/* Storage warnings */}
+      {storageMonths >= 3 && (
+        <div className="flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 px-5 py-4 dark:border-amber-700 dark:bg-amber-900/30">
+          <svg className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+          </svg>
+          <div>
+            <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+              {t("warning.storageCheck", lang, { months: storageMonths.toString() })}
+            </p>
+            <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+              {t("warning.storageVoltage", lang)}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Capacity chart */}
       <div className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">

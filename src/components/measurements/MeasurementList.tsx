@@ -35,7 +35,8 @@ export default function MeasurementList({ cellId, measurements, nominalCapacity 
               <th className="px-4 py-2.5">{t("measurement.headerDate", lang)}</th>
               <th className="px-4 py-2.5">{t("measurement.headerCapacity", lang)}</th>
               <th className="px-4 py-2.5 hidden sm:table-cell">{t("measurement.headerPercent", lang)}</th>
-              <th className="px-4 py-2.5 hidden sm:table-cell">{t("measurement.headerCurrent", lang)}</th>
+              <th className="px-4 py-2.5 hidden sm:table-cell">{t("measurement.headerDischargeCurrent", lang)}</th>
+              <th className="px-4 py-2.5 hidden sm:table-cell">{t("measurement.headerChargeCurrent", lang)}</th>
               <th className="px-4 py-2.5 hidden md:table-cell">{t("measurement.headerResistance", lang)}</th>
               <th className="px-4 py-2.5 hidden lg:table-cell">{t("measurement.headerDevice", lang)}</th>
               <th className="px-4 py-2.5 hidden lg:table-cell">{t("measurement.headerNotes", lang)}</th>
@@ -58,6 +59,9 @@ export default function MeasurementList({ cellId, measurements, nominalCapacity 
                   </td>
                   <td className="px-4 py-2.5 hidden sm:table-cell text-gray-600 dark:text-gray-300">
                     {m.dischargeCurrent} mA
+                  </td>
+                  <td className="px-4 py-2.5 hidden sm:table-cell text-gray-600 dark:text-gray-300">
+                    {m.chargeCurrent ? `${m.chargeCurrent} mA` : "—"}
                   </td>
                   <td className="px-4 py-2.5 hidden md:table-cell text-gray-600 dark:text-gray-300">
                     {m.internalResistance ? formatResistance(m.internalResistance) : "—"}
