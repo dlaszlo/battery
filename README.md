@@ -66,7 +66,13 @@ The app uses a **Fine-grained Personal Access Token** (PAT) scoped to a single r
 
 ### PIN Protection
 
-During setup, you'll choose a 4-8 digit PIN code. This PIN is used to encrypt your GitHub token with AES-GCM (PBKDF2 key derivation). Every time you open the app, you'll need to enter your PIN to decrypt the token and enable GitHub sync. If you forget your PIN, you can disconnect and re-enter your token with a new PIN — no data is lost.
+During setup, you'll choose a 4-8 digit PIN code. This PIN is used to encrypt your GitHub token with AES-GCM (PBKDF2 key derivation, 200k iterations). Every time you open the app, you'll need to enter your PIN to decrypt the token and enable GitHub sync.
+
+**Security features:**
+- **Brute-force protection** — after repeated wrong PIN entries, progressive delays are enforced (2s, 5s, 10s, 15s, 30s, 60s)
+- **Auto-wipe after 10 failed attempts** — the encrypted token is deleted from localStorage. You'll need to re-enter your GitHub token and set a new PIN. No data is lost (your data remains in the GitHub repository)
+- **Session timeout** — after 30 minutes of inactivity, the app locks and requires the PIN again
+- **PIN not stored** — the PIN is only used momentarily to decrypt the token, it is never persisted
 
 ## Setup Guide
 

@@ -23,10 +23,30 @@ import {
   pullFromGitHub,
   pushToGitHub,
   forcePushToGitHub,
+  recordFailedPinAttempt,
+  resetPinAttempts,
+  getPinLockoutDelay,
 } from "./sync";
 import { nowISO, todayISO } from "./utils";
 
 type ConfigState = null | "plaintext" | "encrypted" | "unlocked";
+
+function friendlyError(code: string): string {
+  switch (code) {
+    case "TOKEN_EXPIRED":
+      return "A GitHub token lejárt vagy visszavonták. Frissítsd a Beállítások oldalon.";
+    case "CONFLICT":
+      return "Ütközés: az adatok megváltoztak a GitHub-on. Frissítsd az oldalt.";
+    case "REPO_NOT_FOUND":
+      return "A GitHub repó nem található. Ellenőrizd a beállításokat.";
+    case "RATE_LIMITED":
+      return "Túl sok kérés a GitHub felé. Várj néhány percet.";
+    case "VALIDATION_ERROR":
+      return "Érvénytelen adatformátum.";
+    default:
+      return "Szinkronizációs hiba. Próbáld újra később.";
+  }
+}
 
 interface BatteryStore {
   // State
@@ -36,11 +56,11 @@ interface BatteryStore {
   syncState: SyncState;
   initialized: boolean;
   configState: ConfigState;
-  pin: string | null;
 
   // Init
   initialize: () => Promise<void>;
-  unlockWithPin: (pin: string) => Promise<boolean>;
+  unlockWithPin: (pin: string) => Promise<boolean | "wiped">;
+  lockSession: () => void;
 
   // Cell CRUD
   addCell: (cell: Omit<Cell, "measurements" | "events" | "createdAt" | "updatedAt">) => void;
@@ -104,7 +124,6 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
   syncState: { status: "idle", lastSynced: null, error: null },
   initialized: false,
   configState: null,
-  pin: null,
 
   initialize: async () => {
     const local = loadFromLocalStorage();
@@ -129,14 +148,31 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
   },
 
   unlockWithPin: async (pin: string) => {
+    // Check lockout delay
+    const delay = getPinLockoutDelay();
+    if (delay > 0) {
+      await new Promise((r) => setTimeout(r, delay));
+    }
+
     try {
       const config = await loadGitHubConfigWithPin(pin);
-      if (!config) return false;
+      if (!config) {
+        // Wrong PIN — record failed attempt
+        const result = recordFailedPinAttempt();
+        if (result.wiped) {
+          // Config wiped — force re-onboarding
+          set({ configState: null, githubConfig: null });
+          return "wiped";
+        }
+        return false;
+      }
+
+      // Success — reset attempts
+      resetPinAttempts();
 
       set({
         githubConfig: config,
         configState: "unlocked",
-        pin,
       });
 
       // Sync with GitHub
@@ -149,22 +185,33 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
           syncState: { status: "idle", lastSynced: nowISO(), error: null },
         });
       } catch (error) {
-        const message = error instanceof Error ? error.message : "Szinkronizációs hiba";
+        const code = error instanceof Error ? error.message : "";
         set({
           syncState: {
             status: "error",
             lastSynced: null,
-            error: message === "TOKEN_EXPIRED"
-              ? "A GitHub token lejárt vagy visszavonták. Frissítsd a Beállítások oldalon."
-              : message,
+            error: friendlyError(code),
           },
         });
       }
 
       return true;
     } catch {
+      const result = recordFailedPinAttempt();
+      if (result.wiped) {
+        set({ configState: null, githubConfig: null });
+        return "wiped";
+      }
       return false;
     }
+  },
+
+  lockSession: () => {
+    set({
+      githubConfig: null,
+      configState: getConfigState(),
+      syncState: { status: "idle", lastSynced: null, error: null },
+    });
   },
 
   addCell: (cellData) => {
@@ -335,7 +382,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
 
   setGitHubConfig: async (config, pin) => {
     await saveGitHubConfig(config, pin);
-    set({ githubConfig: config, configState: "unlocked", pin });
+    set({ githubConfig: config, configState: "unlocked" });
   },
 
   removeGitHubConfig: () => {
@@ -357,26 +404,14 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
       await pushToGitHub(githubConfig, data);
       set({ syncState: { status: "idle", lastSynced: nowISO(), error: null } });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Szinkronizációs hiba";
-      if (message === "TOKEN_EXPIRED") {
-        set({
-          syncState: {
-            status: "error",
-            lastSynced: get().syncState.lastSynced,
-            error: "A GitHub token lejárt vagy visszavonták. Frissítsd a Beállítások oldalon.",
-          },
-        });
-      } else {
-        set({
-          syncState: {
-            status: message === "CONFLICT" ? "conflict" : "error",
-            lastSynced: get().syncState.lastSynced,
-            error: message === "CONFLICT"
-              ? "Ütközés: az adatok megváltoztak a GitHub-on. Frissítsd az oldalt."
-              : message,
-          },
-        });
-      }
+      const code = error instanceof Error ? error.message : "";
+      set({
+        syncState: {
+          status: code === "CONFLICT" ? "conflict" : "error",
+          lastSynced: get().syncState.lastSynced,
+          error: friendlyError(code),
+        },
+      });
     }
   },
 
@@ -391,12 +426,12 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
       await forcePushToGitHub(githubConfig, data);
       set({ syncState: { status: "idle", lastSynced: nowISO(), error: null } });
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Szinkronizációs hiba";
+      const code = error instanceof Error ? error.message : "";
       set({
         syncState: {
           status: "error",
           lastSynced: get().syncState.lastSynced,
-          error: message,
+          error: friendlyError(code),
         },
       });
     }

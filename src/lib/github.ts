@@ -8,6 +8,24 @@ interface GitHubFileResponse {
 
 const API_BASE = "https://api.github.com";
 
+function sanitizeApiError(status: number): string {
+  switch (status) {
+    case 401:
+    case 403:
+      return "TOKEN_EXPIRED";
+    case 404:
+      return "REPO_NOT_FOUND";
+    case 409:
+      return "CONFLICT";
+    case 422:
+      return "VALIDATION_ERROR";
+    case 429:
+      return "RATE_LIMITED";
+    default:
+      return `GITHUB_ERROR_${status}`;
+  }
+}
+
 function utf8ToBase64(str: string): string {
   const bytes = new TextEncoder().encode(str);
   let binary = "";
@@ -50,8 +68,7 @@ export async function fetchData(
   }
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`GitHub API error (${response.status}): ${error}`);
+    throw new Error(sanitizeApiError(response.status));
   }
 
   const file: GitHubFileResponse = await response.json();
@@ -90,8 +107,7 @@ export async function saveData(
   }
 
   if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`GitHub API error (${response.status}): ${error}`);
+    throw new Error(sanitizeApiError(response.status));
   }
 
   const result = await response.json();

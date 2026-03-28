@@ -1,6 +1,6 @@
 // AES-GCM encryption/decryption with PBKDF2 key derivation from PIN
 
-const ITERATIONS = 100000;
+const ITERATIONS = 200000;
 const KEY_LENGTH = 256;
 
 function arrayBufferToBase64(buffer: ArrayBuffer | Uint8Array): string {

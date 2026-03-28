@@ -7,6 +7,60 @@ import type { EncryptedData } from "./crypto";
 const STORAGE_KEY = "battery-data";
 const GITHUB_CONFIG_KEY = "battery-github-config";
 const SHA_KEY = "battery-github-sha";
+const PIN_ATTEMPTS_KEY = "battery-pin-attempts";
+
+const MAX_PIN_ATTEMPTS = 10;
+const LOCKOUT_DELAYS_MS = [0, 0, 0, 2000, 5000, 10000, 15000, 30000, 60000, 60000];
+
+interface PinAttemptState {
+  count: number;
+  lastAttempt: number;
+}
+
+function getPinAttempts(): PinAttemptState {
+  if (typeof window === "undefined") return { count: 0, lastAttempt: 0 };
+  try {
+    const raw = localStorage.getItem(PIN_ATTEMPTS_KEY);
+    if (!raw) return { count: 0, lastAttempt: 0 };
+    return JSON.parse(raw);
+  } catch {
+    return { count: 0, lastAttempt: 0 };
+  }
+}
+
+function savePinAttempts(state: PinAttemptState): void {
+  localStorage.setItem(PIN_ATTEMPTS_KEY, JSON.stringify(state));
+}
+
+export function resetPinAttempts(): void {
+  localStorage.removeItem(PIN_ATTEMPTS_KEY);
+}
+
+export function recordFailedPinAttempt(): { wiped: boolean; remaining: number; delayMs: number } {
+  const state = getPinAttempts();
+  state.count++;
+  state.lastAttempt = Date.now();
+  savePinAttempts(state);
+
+  if (state.count >= MAX_PIN_ATTEMPTS) {
+    // Wipe config — too many failed attempts
+    clearGitHubConfig();
+    resetPinAttempts();
+    return { wiped: true, remaining: 0, delayMs: 0 };
+  }
+
+  const remaining = MAX_PIN_ATTEMPTS - state.count;
+  const delayMs = LOCKOUT_DELAYS_MS[Math.min(state.count, LOCKOUT_DELAYS_MS.length - 1)];
+  return { wiped: false, remaining, delayMs };
+}
+
+export function getPinLockoutDelay(): number {
+  const state = getPinAttempts();
+  if (state.count === 0) return 0;
+  const delayMs = LOCKOUT_DELAYS_MS[Math.min(state.count, LOCKOUT_DELAYS_MS.length - 1)];
+  const elapsed = Date.now() - state.lastAttempt;
+  return Math.max(0, delayMs - elapsed);
+}
 
 interface StoredConfig {
   owner: string;
@@ -91,7 +145,7 @@ export async function loadGitHubConfigWithPin(pin: string): Promise<GitHubConfig
   try {
     const stored: StoredConfig = JSON.parse(raw);
 
-    // Old plaintext format — decrypt not needed, but migrate to encrypted
+    // Old plaintext format — migrate to encrypted, then wipe plaintext
     if (stored.token && !stored.encrypted) {
       const config: GitHubConfig = {
         token: stored.token,
@@ -99,7 +153,7 @@ export async function loadGitHubConfigWithPin(pin: string): Promise<GitHubConfig
         repo: stored.repo,
         filePath: stored.filePath,
       };
-      // Migrate: save as encrypted
+      // Migrate: save as encrypted (overwrites localStorage entry, removing plaintext token)
       await saveGitHubConfig(config, pin);
       return config;
     }

@@ -25,7 +25,6 @@ export default function SettingsPage() {
   const cells = useBatteryStore((s) => s.cells);
 
   const lang = settings.language ?? "hu";
-  const pin = useBatteryStore((s) => s.pin);
   const { toast } = useToast();
   const setGitHubConfig = useBatteryStore((s) => s.setGitHubConfig);
   const syncWithGitHub = useBatteryStore((s) => s.syncWithGitHub);
@@ -34,6 +33,8 @@ export default function SettingsPage() {
   const [showDisconnect, setShowDisconnect] = useState(false);
   const [showTokenUpdate, setShowTokenUpdate] = useState(false);
   const [newToken, setNewToken] = useState("");
+  const [tokenPin, setTokenPin] = useState("");
+  const [tokenPinError, setTokenPinError] = useState<string | null>(null);
   const [showQrScanner, setShowQrScanner] = useState(false);
   const [newDevice, setNewDevice] = useState("");
   const [newTestDevice, setNewTestDevice] = useState("");
@@ -350,24 +351,42 @@ export default function SettingsPage() {
                       </button>
                     </>
                   )}
+                  <div>
+                    <Input
+                      label={lang === "hu" ? "Jelenlegi PIN" : "Current PIN"}
+                      type="password"
+                      inputMode="numeric"
+                      maxLength={8}
+                      placeholder="****"
+                      value={tokenPin}
+                      onChange={(e) => { setTokenPin(e.target.value.replace(/\D/g, "")); setTokenPinError(null); }}
+                      error={tokenPinError || undefined}
+                    />
+                  </div>
                   <div className="flex gap-2">
                     <Button
                       size="sm"
-                      disabled={!newToken.startsWith("github_pat_")}
+                      disabled={!newToken.startsWith("github_pat_") || tokenPin.length < 4}
                       onClick={async () => {
-                        if (githubConfig && pin) {
-                          await setGitHubConfig({ ...githubConfig, token: newToken }, pin);
-                          setShowTokenUpdate(false);
-                          setShowQrScanner(false);
-                          setNewToken("");
-                          toast(t("settings.tokenUpdated", lang));
-                          syncWithGitHub();
+                        if (githubConfig) {
+                          try {
+                            await setGitHubConfig({ ...githubConfig, token: newToken }, tokenPin);
+                            setShowTokenUpdate(false);
+                            setShowQrScanner(false);
+                            setNewToken("");
+                            setTokenPin("");
+                            setTokenPinError(null);
+                            toast(t("settings.tokenUpdated", lang));
+                            syncWithGitHub();
+                          } catch {
+                            setTokenPinError(lang === "hu" ? "Hibás PIN kód" : "Wrong PIN");
+                          }
                         }
                       }}
                     >
                       {t("settings.tokenSave", lang)}
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => { setShowTokenUpdate(false); setNewToken(""); }}>
+                    <Button variant="ghost" size="sm" onClick={() => { setShowTokenUpdate(false); setNewToken(""); setTokenPin(""); setTokenPinError(null); }}>
                       {t("form.cancel", lang)}
                     </Button>
                   </div>

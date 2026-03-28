@@ -9,6 +9,7 @@ interface PinDialogProps {
   error?: string | null;
   loading?: boolean;
   lang: "hu" | "en";
+  lockoutMs?: number;
 }
 
 const labels = {
@@ -26,18 +27,32 @@ const labels = {
   },
 };
 
-export default function PinDialog({ mode, onSubmit, error, loading, lang }: PinDialogProps) {
+export default function PinDialog({ mode, onSubmit, error, loading, lang, lockoutMs = 0 }: PinDialogProps) {
   const l = labels[mode][lang];
   const needsConfirm = mode === "create" || mode === "migrate";
 
   const [pin, setPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
   const [localError, setLocalError] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState(Math.ceil(lockoutMs / 1000));
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+
+  // Countdown timer for lockout
+  useEffect(() => {
+    setCountdown(Math.ceil(lockoutMs / 1000));
+  }, [lockoutMs]);
+
+  useEffect(() => {
+    if (countdown <= 0) return;
+    const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [countdown]);
+
+  const isLockedOut = countdown > 0;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,6 +104,7 @@ export default function PinDialog({ mode, onSubmit, error, loading, lang }: PinD
               className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-center text-2xl font-mono tracking-[0.5em] placeholder:text-gray-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 dark:placeholder:text-gray-500"
               placeholder="****"
               autoComplete="off"
+              disabled={isLockedOut}
             />
           </div>
 
@@ -109,11 +125,19 @@ export default function PinDialog({ mode, onSubmit, error, loading, lang }: PinD
             </div>
           )}
 
+          {isLockedOut && (
+            <p className="text-center text-sm text-amber-600 dark:text-amber-400">
+              {lang === "hu"
+                ? `Várakozás: ${countdown} mp`
+                : `Please wait: ${countdown}s`}
+            </p>
+          )}
+
           {displayError && (
             <p className="text-center text-sm text-red-600 dark:text-red-400">{displayError}</p>
           )}
 
-          <Button type="submit" className="w-full" loading={loading} disabled={pin.length < 4}>
+          <Button type="submit" className="w-full" loading={loading} disabled={pin.length < 4 || isLockedOut}>
             {l.btn}
           </Button>
         </form>
