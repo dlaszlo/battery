@@ -285,6 +285,14 @@ export function saveSha(sha: string): void {
   saveShaFor(SHA_KEY, sha);
 }
 
+export function getLocalShas(): Record<string, string | null> {
+  return {
+    [CELLS_FILE_PATH]: loadShaFor(SHA_CELLS_KEY),
+    [SETTINGS_FILE_PATH]: loadShaFor(SHA_SETTINGS_KEY),
+    [TEMPLATES_FILE_PATH]: loadShaFor(SHA_TEMPLATES_KEY),
+  };
+}
+
 // --- Migration: data.json → multi-file ---
 
 async function migrateToMultiFile(config: GitHubConfig): Promise<AppData> {

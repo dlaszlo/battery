@@ -153,8 +153,25 @@ interface SyncIndicatorProps {
 }
 
 function SyncIndicator({ syncState, lang, onRetry, onSync }: SyncIndicatorProps) {
-  const { status, lastSynced, error, pendingChanges, retryCount } = syncState;
+  const { status, lastSynced, error, pendingChanges, retryCount, remoteChanged } = syncState;
   const timeAgo = useRelativeTime(lastSynced, lang);
+
+  // Remote changes available (clickable → sync)
+  if (remoteChanged && status === "idle" && !pendingChanges) {
+    return (
+      <button
+        onClick={onSync}
+        className="flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 cursor-pointer transition-colors"
+        title={t("sync.remoteChanged", lang)}
+      >
+        <span className="relative flex h-2.5 w-2.5">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75" />
+          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-blue-500" />
+        </span>
+        <span className="hidden md:inline">{t("sync.remoteChanged", lang)}</span>
+      </button>
+    );
+  }
 
   // Pending changes (not yet syncing)
   if (pendingChanges && status !== "syncing" && status !== "error" && status !== "conflict") {

@@ -140,4 +140,5 @@ export interface SyncState {
   error: string | null;
   pendingChanges: boolean;
   retryCount: number;
+  remoteChanged: boolean;
 }

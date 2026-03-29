@@ -31,6 +31,27 @@ export function useSync() {
     return () => window.removeEventListener("beforeunload", handler);
   }, []);
 
+  // visibilitychange: full sync when tab becomes visible
+  useEffect(() => {
+    const handler = () => {
+      if (document.visibilityState !== "visible") return;
+      const s = useBatteryStore.getState();
+      if (!s.githubConfig || s.configState !== "unlocked") return;
+      s.syncWithGitHub();
+    };
+    document.addEventListener("visibilitychange", handler);
+    return () => document.removeEventListener("visibilitychange", handler);
+  }, []);
+
+  // 30-second polling: lightweight SHA check for remote changes
+  useEffect(() => {
+    if (!githubConfig || configState !== "unlocked") return;
+    const interval = setInterval(() => {
+      useBatteryStore.getState().checkForRemoteChanges();
+    }, 30_000);
+    return () => clearInterval(interval);
+  }, [githubConfig, configState]);
+
   return {
     initialized,
     syncState,

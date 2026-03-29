@@ -140,6 +140,28 @@ export async function deleteFile(
   }
 }
 
+// Lightweight SHA check — single API call via Git Trees API
+export async function fetchTreeShas(
+  config: GitHubConfig,
+  branch: string = "main"
+): Promise<Record<string, string>> {
+  const url = `${API_BASE}/repos/${config.owner}/${config.repo}/git/trees/${branch}`;
+  try {
+    const response = await fetch(url, { headers: headers(config.token) });
+    if (!response.ok) return {};
+    const tree = await response.json();
+    const result: Record<string, string> = {};
+    for (const item of tree.tree) {
+      if (item.type === "blob") {
+        result[item.path] = item.sha;
+      }
+    }
+    return result;
+  } catch {
+    return {};
+  }
+}
+
 // Legacy compatibility wrappers
 import type { BatteryData } from "./types";
 

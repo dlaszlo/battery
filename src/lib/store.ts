@@ -25,7 +25,9 @@ import {
   recordFailedPinAttempt,
   resetPinAttempts,
   getPinLockoutDelay,
+  getLocalShas,
 } from "./sync";
+import { fetchTreeShas } from "./github";
 import type { DirtyFlags } from "./sync";
 import { nowISO, todayISO } from "./utils";
 
@@ -91,6 +93,7 @@ interface BatteryStore {
 
   // Sync
   syncWithGitHub: () => Promise<void>;
+  checkForRemoteChanges: () => Promise<void>;
 
   // Import/Export
   importData: (data: BatteryData) => void;
@@ -133,6 +136,7 @@ const SYNC_DEBOUNCE_MS = 3000;
 
 let changeCounter = 0;
 let syncInProgress = false;
+let shaCheckInProgress = false;
 let resyncRequested = false;
 
 function debouncedSync(syncFn: () => Promise<void>) {
@@ -154,7 +158,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
   settings: { ...DEFAULT_SETTINGS },
   templates: [],
   githubConfig: null,
-  syncState: { status: "idle", lastSynced: null, error: null, pendingChanges: false, retryCount: 0 },
+  syncState: { status: "idle", lastSynced: null, error: null, pendingChanges: false, retryCount: 0, remoteChanged: false },
   initialized: false,
   configState: null,
   dirtyFlags: { ...DEFAULT_DIRTY_FLAGS },
@@ -213,13 +217,13 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
       });
 
       try {
-        set({ syncState: { status: "syncing", lastSynced: null, error: null, pendingChanges: false, retryCount: 0 } });
+        set({ syncState: { status: "syncing", lastSynced: null, error: null, pendingChanges: false, retryCount: 0, remoteChanged: false } });
         const remote = await pullFromGitHub(config);
         set({
           cells: remote.cells,
           settings: remote.settings,
           templates: remote.templates,
-          syncState: { status: "idle", lastSynced: nowISO(), error: null, pendingChanges: false, retryCount: 0 },
+          syncState: { status: "idle", lastSynced: nowISO(), error: null, pendingChanges: false, retryCount: 0, remoteChanged: false },
           dirtyFlags: { ...DEFAULT_DIRTY_FLAGS },
         });
       } catch (error) {
@@ -231,6 +235,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
             error: friendlyError(code),
             pendingChanges: false,
             retryCount: 0,
+            remoteChanged: false,
           },
         });
       }
@@ -250,7 +255,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     set({
       githubConfig: null,
       configState: getConfigState(),
-      syncState: { status: "idle", lastSynced: null, error: null, pendingChanges: false, retryCount: 0 },
+      syncState: { status: "idle", lastSynced: null, error: null, pendingChanges: false, retryCount: 0, remoteChanged: false },
       dirtyFlags: { ...DEFAULT_DIRTY_FLAGS },
     });
   },
@@ -487,13 +492,13 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     set({ githubConfig: config, configState: "unlocked" });
 
     try {
-      set({ syncState: { status: "syncing", lastSynced: null, error: null, pendingChanges: false, retryCount: 0 } });
+      set({ syncState: { status: "syncing", lastSynced: null, error: null, pendingChanges: false, retryCount: 0, remoteChanged: false } });
       const remote = await pullFromGitHub(config);
       set({
         cells: remote.cells,
         settings: remote.settings,
         templates: remote.templates,
-        syncState: { status: "idle", lastSynced: nowISO(), error: null, pendingChanges: false, retryCount: 0 },
+        syncState: { status: "idle", lastSynced: nowISO(), error: null, pendingChanges: false, retryCount: 0, remoteChanged: false },
         dirtyFlags: { ...DEFAULT_DIRTY_FLAGS },
       });
     } catch (error) {
@@ -505,6 +510,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
           error: friendlyError(code),
           pendingChanges: false,
           retryCount: 0,
+          remoteChanged: false,
         },
       });
     }
@@ -514,7 +520,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     clearGitHubConfig();
     set({
       githubConfig: null,
-      syncState: { status: "idle", lastSynced: null, error: null, pendingChanges: false, retryCount: 0 },
+      syncState: { status: "idle", lastSynced: null, error: null, pendingChanges: false, retryCount: 0, remoteChanged: false },
       dirtyFlags: { ...DEFAULT_DIRTY_FLAGS },
     });
   },
@@ -549,7 +555,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
         cells: stillPending ? get().cells : merged.cells,
         settings: stillPending ? get().settings : merged.settings,
         templates: stillPending ? get().templates : merged.templates,
-        syncState: { status: "idle", lastSynced: nowISO(), error: null, pendingChanges: stillPending, retryCount: 0 },
+        syncState: { status: "idle", lastSynced: nowISO(), error: null, pendingChanges: stillPending, retryCount: 0, remoteChanged: false },
         dirtyFlags: stillPending ? get().dirtyFlags : { ...DEFAULT_DIRTY_FLAGS },
       });
       if (!stillPending) {
@@ -576,6 +582,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
             error: friendlyError(code),
             pendingChanges: true,
             retryCount: currentRetry + 1,
+            remoteChanged: false,
           },
         });
         setTimeout(() => get().syncWithGitHub(), 2000 * Math.pow(2, currentRetry));
@@ -587,9 +594,36 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
             error: friendlyError(code),
             pendingChanges: true,
             retryCount: 0,
+            remoteChanged: false,
           },
         });
       }
+    }
+  },
+
+  checkForRemoteChanges: async () => {
+    const { githubConfig, configState } = get();
+    if (!githubConfig || configState !== "unlocked") return;
+    if (syncInProgress || shaCheckInProgress) return;
+
+    shaCheckInProgress = true;
+    try {
+      const remoteShas = await fetchTreeShas(githubConfig);
+      if (Object.keys(remoteShas).length === 0) return;
+
+      const localShas = getLocalShas();
+      const hasChanges = Object.entries(localShas).some(
+        ([path, localSha]) => localSha && remoteShas[path] && remoteShas[path] !== localSha
+      );
+
+      const current = get().syncState;
+      if (current.remoteChanged !== hasChanges) {
+        set({ syncState: { ...current, remoteChanged: hasChanges } });
+      }
+    } catch {
+      // Silently ignore polling errors
+    } finally {
+      shaCheckInProgress = false;
     }
   },
 

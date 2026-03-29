@@ -569,6 +569,7 @@ const translations = {
   "sync.syncedToast": { hu: "Szinkronizálva a GitHub-bal", en: "Synced with GitHub" },
   "sync.errorToast": { hu: "Szinkronizációs hiba", en: "Sync error" },
   "sync.conflictToast": { hu: "Ütközés! Kattints a szinkron ikonra.", en: "Conflict! Click sync icon." },
+  "sync.remoteChanged": { hu: "Frissítés elérhető", en: "Update available" },
   "sync.timeAgo.justNow": { hu: "most", en: "just now" },
   "sync.timeAgo.minutesAgo": { hu: "{n} perce", en: "{n}m ago" },
   "sync.timeAgo.hoursAgo": { hu: "{n} órája", en: "{n}h ago" },
