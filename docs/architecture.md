@@ -21,7 +21,7 @@ graph LR
     end
 
     subgraph "What does NOT exist"
-        style NoBackend fill:#fee,stroke:#f00,stroke-dasharray: 5 5
+        style NoBackend fill:#7f1d1d,stroke:#f87171,color:#fecaca,stroke-dasharray: 5 5
         NoBackend["❌ No Application Server<br/>❌ No Database<br/>❌ No Auth Server<br/>❌ No API Gateway<br/>❌ No Analytics<br/>❌ No CDN (except GitHub's)"]
     end
 
@@ -66,10 +66,10 @@ graph TB
     GitHubAPI -->|"reads/writes"| UserRepo
     GitHubPages -->|"serves app code"| Browser
 
-    style Browser fill:#d4edda,stroke:#28a745
-    style UserRepo fill:#d4edda,stroke:#28a745
-    style GitHubAPI fill:#fff3cd,stroke:#ffc107
-    style GitHubPages fill:#fff3cd,stroke:#ffc107
+    style Browser fill:#166534,stroke:#4ade80,color:#bbf7d0
+    style UserRepo fill:#166534,stroke:#4ade80,color:#bbf7d0
+    style GitHubAPI fill:#78350f,stroke:#fbbf24,color:#fef3c7
+    style GitHubPages fill:#78350f,stroke:#fbbf24,color:#fef3c7
 ```
 
 **What we trust:**
@@ -96,9 +96,9 @@ C4Context
 
     System_Ext(github, "GitHub", "Hosts static files (Pages)<br/>and stores data (Contents API)")
 
-    Rel(user, app, "Uses via browser", "HTTPS")
-    Rel(app, github, "Reads/writes JSON files", "GitHub Contents API")
-    Rel(github, app, "Serves static app files", "GitHub Pages")
+    Rel(user, app, "Uses via browser")
+    Rel(app, github, "Reads/writes JSON")
+    Rel(github, app, "Serves static files")
 ```
 
 ### 2.2 Multi-Device Context
@@ -309,7 +309,7 @@ graph TB
     LS_Data -.->|"sync"| GH_Settings
     LS_Templates -.->|"sync"| GH_Templates
 
-    style LS_Config fill:#fee,stroke:#f00
+    style LS_Config fill:#7f1d1d,stroke:#f87171,color:#fecaca
 ```
 
 **What is NOT stored anywhere:**
