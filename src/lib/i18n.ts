@@ -363,6 +363,9 @@ const translations = {
   "measurement.deleteTitle": { hu: "Mérés törlése", en: "Delete Measurement" },
   "measurement.deleteConfirm": { hu: "Biztosan törlöd ezt a mérést? Ez a művelet nem vonható vissza.", en: "Are you sure you want to delete this measurement? This action cannot be undone." },
   "measurement.deleteBtn": { hu: "Törlés", en: "Delete" },
+  "measurement.editTitle": { hu: "Mérés szerkesztése", en: "Edit Measurement" },
+  "measurement.update": { hu: "Mentés", en: "Save" },
+  "measurement.updated": { hu: "Mérés módosítva", en: "Measurement updated" },
   "measurement.headerNotes": { hu: "Megjegyzés", en: "Notes" },
 
   // Chart extra

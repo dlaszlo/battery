@@ -77,6 +77,7 @@ interface BatteryStore {
 
   // Measurement CRUD
   addMeasurement: (cellId: string, measurement: Omit<Measurement, "id">) => void;
+  updateMeasurement: (cellId: string, measurementId: string, updates: Omit<Measurement, "id">) => void;
   deleteMeasurement: (cellId: string, measurementId: string) => void;
 
   // Template CRUD
@@ -378,6 +379,38 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
         return updated;
       });
 
+      const newState = { cells: newCells };
+      persist({ ...get(), ...newState });
+      return newState;
+    });
+
+    if (get().githubConfig) {
+      markDirty(set, "cells");
+      debouncedSync(() => get().syncWithGitHub());
+    }
+  },
+
+  updateMeasurement: (cellId, measurementId, updates) => {
+    set((state) => {
+      const newCells = state.cells.map((cell) => {
+        if (cell.id !== cellId) return cell;
+        const oldMeasurement = cell.measurements.find((m) => m.id === measurementId);
+        if (!oldMeasurement) return cell;
+
+        const updatedMeasurement: Measurement = { ...updates, id: measurementId };
+        const currentInfo = updatedMeasurement.chargeCurrent
+          ? `${updatedMeasurement.dischargeCurrent}/${updatedMeasurement.chargeCurrent} mA`
+          : `${updatedMeasurement.dischargeCurrent} mA`;
+
+        return {
+          ...cell,
+          measurements: cell.measurements.map((m) =>
+            m.id === measurementId ? updatedMeasurement : m
+          ),
+          events: [...(cell.events || []), createEvent("measurement_added", `Mérés módosítva: ${updatedMeasurement.measuredCapacity} mAh (${currentInfo})`)],
+          updatedAt: nowISO(),
+        };
+      });
       const newState = { cells: newCells };
       persist({ ...get(), ...newState });
       return newState;

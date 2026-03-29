@@ -15,32 +15,42 @@ function hmmToMinutes(hmm: string): number | undefined {
   return parseInt(match[1]) * 60 + parseInt(match[2]);
 }
 
+function minutesToHmm(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return `${h}:${m.toString().padStart(2, "0")}`;
+}
+
 interface MeasurementFormProps {
   cellId: string;
   onDone: () => void;
   lastDischargeCurrent?: number;
+  editMeasurement?: import("@/lib/types").Measurement;
 }
 
-export default function MeasurementForm({ cellId, onDone, lastDischargeCurrent }: MeasurementFormProps) {
+export default function MeasurementForm({ cellId, onDone, lastDischargeCurrent, editMeasurement }: MeasurementFormProps) {
   const addMeasurement = useBatteryStore((s) => s.addMeasurement);
+  const updateMeasurement = useBatteryStore((s) => s.updateMeasurement);
   const settings = useBatteryStore((s) => s.settings);
   const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
   const { toast } = useToast();
 
+  const isEdit = !!editMeasurement;
+
   const [form, setForm] = useState({
-    date: todayISO(),
-    measuredCapacity: "",
-    dischargeCurrent: settings.defaultDischargeCurrent.toString(),
-    chargeCurrent: (settings.defaultChargeCurrent ?? "").toString(),
-    internalResistance: "",
-    weight: "",
-    chargeTemperature: "",
-    dischargeTemperature: "",
-    ambientTemperature: "",
-    chargeTime: "",
-    dischargeTime: "",
-    testDevice: settings.defaultTestDevice,
-    notes: "",
+    date: editMeasurement?.date ?? todayISO(),
+    measuredCapacity: editMeasurement?.measuredCapacity?.toString() ?? "",
+    dischargeCurrent: editMeasurement?.dischargeCurrent?.toString() ?? settings.defaultDischargeCurrent.toString(),
+    chargeCurrent: editMeasurement?.chargeCurrent?.toString() ?? (settings.defaultChargeCurrent ?? "").toString(),
+    internalResistance: editMeasurement?.internalResistance?.toString() ?? "",
+    weight: editMeasurement?.weight?.toString() ?? "",
+    chargeTemperature: editMeasurement?.chargeTemperature?.toString() ?? "",
+    dischargeTemperature: editMeasurement?.dischargeTemperature?.toString() ?? "",
+    ambientTemperature: editMeasurement?.ambientTemperature?.toString() ?? "",
+    chargeTime: editMeasurement?.chargeTime != null ? minutesToHmm(editMeasurement.chargeTime) : "",
+    dischargeTime: editMeasurement?.dischargeTime != null ? minutesToHmm(editMeasurement.dischargeTime) : "",
+    testDevice: editMeasurement?.testDevice ?? settings.defaultTestDevice,
+    notes: editMeasurement?.notes ?? "",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -72,7 +82,7 @@ export default function MeasurementForm({ cellId, onDone, lastDischargeCurrent }
       return;
     }
 
-    addMeasurement(cellId, {
+    const data = {
       date: form.date,
       measuredCapacity: Number(form.measuredCapacity),
       dischargeCurrent: Number(form.dischargeCurrent),
@@ -86,9 +96,15 @@ export default function MeasurementForm({ cellId, onDone, lastDischargeCurrent }
       dischargeTime: form.dischargeTime ? hmmToMinutes(form.dischargeTime) : undefined,
       testDevice: form.testDevice,
       notes: form.notes.trim() || undefined,
-    });
+    };
 
-    toast(t("measurement.saved", lang));
+    if (isEdit) {
+      updateMeasurement(cellId, editMeasurement!.id, data);
+      toast(t("measurement.updated", lang));
+    } else {
+      addMeasurement(cellId, data);
+      toast(t("measurement.saved", lang));
+    }
     onDone();
   };
 
@@ -213,7 +229,7 @@ export default function MeasurementForm({ cellId, onDone, lastDischargeCurrent }
         <Button type="button" variant="secondary" onClick={onDone}>
           {t("measurement.cancel", lang)}
         </Button>
-        <Button type="submit">{t("measurement.save", lang)}</Button>
+        <Button type="submit">{isEdit ? t("measurement.update", lang) : t("measurement.save", lang)}</Button>
       </div>
     </form>
   );
