@@ -11,11 +11,10 @@ import { t } from "@/lib/i18n";
 function CellsContent() {
   const searchParams = useSearchParams();
   const cellId = searchParams.get("id");
-  const getCell = useBatteryStore((s) => s.getCell);
+  const cell = useBatteryStore((s) => cellId ? s.cells.find((c) => c.id === cellId) : undefined);
   const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
 
   if (cellId) {
-    const cell = getCell(cellId);
     if (!cell) {
       return (
         <div className="py-12 text-center">
