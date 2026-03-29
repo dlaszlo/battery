@@ -38,6 +38,7 @@ export default function MeasurementList({ cellId, measurements, nominalCapacity 
               <th className="px-4 py-2.5 hidden sm:table-cell">{t("measurement.headerDischargeCurrent", lang)}</th>
               <th className="px-4 py-2.5 hidden sm:table-cell">{t("measurement.headerChargeCurrent", lang)}</th>
               <th className="px-4 py-2.5 hidden md:table-cell">{t("measurement.headerResistance", lang)}</th>
+              <th className="px-4 py-2.5 hidden md:table-cell">{t("measurement.headerWeight", lang)}</th>
               <th className="px-4 py-2.5 hidden lg:table-cell">{t("measurement.headerDevice", lang)}</th>
               <th className="px-4 py-2.5 hidden lg:table-cell">{t("measurement.headerNotes", lang)}</th>
               <th className="px-4 py-2.5 w-10"></th>
@@ -65,6 +66,9 @@ export default function MeasurementList({ cellId, measurements, nominalCapacity 
                   </td>
                   <td className="px-4 py-2.5 hidden md:table-cell text-gray-600 dark:text-gray-300">
                     {m.internalResistance ? formatResistance(m.internalResistance) : "—"}
+                  </td>
+                  <td className="px-4 py-2.5 hidden md:table-cell text-gray-600 dark:text-gray-300">
+                    {m.weight ? `${m.weight} g` : "—"}
                   </td>
                   <td className="px-4 py-2.5 hidden lg:table-cell text-gray-500 text-xs dark:text-gray-400">
                     {m.testDevice}

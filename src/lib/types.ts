@@ -20,6 +20,7 @@ export interface Measurement {
   dischargeCurrent: number;
   chargeCurrent?: number;
   internalResistance?: number;
+  weight?: number;
   testDevice: string;
   notes?: string;
 }

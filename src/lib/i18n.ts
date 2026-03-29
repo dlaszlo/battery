@@ -187,6 +187,8 @@ const translations = {
   "measurement.chargeCurrent": { hu: "Töltési áram (mA)", en: "Charge Current (mA)" },
   "measurement.internalResistance": { hu: "Belső ellenállás (mΩ)", en: "Internal Resistance (mΩ)" },
   "measurement.internalResistancePlaceholder": { hu: "pl. 25", en: "e.g. 25" },
+  "measurement.weight": { hu: "Tömeg (g)", en: "Weight (g)" },
+  "measurement.weightPlaceholder": { hu: "pl. 45.2", en: "e.g. 45.2" },
   "measurement.testDevice": { hu: "Tesztelő eszköz", en: "Test Device" },
   "measurement.notes": { hu: "Megjegyzés", en: "Notes" },
   "measurement.save": { hu: "Mérés mentése", en: "Save Measurement" },
@@ -204,6 +206,7 @@ const translations = {
   "measurement.headerDischargeCurrent": { hu: "Lemerítés", en: "Discharge" },
   "measurement.headerChargeCurrent": { hu: "Töltés", en: "Charge" },
   "measurement.headerResistance": { hu: "Ellenállás", en: "Resistance" },
+  "measurement.headerWeight": { hu: "Tömeg", en: "Weight" },
   "measurement.headerDevice": { hu: "Eszköz", en: "Device" },
 
   // Chart

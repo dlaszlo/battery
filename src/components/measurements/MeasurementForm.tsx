@@ -27,6 +27,7 @@ export default function MeasurementForm({ cellId, onDone, lastDischargeCurrent }
     dischargeCurrent: settings.defaultDischargeCurrent.toString(),
     chargeCurrent: (settings.defaultChargeCurrent ?? "").toString(),
     internalResistance: "",
+    weight: "",
     testDevice: settings.defaultTestDevice,
     notes: "",
   });
@@ -66,6 +67,7 @@ export default function MeasurementForm({ cellId, onDone, lastDischargeCurrent }
       dischargeCurrent: Number(form.dischargeCurrent),
       chargeCurrent: form.chargeCurrent ? Number(form.chargeCurrent) : undefined,
       internalResistance: form.internalResistance ? Number(form.internalResistance) : undefined,
+      weight: form.weight ? Number(form.weight) : undefined,
       testDevice: form.testDevice,
       notes: form.notes.trim() || undefined,
     });
@@ -129,6 +131,15 @@ export default function MeasurementForm({ cellId, onDone, lastDischargeCurrent }
           placeholder={t("measurement.internalResistancePlaceholder", lang)}
           value={form.internalResistance}
           onChange={(e) => set("internalResistance", e.target.value)}
+        />
+        <Input
+          label={t("measurement.weight", lang)}
+          tooltip={t("tooltip.weight", lang)}
+          type="number"
+          step="0.1"
+          placeholder={t("measurement.weightPlaceholder", lang)}
+          value={form.weight}
+          onChange={(e) => set("weight", e.target.value)}
         />
         <ComboBox
           label={t("measurement.testDevice", lang)}
