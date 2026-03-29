@@ -53,10 +53,6 @@ export default function CompleteStep({ data, onBack }: CompleteStepProps) {
             <span className="text-gray-500 dark:text-gray-400">{t("onboarding.complete.repo", lang)}</span>
             <span className="font-medium text-gray-900 dark:text-gray-100">{data.repo}</span>
           </div>
-          <div className="flex justify-between">
-            <span className="text-gray-500 dark:text-gray-400">{t("onboarding.complete.file", lang)}</span>
-            <span className="font-mono text-xs text-gray-900 dark:text-gray-100">data.json</span>
-          </div>
         </div>
       </div>
 

@@ -34,14 +34,15 @@ export default function Navbar() {
           <Link href="/" className="flex items-center gap-2 group">
             <svg className="h-8 w-8" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
               {/* Battery outline */}
-              <rect x="106" y="60" width="300" height="420" rx="32" fill="none" stroke="#2563eb" strokeWidth="28" className="dark:stroke-blue-400"/>
+              <rect x="106" y="80" width="300" height="400" rx="32" fill="none" stroke="white" strokeWidth="28"/>
               {/* Battery terminal */}
-              <rect x="196" y="28" width="120" height="44" rx="12" fill="#2563eb" className="dark:fill-blue-400"/>
-              {/* Charge level — animates on hover */}
-              <rect x="134" y="260" width="244" height="192" rx="16" fill="#2563eb" opacity="0.15" className="dark:fill-blue-400"/>
-              <rect x="134" y="260" width="244" height="192" rx="16" fill="#2563eb" className="dark:fill-blue-400 origin-bottom scale-y-[0.35] group-hover:scale-y-100 transition-transform duration-[1500ms] ease-in-out"/>
-              {/* Lightning bolt */}
-              <path d="M256 170 l-40 60 h30 v52 l40-60 h-30 v-52z" fill="#2563eb" className="dark:fill-blue-400 group-hover:animate-pulse"/>
+              <rect x="196" y="48" width="120" height="44" rx="12" fill="white"/>
+              {/* 5 charge bars — bottom 2 always visible (40%), top 3 appear on hover */}
+              <rect x="148" y="400" width="216" height="52" rx="8" fill="white"/>
+              <rect x="148" y="336" width="216" height="52" rx="8" fill="white"/>
+              <rect x="148" y="272" width="216" height="52" rx="8" fill="white" className="charge-bar-3" opacity="0"/>
+              <rect x="148" y="208" width="216" height="52" rx="8" fill="white" className="charge-bar-4" opacity="0"/>
+              <rect x="148" y="144" width="216" height="52" rx="8" fill="white" className="charge-bar-5" opacity="0"/>
             </svg>
             <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
               Battery Tracker
