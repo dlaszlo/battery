@@ -54,7 +54,7 @@ export default function CapacityChart({ measurements, nominalCapacity, scrapThre
     return measurements.filter((m) => m.dischargeCurrent === selectedCurrent);
   }, [measurements, selectedCurrent]);
 
-  if (measurements.length < 2) {
+  if (measurements.length === 0) {
     return (
       <p className="py-8 text-center text-sm text-gray-400 dark:text-gray-500">
         {t("chart.minDataRequired", lang)}
@@ -162,7 +162,7 @@ export default function CapacityChart({ measurements, nominalCapacity, scrapThre
   }
 
   // Single current view (or only one current exists)
-  if (filtered.length < 2) {
+  if (filtered.length === 0) {
     return (
       <div>
         <CurrentFilter
