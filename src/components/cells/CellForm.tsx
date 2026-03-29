@@ -17,7 +17,7 @@ import {
   PLATFORMS,
 } from "@/lib/constants";
 import { todayISO } from "@/lib/utils";
-import { t } from "@/lib/i18n";
+import { t, enumLabel } from "@/lib/i18n";
 import type { Cell } from "@/lib/types";
 
 interface CellFormProps {
@@ -81,7 +81,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
     weight: src?.weight?.toString() ?? "",
     storageVoltage: src?.storageVoltage?.toString() ?? "",
     batchNumber: src?.batchNumber ?? "",
-    status: src?.status ?? "Új",
+    status: src?.status ?? "new",
     currentDevice: src?.currentDevice ?? "",
     group: src?.group ?? "",
     notes: src?.notes ?? "",
@@ -106,7 +106,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
     if (!form.id.trim()) errs.id = t("validation.idRequired", lang);
     else if (!/^[a-zA-Z0-9_-]+$/.test(form.id.trim())) {
       errs.id = t("validation.idInvalid", lang);
-    } else if (!isEdit && cells.some((c) => c.id === form.id.trim())) {
+    } else if (cells.some((c) => c.id === form.id.trim() && (!isEdit || c.internalId !== cell!.internalId))) {
       errs.id = t("validation.idExists", lang);
     }
 
@@ -152,7 +152,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
     };
 
     if (isEdit) {
-      updateCell(cell.id, cellData);
+      updateCell(cell.internalId, cellData);
       toast(t("cell.modified", lang));
       onSave?.();
     } else {
@@ -162,9 +162,9 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
     }
   };
 
-  const formFactorOptions = FORM_FACTORS.map((f) => ({ value: f, label: f }));
+  const formFactorOptions = FORM_FACTORS.map((f) => ({ value: f, label: enumLabel("formFactor", f, lang) }));
   const chemistryOptions = CHEMISTRIES.map((c) => ({ value: c, label: c }));
-  const statusOptions = CELL_STATUSES.map((s) => ({ value: s, label: s }));
+  const statusOptions = CELL_STATUSES.map((s) => ({ value: s, label: enumLabel("status", s, lang) }));
 
   const templateOptions = [
     { value: "", label: t("templates.noTemplate", lang) },
@@ -200,7 +200,6 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
             value={form.id}
             onChange={(e) => set("id", e.target.value)}
             error={errors.id}
-            disabled={isEdit}
           />
           <Input
             label={t("form.brand", lang)}
@@ -237,7 +236,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
           <ComboBox
             label={t("form.cathodeType", lang)}
             tooltip={t("tooltip.cathodeType", lang)}
-            options={CATHODE_TYPES}
+            options={CATHODE_TYPES.map((c) => ({ value: c, label: enumLabel("cathodeType", c, lang) }))}
             value={form.cathodeType}
             onChange={(v) => set("cathodeType", v)}
             placeholder={t("form.cathodeTypePlaceholder", lang)}
@@ -245,7 +244,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
           <ComboBox
             label={t("form.contactType", lang)}
             tooltip={t("tooltip.contactType", lang)}
-            options={CONTACT_TYPES}
+            options={CONTACT_TYPES.map((c) => ({ value: c, label: enumLabel("contactType", c, lang) }))}
             value={form.contactType}
             onChange={(v) => set("contactType", v)}
             placeholder={t("form.contactTypePlaceholder", lang)}
@@ -296,7 +295,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
           <ComboBox
             label={t("form.platform", lang)}
             tooltip={t("tooltip.platform", lang)}
-            options={PLATFORMS}
+            options={PLATFORMS.map((p) => ({ value: p, label: enumLabel("platform", p, lang) }))}
             value={form.platform}
             onChange={(v) => set("platform", v)}
             placeholder={t("form.platformPlaceholder", lang)}

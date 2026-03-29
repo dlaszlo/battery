@@ -10,7 +10,7 @@ import {
   formatCapacity,
   capacityPercent,
 } from "@/lib/utils";
-import { t } from "@/lib/i18n";
+import { t, enumLabel } from "@/lib/i18n";
 import type { Cell } from "@/lib/types";
 import Button from "@/components/ui/Button";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
@@ -98,7 +98,7 @@ export default function CellDetail({ cell }: CellDetailProps) {
             <StatusBadge status={cell.status} />
           </div>
           <p className="mt-1 ml-8 text-sm text-gray-500 dark:text-gray-400">
-            {cell.formFactor} &middot; {cell.chemistry} &middot; {formatCapacity(cell.nominalCapacity)}
+            {enumLabel("formFactor", cell.formFactor, lang)} &middot; {cell.chemistry} &middot; {formatCapacity(cell.nominalCapacity)}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -108,7 +108,7 @@ export default function CellDetail({ cell }: CellDetailProps) {
           <Button variant="secondary" size="sm" onClick={() => setEditing(true)}>
             {t("cell.edit", lang)}
           </Button>
-          {cell.status !== "Selejt" && (
+          {cell.status !== "scrapped" && (
             <Button variant="danger" size="sm" onClick={() => setShowScrap(true)}>
               {t("cell.scrap", lang)}
             </Button>
@@ -128,16 +128,16 @@ export default function CellDetail({ cell }: CellDetailProps) {
           <InfoRow label={t("info.id", lang)} value={`#${cell.id}`} />
           <InfoRow label={t("info.brand", lang)} value={cell.brand} />
           <InfoRow label={t("info.model", lang)} value={cell.model || "—"} />
-          <InfoRow label={t("info.formFactor", lang)} value={cell.formFactor} />
+          <InfoRow label={t("info.formFactor", lang)} value={enumLabel("formFactor", cell.formFactor, lang)} />
           <InfoRow label={t("info.chemistry", lang)} value={cell.chemistry} />
-          <InfoRow label={t("info.cathodeType", lang)} value={cell.cathodeType || "—"} />
-          <InfoRow label={t("info.contactType", lang)} value={cell.contactType || "—"} />
+          <InfoRow label={t("info.cathodeType", lang)} value={cell.cathodeType ? enumLabel("cathodeType", cell.cathodeType, lang) : "—"} />
+          <InfoRow label={t("info.contactType", lang)} value={cell.contactType ? enumLabel("contactType", cell.contactType, lang) : "—"} />
           <InfoRow label={t("info.nominalCapacity", lang)} value={formatCapacity(cell.nominalCapacity)} />
           <InfoRow label={t("info.continuousDischargeCurrent", lang)} value={cell.continuousDischargeCurrent ? `${cell.continuousDischargeCurrent} A` : "—"} />
           <InfoRow label={t("info.peakDischargeCurrent", lang)} value={cell.peakDischargeCurrent ? `${cell.peakDischargeCurrent} A` : "—"} />
-          <InfoRow label={t("info.status", lang)} value={cell.status} />
+          <InfoRow label={t("info.status", lang)} value={enumLabel("status", cell.status, lang)} />
           <InfoRow label={t("info.currentDevice", lang)} value={cell.currentDevice || "—"} />
-          <InfoRow label={t("info.platform", lang)} value={cell.platform || "—"} />
+          <InfoRow label={t("info.platform", lang)} value={cell.platform ? enumLabel("platform", cell.platform, lang) : "—"} />
           <InfoRow label={t("info.seller", lang)} value={cell.seller || "—"} />
           {cell.purchaseUrl ? (
             <div className="flex justify-between sm:flex-col sm:gap-0.5">
@@ -228,14 +228,14 @@ export default function CellDetail({ cell }: CellDetailProps) {
             <div className="mb-4 rounded-lg border border-blue-200 bg-blue-50/50 p-4 dark:border-blue-800 dark:bg-blue-900/30">
               <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">{t("cell.newMeasurement", lang)}</h4>
               <MeasurementForm
-                cellId={cell.id}
+                cellId={cell.internalId}
                 onDone={() => setShowMeasurementForm(false)}
                 lastDischargeCurrent={lastMeasurement?.dischargeCurrent}
               />
             </div>
           )}
           <MeasurementList
-            cellId={cell.id}
+            cellId={cell.internalId}
             measurements={cell.measurements}
             nominalCapacity={cell.nominalCapacity}
           />
@@ -259,7 +259,7 @@ export default function CellDetail({ cell }: CellDetailProps) {
         open={showScrap}
         onClose={() => setShowScrap(false)}
         onConfirm={() => {
-          updateCell(cell.id, { status: "Selejt" });
+          updateCell(cell.internalId, { status: "scrapped" });
           setShowScrap(false);
           toast(t("cell.scrapped", lang));
         }}
@@ -273,7 +273,7 @@ export default function CellDetail({ cell }: CellDetailProps) {
         open={showDelete}
         onClose={() => setShowDelete(false)}
         onConfirm={() => {
-          deleteCell(cell.id);
+          deleteCell(cell.internalId);
           toast(t("cell.deleted", lang));
           router.push("/cells");
         }}

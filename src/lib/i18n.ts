@@ -176,8 +176,25 @@ const translations = {
   // Status values
   "status.new": { hu: "Új", en: "New" },
   "status.used": { hu: "Használt", en: "Used" },
-  "status.salvaged": { hu: "Bontott", en: "Salvaged" },
+  "status.recovered": { hu: "Bontott", en: "Recovered" },
   "status.scrapped": { hu: "Selejt", en: "Scrapped" },
+
+  // FormFactor labels
+  "formFactor.other": { hu: "Egyéb", en: "Other" },
+
+  // ContactType labels
+  "contactType.flat_top": { hu: "Flat top", en: "Flat top" },
+  "contactType.button_top": { hu: "Button top", en: "Button top" },
+  "contactType.tabbed": { hu: "Forrfüles", en: "Tabbed" },
+  "contactType.protected": { hu: "Védett", en: "Protected" },
+  "contactType.other": { hu: "Egyéb", en: "Other" },
+
+  // CathodeType labels
+  "cathodeType.other": { hu: "Egyéb", en: "Other" },
+
+  // Platform labels
+  "platform.local_store": { hu: "Hazai bolt", en: "Local store" },
+  "platform.other": { hu: "Egyéb", en: "Other" },
 
   // Measurement form
   "measurement.date": { hu: "Dátum", en: "Date" },
@@ -389,6 +406,7 @@ const translations = {
   "measurement.currentWarning": { hu: "Az előző mérés {prev} mA-nál volt. Eltérő áramnál mért eredmények nem összehasonlíthatók az öregedés szempontjából.", en: "The previous measurement was at {prev} mA. Results at different currents are not comparable for aging analysis." },
 
   // Compare page
+  "compare.compareBtn": { hu: "Összehasonlítás", en: "Compare" },
   "compare.title": { hu: "Cella összehasonlítás", en: "Cell Comparison" },
   "compare.subtitle": { hu: "Válassz cellákat az összehasonlításhoz", en: "Select cells to compare" },
   "compare.select": { hu: "Cellák kiválasztása", en: "Select Cells" },
@@ -600,6 +618,8 @@ const translations = {
   "sync.syncedToast": { hu: "Szinkronizálva a GitHub-bal", en: "Synced with GitHub" },
   "sync.errorToast": { hu: "Szinkronizációs hiba", en: "Sync error" },
   "sync.conflictToast": { hu: "Ütközés! Kattints a szinkron ikonra.", en: "Conflict! Click sync icon." },
+  "sync.save": { hu: "Mentés", en: "Save" },
+  "sync.clickSave": { hu: "Kattints a mentéshez", en: "Click to save" },
   "sync.remoteChanged": { hu: "Frissítés elérhető", en: "Update available" },
   "sync.timeAgo.justNow": { hu: "most", en: "just now" },
   "sync.timeAgo.minutesAgo": { hu: "{n} perce", en: "{n}m ago" },
@@ -617,6 +637,16 @@ export function t(key: TranslationKey, lang: Language, params?: Record<string, s
     }
   }
   return text;
+}
+
+/**
+ * Returns the display label for an enum value.
+ * Tries `prefix.value` as a translation key; if not found, returns the raw value.
+ */
+export function enumLabel(prefix: string, value: string, lang: Language): string {
+  const key = `${prefix}.${value}` as TranslationKey;
+  if (key in translations) return t(key, lang);
+  return value;
 }
 
 export function useTranslation() {

@@ -23,6 +23,56 @@ const BASE_CELLS_KEY = "battery-sync-base-cells";
 const BASE_SETTINGS_KEY = "battery-sync-base-settings";
 const BASE_TEMPLATES_KEY = "battery-sync-base-templates";
 
+// --- Enum migration (Hungarian → English) ---
+
+const STATUS_MIGRATION: Record<string, string> = {
+  "Új": "new",
+  "Használt": "used",
+  "Bontott": "recovered",
+  "Selejt": "scrapped",
+};
+
+const FORM_FACTOR_MIGRATION: Record<string, string> = {
+  "Egyéb": "other",
+};
+
+const CONTACT_TYPE_MIGRATION: Record<string, string> = {
+  "Flat top": "flat_top",
+  "Button top": "button_top",
+  "Forrfüles": "tabbed",
+  "Védett (protected)": "protected",
+  "Egyéb": "other",
+};
+
+const CATHODE_TYPE_MIGRATION: Record<string, string> = {
+  "Egyéb": "other",
+};
+
+const PLATFORM_MIGRATION: Record<string, string> = {
+  "Hazai bolt": "local_store",
+  "Egyéb": "other",
+};
+
+export function migrateCellEnums(cells: Cell[]): Cell[] {
+  return cells.map((cell) => ({
+    ...cell,
+    status: (STATUS_MIGRATION[cell.status] ?? cell.status) as Cell["status"],
+    formFactor: (FORM_FACTOR_MIGRATION[cell.formFactor] ?? cell.formFactor) as Cell["formFactor"],
+    contactType: cell.contactType ? (CONTACT_TYPE_MIGRATION[cell.contactType] ?? cell.contactType) : cell.contactType,
+    cathodeType: cell.cathodeType ? (CATHODE_TYPE_MIGRATION[cell.cathodeType] ?? cell.cathodeType) : cell.cathodeType,
+    platform: PLATFORM_MIGRATION[cell.platform] ?? cell.platform,
+  }));
+}
+
+export function migrateTemplateEnums(templates: CellTemplate[]): CellTemplate[] {
+  return templates.map((tmpl) => ({
+    ...tmpl,
+    formFactor: (FORM_FACTOR_MIGRATION[tmpl.formFactor] ?? tmpl.formFactor) as CellTemplate["formFactor"],
+    contactType: tmpl.contactType ? (CONTACT_TYPE_MIGRATION[tmpl.contactType] ?? tmpl.contactType) : tmpl.contactType,
+    cathodeType: tmpl.cathodeType ? (CATHODE_TYPE_MIGRATION[tmpl.cathodeType] ?? tmpl.cathodeType) : tmpl.cathodeType,
+  }));
+}
+
 // --- Client ID ---
 
 export function getClientId(): string {
@@ -147,9 +197,9 @@ export function loadFromLocalStorage(): AppData {
   }
 
   return {
-    cells: cleanupSoftDeletes(ensureCellInternalIds(cells)),
+    cells: migrateCellEnums(cleanupSoftDeletes(ensureCellInternalIds(cells))),
     settings,
-    templates: ensureTemplateInternalIds(templates),
+    templates: migrateTemplateEnums(ensureTemplateInternalIds(templates)),
   };
 }
 
@@ -403,9 +453,9 @@ async function pullMultiFile(config: GitHubConfig): Promise<AppData> {
   const clientSettings = clientSettingsResult?.data.settings || { ...DEFAULT_CLIENT_SETTINGS };
 
   const appData: AppData = {
-    cells: cleanupSoftDeletes(ensureCellInternalIds(cellsResult?.data.cells || [])),
+    cells: migrateCellEnums(cleanupSoftDeletes(ensureCellInternalIds(cellsResult?.data.cells || []))),
     settings: combineSettings(sharedSettings, clientSettings),
-    templates: ensureTemplateInternalIds(templatesResult?.data.templates || []),
+    templates: migrateTemplateEnums(ensureTemplateInternalIds(templatesResult?.data.templates || [])),
   };
 
   if (!cellsResult) {
@@ -589,6 +639,41 @@ export async function fullSync(config: GitHubConfig, localData: AppData, dirtyFl
     settings: mergedSettings,
     templates: mergedTemplates,
   };
+}
+
+// --- Push only dirty files (no pull/merge) ---
+
+export async function pushDirtyFiles(config: GitHubConfig, localData: AppData, dirtyFlags: DirtyFlags): Promise<void> {
+  const clientId = getClientId();
+  const clientPath = clientSettingsFilePath(clientId);
+
+  if (dirtyFlags.cellsDirty) {
+    const cellsFile: CellsFile = { version: DATA_VERSION, cells: localData.cells };
+    await pushFileWithRetry(config, CELLS_FILE_PATH, cellsFile, SHA_CELLS_KEY);
+  }
+  if (dirtyFlags.settingsDirty) {
+    const sharedSettings = extractSharedSettings(localData.settings);
+    const settingsFile: SettingsFile = { version: DATA_VERSION, settings: sharedSettings };
+    await pushFileWithRetry(config, SETTINGS_FILE_PATH, settingsFile, SHA_SETTINGS_KEY);
+    saveBaseSnapshot(BASE_SETTINGS_KEY, sharedSettings);
+  }
+  if (dirtyFlags.clientSettingsDirty) {
+    const clientSettings = extractClientSettings(localData.settings);
+    const clientFile: ClientSettingsFile = { version: DATA_VERSION, settings: clientSettings };
+    await pushFileWithRetry(config, clientPath, clientFile, SHA_CLIENT_SETTINGS_KEY);
+  }
+  if (dirtyFlags.templatesDirty) {
+    const templatesFile: TemplatesFile = { version: DATA_VERSION, templates: localData.templates };
+    await pushFileWithRetry(config, TEMPLATES_FILE_PATH, templatesFile, SHA_TEMPLATES_KEY);
+  }
+
+  // Update base snapshots after successful push
+  if (dirtyFlags.cellsDirty) {
+    saveBaseSnapshot(BASE_CELLS_KEY, localData.cells);
+  }
+  if (dirtyFlags.templatesDirty) {
+    saveBaseSnapshot(BASE_TEMPLATES_KEY, localData.templates);
+  }
 }
 
 // --- JSON file export/import ---

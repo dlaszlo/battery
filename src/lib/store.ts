@@ -22,7 +22,7 @@ import {
   saveGitHubConfig,
   clearGitHubConfig,
   pullFromGitHub,
-  fullSync,
+  pushDirtyFiles,
   recordFailedPinAttempt,
   resetPinAttempts,
   getPinLockoutDelay,
@@ -71,14 +71,14 @@ interface BatteryStore {
 
   // Cell CRUD
   addCell: (cell: Omit<Cell, "internalId" | "measurements" | "events" | "createdAt" | "updatedAt">) => void;
-  updateCell: (id: string, updates: Partial<Cell>) => void;
-  deleteCell: (id: string) => void;
+  updateCell: (internalId: string, updates: Partial<Cell>) => void;
+  deleteCell: (internalId: string) => void;
   getCell: (id: string) => Cell | undefined;
 
   // Measurement CRUD
-  addMeasurement: (cellId: string, measurement: Omit<Measurement, "id">) => void;
-  updateMeasurement: (cellId: string, measurementId: string, updates: Omit<Measurement, "id">) => void;
-  deleteMeasurement: (cellId: string, measurementId: string) => void;
+  addMeasurement: (cellInternalId: string, measurement: Omit<Measurement, "id">) => void;
+  updateMeasurement: (cellInternalId: string, measurementId: string, updates: Omit<Measurement, "id">) => void;
+  deleteMeasurement: (cellInternalId: string, measurementId: string) => void;
 
   // Template CRUD
   addTemplate: (template: Omit<CellTemplate, "internalId" | "id" | "createdAt" | "updatedAt">) => void;
@@ -94,6 +94,7 @@ interface BatteryStore {
   removeGitHubConfig: () => void;
 
   // Sync
+  pushToGitHub: () => Promise<void>;
   syncWithGitHub: () => Promise<void>;
   checkForRemoteChanges: () => Promise<void>;
 
@@ -123,7 +124,6 @@ function markDirty(
   set: (fn: (state: BatteryStore) => Partial<BatteryStore>) => void,
   file: "cells" | "settings" | "clientSettings" | "templates",
 ) {
-  changeCounter++;
   set((state) => ({
     syncState: { ...state.syncState, pendingChanges: true },
     dirtyFlags: {
@@ -133,21 +133,8 @@ function markDirty(
   }));
 }
 
-let syncTimer: ReturnType<typeof setTimeout> | null = null;
-const SYNC_DEBOUNCE_MS = 3000;
-
-let changeCounter = 0;
-let syncInProgress = false;
+let pushInProgress = false;
 let shaCheckInProgress = false;
-let resyncRequested = false;
-
-function debouncedSync(syncFn: () => Promise<void>) {
-  if (syncTimer) clearTimeout(syncTimer);
-  syncTimer = setTimeout(() => {
-    syncTimer = null;
-    syncFn();
-  }, SYNC_DEBOUNCE_MS);
-}
 
 const DEFAULT_DIRTY_FLAGS: DirtyFlags = {
   cellsDirty: false,
@@ -282,14 +269,13 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
 
     if (get().githubConfig) {
       markDirty(set, "cells");
-      debouncedSync(() => get().syncWithGitHub());
     }
   },
 
-  updateCell: (id, updates) => {
+  updateCell: (internalId, updates) => {
     set((state) => {
       const newCells = state.cells.map((c) => {
-        if (c.id !== id) return c;
+        if (c.internalId !== internalId) return c;
 
         const events: CellEvent[] = [];
 
@@ -319,13 +305,12 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
 
     if (get().githubConfig) {
       markDirty(set, "cells");
-      debouncedSync(() => get().syncWithGitHub());
     }
   },
 
-  deleteCell: (id) => {
+  deleteCell: (internalId) => {
     set((state) => {
-      const newCells = state.cells.filter((c) => c.id !== id);
+      const newCells = state.cells.filter((c) => c.internalId !== internalId);
       const newState = { cells: newCells };
       persist({ ...get(), ...newState });
       return newState;
@@ -333,7 +318,6 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
 
     if (get().githubConfig) {
       markDirty(set, "cells");
-      debouncedSync(() => get().syncWithGitHub());
     }
   },
 
@@ -341,7 +325,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     return get().cells.find((c) => c.id === id);
   },
 
-  addMeasurement: (cellId, measurementData) => {
+  addMeasurement: (cellInternalId, measurementData) => {
     const measurement: Measurement = {
       ...measurementData,
       id: uuidv4(),
@@ -349,7 +333,7 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
 
     set((state) => {
       const newCells = state.cells.map((cell) => {
-        if (cell.id !== cellId) return cell;
+        if (cell.internalId !== cellInternalId) return cell;
 
         const currentInfo = measurement.chargeCurrent
           ? `${measurement.dischargeCurrent}/${measurement.chargeCurrent} mA`
@@ -365,12 +349,12 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
         };
 
         if (
-          updated.status !== "Selejt" &&
+          updated.status !== "scrapped" &&
           shouldMarkAsScrap(updated, state.settings)
         ) {
-          updated.status = "Selejt";
+          updated.status = "scrapped";
           const existingNotes = updated.notes ? updated.notes + "\n" : "";
-          updated.notes = existingNotes + getScrapNote(todayISO());
+          updated.notes = existingNotes + getScrapNote(todayISO(), get().settings.language);
           newEvents.push(createEvent("auto_scrapped", `Automatikusan selejtnek jelölve (${measurement.measuredCapacity} mAh < ${Math.round(cell.nominalCapacity * state.settings.scrapThresholdPercent / 100)} mAh)`));
         }
 
@@ -386,14 +370,13 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
 
     if (get().githubConfig) {
       markDirty(set, "cells");
-      debouncedSync(() => get().syncWithGitHub());
     }
   },
 
-  updateMeasurement: (cellId, measurementId, updates) => {
+  updateMeasurement: (cellInternalId, measurementId, updates) => {
     set((state) => {
       const newCells = state.cells.map((cell) => {
-        if (cell.id !== cellId) return cell;
+        if (cell.internalId !== cellInternalId) return cell;
         const oldMeasurement = cell.measurements.find((m) => m.id === measurementId);
         if (!oldMeasurement) return cell;
 
@@ -418,14 +401,13 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
 
     if (get().githubConfig) {
       markDirty(set, "cells");
-      debouncedSync(() => get().syncWithGitHub());
     }
   },
 
-  deleteMeasurement: (cellId, measurementId) => {
+  deleteMeasurement: (cellInternalId, measurementId) => {
     set((state) => {
       const newCells = state.cells.map((cell) => {
-        if (cell.id !== cellId) return cell;
+        if (cell.internalId !== cellInternalId) return cell;
         const deleted = cell.measurements.find((m) => m.id === measurementId);
         const desc = deleted
           ? `Mérés törölve: ${deleted.measuredCapacity} mAh`
@@ -444,7 +426,6 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
 
     if (get().githubConfig) {
       markDirty(set, "cells");
-      debouncedSync(() => get().syncWithGitHub());
     }
   },
 
@@ -468,7 +449,6 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
 
     if (get().githubConfig) {
       markDirty(set, "templates");
-      debouncedSync(() => get().syncWithGitHub());
     }
   },
 
@@ -484,7 +464,6 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
 
     if (get().githubConfig) {
       markDirty(set, "templates");
-      debouncedSync(() => get().syncWithGitHub());
     }
   },
 
@@ -500,7 +479,6 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
 
     if (get().githubConfig) {
       markDirty(set, "templates");
-      debouncedSync(() => get().syncWithGitHub());
     }
   },
 
@@ -522,7 +500,6 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
       const hasClient = keys.some((k) => (CLIENT_SETTINGS_KEYS as readonly string[]).includes(k));
       if (hasShared) markDirty(set, "settings");
       if (hasClient) markDirty(set, "clientSettings");
-      debouncedSync(() => get().syncWithGitHub());
     }
   },
 
@@ -564,19 +541,15 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     });
   },
 
-  syncWithGitHub: async () => {
-    const { githubConfig } = get();
+  pushToGitHub: async () => {
+    const { githubConfig, dirtyFlags } = get();
     if (!githubConfig) return;
+    if (pushInProgress) return;
 
-    if (syncInProgress) {
-      resyncRequested = true;
-      return;
-    }
+    const hasDirty = dirtyFlags.cellsDirty || dirtyFlags.settingsDirty || dirtyFlags.clientSettingsDirty || dirtyFlags.templatesDirty;
+    if (!hasDirty) return;
 
-    syncInProgress = true;
-    resyncRequested = false;
-    const counterAtStart = changeCounter;
-
+    pushInProgress = true;
     const prevSyncState = get().syncState;
     set({ syncState: { ...prevSyncState, status: "syncing", error: null } });
 
@@ -587,63 +560,65 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
         templates: get().templates,
       };
       const currentDirtyFlags = { ...get().dirtyFlags };
-      const merged = await fullSync(githubConfig, localData, currentDirtyFlags);
+      await pushDirtyFiles(githubConfig, localData, currentDirtyFlags);
 
-      const stillPending = changeCounter !== counterAtStart;
       set({
-        cells: stillPending ? get().cells : merged.cells,
-        settings: stillPending ? get().settings : merged.settings,
-        templates: stillPending ? get().templates : merged.templates,
-        syncState: { status: "idle", lastSynced: nowISO(), error: null, pendingChanges: stillPending, retryCount: 0, remoteChanged: false },
-        dirtyFlags: stillPending ? get().dirtyFlags : { ...DEFAULT_DIRTY_FLAGS },
+        syncState: { status: "idle", lastSynced: nowISO(), error: null, pendingChanges: false, retryCount: 0, remoteChanged: false },
+        dirtyFlags: { ...DEFAULT_DIRTY_FLAGS },
       });
-      if (!stillPending) {
-        saveToLocalStorage({ cells: merged.cells, settings: merged.settings, templates: merged.templates });
-      }
-
-      syncInProgress = false;
-
-      if (stillPending || resyncRequested) {
-        resyncRequested = false;
-        debouncedSync(() => get().syncWithGitHub());
-      }
     } catch (error) {
-      syncInProgress = false;
       const code = error instanceof Error ? error.message : "";
-      const currentRetry = get().syncState.retryCount;
-      const isRetryable = !["TOKEN_EXPIRED", "REPO_NOT_FOUND", "VALIDATION_ERROR"].includes(code);
+      set({
+        syncState: {
+          status: "error",
+          lastSynced: prevSyncState.lastSynced,
+          error: friendlyError(code),
+          pendingChanges: true,
+          retryCount: 0,
+          remoteChanged: false,
+        },
+      });
+    } finally {
+      pushInProgress = false;
+    }
+  },
 
-      if (isRetryable && currentRetry < 5) {
-        set({
-          syncState: {
-            status: "error",
-            lastSynced: prevSyncState.lastSynced,
-            error: friendlyError(code),
-            pendingChanges: true,
-            retryCount: currentRetry + 1,
-            remoteChanged: false,
-          },
-        });
-        setTimeout(() => get().syncWithGitHub(), 2000 * Math.pow(2, currentRetry));
-      } else {
-        set({
-          syncState: {
-            status: code === "CONFLICT" ? "conflict" : "error",
-            lastSynced: prevSyncState.lastSynced,
-            error: friendlyError(code),
-            pendingChanges: true,
-            retryCount: 0,
-            remoteChanged: false,
-          },
-        });
-      }
+  syncWithGitHub: async () => {
+    const { githubConfig } = get();
+    if (!githubConfig) return;
+
+    const prevSyncState = get().syncState;
+    set({ syncState: { ...prevSyncState, status: "syncing", error: null } });
+
+    try {
+      const remote = await pullFromGitHub(githubConfig);
+      set({
+        cells: remote.cells,
+        settings: remote.settings,
+        templates: remote.templates,
+        syncState: { status: "idle", lastSynced: nowISO(), error: null, pendingChanges: false, retryCount: 0, remoteChanged: false },
+        dirtyFlags: { ...DEFAULT_DIRTY_FLAGS },
+      });
+      saveToLocalStorage({ cells: remote.cells, settings: remote.settings, templates: remote.templates });
+    } catch (error) {
+      const code = error instanceof Error ? error.message : "";
+      set({
+        syncState: {
+          status: "error",
+          lastSynced: prevSyncState.lastSynced,
+          error: friendlyError(code),
+          pendingChanges: prevSyncState.pendingChanges,
+          retryCount: 0,
+          remoteChanged: false,
+        },
+      });
     }
   },
 
   checkForRemoteChanges: async () => {
     const { githubConfig, configState } = get();
     if (!githubConfig || configState !== "unlocked") return;
-    if (syncInProgress || shaCheckInProgress) return;
+    if (pushInProgress || shaCheckInProgress) return;
 
     shaCheckInProgress = true;
     try {
@@ -682,7 +657,6 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
       markDirty(set, "cells");
       markDirty(set, "settings");
       markDirty(set, "templates");
-      debouncedSync(() => get().syncWithGitHub());
     }
   },
 

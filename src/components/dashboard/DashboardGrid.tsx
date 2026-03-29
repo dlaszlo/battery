@@ -6,7 +6,7 @@ import { useBatteryStore } from "@/lib/store";
 import { formatDate } from "@/lib/utils";
 import { STATUS_COLORS } from "@/lib/constants";
 import type { CellStatus } from "@/lib/types";
-import { t } from "@/lib/i18n";
+import { t, enumLabel } from "@/lib/i18n";
 import StatCard from "./StatCard";
 
 export default function DashboardGrid() {
@@ -84,13 +84,13 @@ export default function DashboardGrid() {
                   <div>
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{cell.brand}</p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {cell.formFactor} &middot; {cell.chemistry} &middot; {cell.nominalCapacity} mAh
+                      {enumLabel("formFactor", cell.formFactor, lang)} &middot; {cell.chemistry} &middot; {cell.nominalCapacity} mAh
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${STATUS_COLORS[cell.status as CellStatus]}`}>
-                    {cell.status}
+                    {enumLabel("status", cell.status, lang)}
                   </span>
                   <span className="text-xs text-gray-400 dark:text-gray-500">{formatDate(cell.updatedAt)}</span>
                 </div>
@@ -119,7 +119,7 @@ export default function DashboardGrid() {
             <div className="space-y-2">
               {Object.entries(stats.byFormFactor).map(([ff, count]) => (
                 <div key={ff} className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-300">{ff}</span>
+                  <span className="text-gray-600 dark:text-gray-300">{enumLabel("formFactor", ff, lang)}</span>
                   <span className="font-medium text-gray-900 dark:text-gray-100">{count} {t("dashboard.pcs", lang)}</span>
                 </div>
               ))}

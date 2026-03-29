@@ -7,7 +7,7 @@ import Select from "@/components/ui/Select";
 import ComboBox from "@/components/ui/ComboBox";
 import { useBatteryStore } from "@/lib/store";
 import { FORM_FACTORS, CHEMISTRIES, CATHODE_TYPES, CONTACT_TYPES } from "@/lib/constants";
-import { t } from "@/lib/i18n";
+import { t, enumLabel } from "@/lib/i18n";
 import type { CellTemplate } from "@/lib/types";
 
 interface TemplateFormProps {
@@ -86,7 +86,7 @@ export default function TemplateForm({ template, onSave, onCancel }: TemplateFor
     onSave();
   };
 
-  const ffOptions = FORM_FACTORS.map((f) => ({ value: f, label: f }));
+  const ffOptions = FORM_FACTORS.map((f) => ({ value: f, label: enumLabel("formFactor", f, lang) }));
   const chemOptions = CHEMISTRIES.map((c) => ({ value: c, label: c }));
 
   return (
@@ -128,14 +128,14 @@ export default function TemplateForm({ template, onSave, onCancel }: TemplateFor
         />
         <ComboBox
           label={t("form.cathodeType", lang)}
-          options={CATHODE_TYPES}
+          options={CATHODE_TYPES.map((c) => ({ value: c, label: enumLabel("cathodeType", c, lang) }))}
           value={form.cathodeType}
           onChange={(v) => set("cathodeType", v)}
           placeholder={t("form.cathodeTypePlaceholder", lang)}
         />
         <ComboBox
           label={t("form.contactType", lang)}
-          options={CONTACT_TYPES}
+          options={CONTACT_TYPES.map((c) => ({ value: c, label: enumLabel("contactType", c, lang) }))}
           value={form.contactType}
           onChange={(v) => set("contactType", v)}
           placeholder={t("form.contactTypePlaceholder", lang)}

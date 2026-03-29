@@ -1,4 +1,4 @@
-export type CellStatus = "Új" | "Használt" | "Bontott" | "Selejt";
+export type CellStatus = "new" | "used" | "recovered" | "scrapped";
 
 export type Chemistry = "Li-ion" | "LiFePO4" | "NiMH" | "NiCd" | "LiPo";
 
@@ -11,7 +11,7 @@ export type FormFactor =
   | "AAA"
   | "C"
   | "D"
-  | "Egyéb";
+  | "other";
 
 export interface Measurement {
   id: string;

@@ -13,7 +13,6 @@ const navItems: { href: string; labelKey: TranslationKey }[] = [
   { href: "/cells", labelKey: "nav.cells" },
   { href: "/add", labelKey: "nav.addCell" },
   { href: "/templates", labelKey: "nav.templates" },
-  { href: "/compare", labelKey: "nav.compare" },
   { href: "/settings", labelKey: "nav.settings" },
   { href: "/help", labelKey: "nav.help" },
 ];
@@ -22,6 +21,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const syncState = useBatteryStore((s) => s.syncState);
   const githubConfig = useBatteryStore((s) => s.githubConfig);
+  const pushToGitHub = useBatteryStore((s) => s.pushToGitHub);
   const syncWithGitHub = useBatteryStore((s) => s.syncWithGitHub);
   const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -76,8 +76,9 @@ export default function Navbar() {
               <SyncIndicator
                 syncState={syncState}
                 lang={lang}
-                onRetry={syncWithGitHub}
+                onRetry={pushToGitHub}
                 onSync={syncWithGitHub}
+                onPush={pushToGitHub}
               />
             )}
 
@@ -153,9 +154,10 @@ interface SyncIndicatorProps {
   lang: Language;
   onRetry: () => void;
   onSync: () => void;
+  onPush: () => void;
 }
 
-function SyncIndicator({ syncState, lang, onRetry, onSync }: SyncIndicatorProps) {
+function SyncIndicator({ syncState, lang, onRetry, onSync, onPush }: SyncIndicatorProps) {
   const { status, lastSynced, error, pendingChanges, retryCount, remoteChanged } = syncState;
   const timeAgo = useRelativeTime(lastSynced, lang);
 
@@ -176,16 +178,19 @@ function SyncIndicator({ syncState, lang, onRetry, onSync }: SyncIndicatorProps)
     );
   }
 
-  // Pending changes (not yet syncing)
+  // Pending changes — clickable save button
   if (pendingChanges && status !== "syncing" && status !== "error" && status !== "conflict") {
     return (
-      <div className="flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400" title={t("sync.unsaved", lang)}>
-        <span className="relative flex h-2.5 w-2.5">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-75" />
-          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-amber-500" />
-        </span>
-        <span className="hidden md:inline">{t("sync.unsaved", lang)}</span>
-      </div>
+      <button
+        onClick={onPush}
+        className="flex items-center gap-1.5 rounded-lg bg-amber-100 px-2.5 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-200 dark:bg-amber-900/50 dark:text-amber-300 dark:hover:bg-amber-900/70 cursor-pointer transition-colors"
+        title={t("sync.clickSave", lang)}
+      >
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+        </svg>
+        <span className="hidden md:inline">{t("sync.save", lang)}</span>
+      </button>
     );
   }
 

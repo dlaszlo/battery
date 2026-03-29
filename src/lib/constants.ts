@@ -9,7 +9,7 @@ export const FORM_FACTORS: FormFactor[] = [
   "AAA",
   "C",
   "D",
-  "Egyéb",
+  "other",
 ];
 
 export const CHEMISTRIES: Chemistry[] = [
@@ -21,10 +21,10 @@ export const CHEMISTRIES: Chemistry[] = [
 ];
 
 export const CELL_STATUSES: CellStatus[] = [
-  "Új",
-  "Használt",
-  "Bontott",
-  "Selejt",
+  "new",
+  "used",
+  "recovered",
+  "scrapped",
 ];
 
 export const CATHODE_TYPES = [
@@ -33,15 +33,15 @@ export const CATHODE_TYPES = [
   "IMR",
   "IFR",
   "INR/IMR",
-  "Egyéb",
+  "other",
 ];
 
 export const CONTACT_TYPES = [
-  "Flat top",
-  "Button top",
-  "Forrfüles",
-  "Védett (protected)",
-  "Egyéb",
+  "flat_top",
+  "button_top",
+  "tabbed",
+  "protected",
+  "other",
 ];
 
 export const PLATFORMS = [
@@ -49,8 +49,8 @@ export const PLATFORMS = [
   "eBay",
   "Nkon.nl",
   "Amazon",
-  "Hazai bolt",
-  "Egyéb",
+  "local_store",
+  "other",
 ];
 
 export const DEFAULT_DEVICES = [
@@ -104,8 +104,8 @@ export function clientSettingsFilePath(clientId: string): string {
 export const DATA_VERSION = 1;
 
 export const STATUS_COLORS: Record<CellStatus, string> = {
-  "Új": "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300",
-  "Használt": "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300",
-  "Bontott": "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300",
-  "Selejt": "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300",
+  new: "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300",
+  used: "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300",
+  recovered: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300",
+  scrapped: "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-300",
 };

@@ -1,20 +1,32 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { Suspense, useState, useMemo } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import AppShell from "@/components/layout/AppShell";
 import { useBatteryStore } from "@/lib/store";
-import { t } from "@/lib/i18n";
+import { t, enumLabel } from "@/lib/i18n";
 import { formatCapacity, formatDate, capacityPercent, formatResistance } from "@/lib/utils";
 import type { Cell, Language } from "@/lib/types";
 
 const MAX_COMPARE = 5;
 
 export default function ComparePage() {
+  return (
+    <Suspense>
+      <ComparePageContent />
+    </Suspense>
+  );
+}
+
+function ComparePageContent() {
   const allCells = useBatteryStore((s) => s.cells);
   const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
+  const searchParams = useSearchParams();
+  const idsParam = searchParams.get("ids");
+  const initialIds = idsParam ? idsParam.split(",").filter(Boolean).slice(0, MAX_COMPARE) : [];
 
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [selectedIds, setSelectedIds] = useState<string[]>(initialIds);
   const [search, setSearch] = useState("");
 
   const selectedCells = useMemo(
@@ -165,9 +177,9 @@ type CompareRow = {
 const COMPARE_ROWS: CompareRow[] = [
   { labelKey: "compare.row.brand", getValue: (s) => s.cell.brand },
   { labelKey: "compare.row.model", getValue: (s) => s.cell.model || "—" },
-  { labelKey: "compare.row.formFactor", getValue: (s) => s.cell.formFactor },
+  { labelKey: "compare.row.formFactor", getValue: (s, lang) => enumLabel("formFactor", s.cell.formFactor, lang) },
   { labelKey: "compare.row.chemistry", getValue: (s) => s.cell.chemistry },
-  { labelKey: "compare.row.status", getValue: (s) => s.cell.status },
+  { labelKey: "compare.row.status", getValue: (s, lang) => enumLabel("status", s.cell.status, lang) },
   {
     labelKey: "compare.row.nominalCapacity",
     getValue: (s) => formatCapacity(s.cell.nominalCapacity),

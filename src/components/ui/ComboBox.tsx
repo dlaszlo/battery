@@ -3,15 +3,25 @@
 import { useState, useRef, useEffect, forwardRef } from "react";
 import Tooltip from "./Tooltip";
 
+type OptionItem = string | { value: string; label: string };
+
 interface ComboBoxProps {
   label?: string;
   error?: string;
   tooltip?: string;
   isRequired?: boolean;
-  options: string[];
+  options: OptionItem[];
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+}
+
+function optionValue(opt: OptionItem): string {
+  return typeof opt === "string" ? opt : opt.value;
+}
+
+function optionLabel(opt: OptionItem): string {
+  return typeof opt === "string" ? opt : opt.label;
 }
 
 const ComboBox = forwardRef<HTMLInputElement, ComboBoxProps>(
@@ -21,8 +31,14 @@ const ComboBox = forwardRef<HTMLInputElement, ComboBoxProps>(
     const wrapperRef = useRef<HTMLDivElement>(null);
     const inputId = label?.toLowerCase().replace(/\s+/g, "-");
 
+    // Find display label for current value
+    const displayValue = (() => {
+      const match = options.find((opt) => optionValue(opt) === value);
+      return match ? optionLabel(match) : value;
+    })();
+
     const filtered = options.filter((opt) =>
-      opt.toLowerCase().includes((filter || value).toLowerCase())
+      optionLabel(opt).toLowerCase().includes((filter || displayValue).toLowerCase())
     );
 
     useEffect(() => {
@@ -50,7 +66,7 @@ const ComboBox = forwardRef<HTMLInputElement, ComboBoxProps>(
             ref={ref}
             id={inputId}
             type="text"
-            value={filter !== "" ? filter : value}
+            value={filter !== "" ? filter : displayValue}
             placeholder={placeholder}
             onChange={(e) => {
               setFilter(e.target.value);
@@ -74,18 +90,18 @@ const ComboBox = forwardRef<HTMLInputElement, ComboBoxProps>(
             <ul className="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
               {filtered.map((opt) => (
                 <li
-                  key={opt}
+                  key={optionValue(opt)}
                   className={`cursor-pointer px-3 py-1.5 text-sm hover:bg-blue-50 dark:hover:bg-blue-900/30 ${
-                    opt === value ? "bg-blue-50 font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" : "text-gray-700 dark:text-gray-300"
+                    optionValue(opt) === value ? "bg-blue-50 font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-400" : "text-gray-700 dark:text-gray-300"
                   }`}
                   onMouseDown={(e) => {
                     e.preventDefault();
-                    onChange(opt);
+                    onChange(optionValue(opt));
                     setFilter("");
                     setOpen(false);
                   }}
                 >
-                  {opt}
+                  {optionLabel(opt)}
                 </li>
               ))}
             </ul>

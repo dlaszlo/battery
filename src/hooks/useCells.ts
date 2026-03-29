@@ -68,8 +68,8 @@ export function useCellStats() {
   return useMemo(() => {
     const activeCells = cells;
     const total = activeCells.length;
-    const active = activeCells.filter((c) => c.status !== "Selejt").length;
-    const scrapped = activeCells.filter((c) => c.status === "Selejt").length;
+    const active = activeCells.filter((c) => c.status !== "scrapped").length;
+    const scrapped = activeCells.filter((c) => c.status === "scrapped").length;
     const totalValue = activeCells.reduce((sum, c) => sum + c.pricePerUnit, 0);
     const totalMeasurements = activeCells.reduce((sum, c) => sum + c.measurements.length, 0);
 
@@ -87,15 +87,18 @@ export function useCellStats() {
       .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
       .slice(0, 5);
 
+    const sortedByCount = (rec: Record<string, number>) =>
+      Object.fromEntries(Object.entries(rec).sort(([, a], [, b]) => b - a));
+
     return {
       total,
       active,
       scrapped,
       totalValue,
       totalMeasurements,
-      byStatus,
-      byChemistry,
-      byFormFactor,
+      byStatus: sortedByCount(byStatus),
+      byChemistry: sortedByCount(byChemistry),
+      byFormFactor: sortedByCount(byFormFactor),
       recentCells,
     };
   }, [cells]);

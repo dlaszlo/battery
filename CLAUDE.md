@@ -59,15 +59,18 @@ src/
 - **Static export** (`output: "export"` in next.config.ts) for free hosting
 - **No dynamic routes** - use query params (`/cells?id=X`) for detail views
 - **All pages are client components** (`"use client"`) since data comes from localStorage/GitHub API
-- **Zustand persist** middleware for localStorage caching
+- **Zustand** for state management + localStorage caching
 - **GitHub Contents API** for persistent storage (multi-file: cells.json, settings.json, templates.json)
 - **Automatic migration** from legacy single data.json to multi-file format
+- **Manual save** — mutations save to localStorage only; user clicks "Mentés" button in navbar to push dirty files to GitHub (no auto-sync, no three-way merge on push path)
+- **Enums stored in English** — status, chemistry, formFactor values are English in JSON, displayed in Hungarian via i18n
 
 ## Data Model
 
-- **Cell ID**: String type, user-provided (e.g., "01", "02", "123") - NOT auto-generated
+- **Cell ID**: String type, user-provided (e.g., "01", "02", "123") - editable after creation
+- **Cell internalId**: UUID (auto-generated, immutable, used as stable key)
 - **Measurement ID**: UUID (auto-generated)
-- **Status values** (Hungarian): "Új", "Használt", "Bontott", "Selejt"
+- **Status values** (stored in English): "new", "used", "recovered", "scrapped" — displayed in Hungarian via i18n
 - **Cell Template**: Reusable datasheet specs (brand, model, formFactor, chemistry, capacity, discharge currents, weight). Soft delete via `archived` flag. Cells reference templates via `templateId` but are independent after creation.
 - **Discharge current**: Split into `continuousDischargeCurrent` and `peakDischargeCurrent`
 - **Multi-file storage**: `cells.json`, `settings.json`, `templates.json` in the user's private GitHub repo (auto-migrated from legacy single `data.json`)
@@ -85,6 +88,10 @@ src/
 - Domain components organized by feature (cells, measurements, templates, dashboard, onboarding)
 - Constants and dropdown options in `src/lib/constants.ts`
 - All TypeScript interfaces in `src/lib/types.ts`
+- **Store mutations use `internalId`** — `updateCell`, `deleteCell`, `addMeasurement`, `updateMeasurement`, `deleteMeasurement` all look up cells by `internalId` (UUID), not user-facing `id`
+- **`enumLabel()` for i18n** — use `enumLabel(prefix, value, lang)` from `i18n.ts` to display English enum values in Hungarian (e.g., `enumLabel("status", "new", lang)` → "Új")
+- **ComboBox supports `{value, label}[]`** — options can be plain `string[]` or `{value: string, label: string}[]` for decoupling stored values from display text
+- **Comparison from cell list** — checkboxes in CellTable allow selecting up to 5 cells, floating compare button navigates to `/compare?ids=01,02,03`. No dedicated compare item in navbar.
 
 ## Build & Deploy
 

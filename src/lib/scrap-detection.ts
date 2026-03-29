@@ -17,6 +17,8 @@ export function shouldMarkAsScrap(
   return latest.measuredCapacity < threshold;
 }
 
-export function getScrapNote(date: string): string {
-  return `Automatikusan selejtnek jelölve: ${date}`;
+export function getScrapNote(date: string, lang: "hu" | "en" = "hu"): string {
+  return lang === "hu"
+    ? `Automatikusan selejtnek jelölve: ${date}`
+    : `Automatically marked as scrapped: ${date}`;
 }
