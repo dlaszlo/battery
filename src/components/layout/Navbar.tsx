@@ -37,12 +37,12 @@ export default function Navbar() {
               <rect x="106" y="80" width="300" height="400" rx="32" fill="none" stroke="white" strokeWidth="28"/>
               {/* Battery terminal */}
               <rect x="196" y="48" width="120" height="44" rx="12" fill="white"/>
-              {/* 5 charge bars — bottom 2 always visible (40%), top 3 appear on hover */}
-              <rect x="148" y="400" width="216" height="52" rx="8" fill="white"/>
-              <rect x="148" y="336" width="216" height="52" rx="8" fill="white"/>
-              <rect x="148" y="272" width="216" height="52" rx="8" fill="white" className="charge-bar-3" opacity="0"/>
-              <rect x="148" y="208" width="216" height="52" rx="8" fill="white" className="charge-bar-4" opacity="0"/>
-              <rect x="148" y="144" width="216" height="52" rx="8" fill="white" className="charge-bar-5" opacity="0"/>
+              {/* 5 charge bars — equal size, 40% default, loops 0→100% on hover */}
+              <rect x="150" y="390" width="212" height="50" rx="6" fill="white" className="charge-bar charge-bar-1"/>
+              <rect x="150" y="328" width="212" height="50" rx="6" fill="white" className="charge-bar charge-bar-2"/>
+              <rect x="150" y="266" width="212" height="50" rx="6" fill="white" className="charge-bar charge-bar-3"/>
+              <rect x="150" y="204" width="212" height="50" rx="6" fill="white" className="charge-bar charge-bar-4"/>
+              <rect x="150" y="142" width="212" height="50" rx="6" fill="white" className="charge-bar charge-bar-5"/>
             </svg>
             <span className="text-lg font-bold text-gray-900 dark:text-gray-100">
               Battery Tracker
