@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useBatteryStore } from "@/lib/store";
 import {
   formatDate,
@@ -30,6 +30,7 @@ interface CellDetailProps {
 
 export default function CellDetail({ cell }: CellDetailProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const deleteCell = useBatteryStore((s) => s.deleteCell);
   const settings = useBatteryStore((s) => s.settings);
   const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
@@ -37,6 +38,13 @@ export default function CellDetail({ cell }: CellDetailProps) {
   const [editing, setEditing] = useState(false);
   const [duplicating, setDuplicating] = useState(false);
   const [showMeasurementForm, setShowMeasurementForm] = useState(false);
+
+  // Reset edit/duplicate mode when navigating back to this page
+  useEffect(() => {
+    setEditing(false);
+    setDuplicating(false);
+    setShowMeasurementForm(false);
+  }, [pathname]);
   const [showDelete, setShowDelete] = useState(false);
   const [showScrap, setShowScrap] = useState(false);
   const updateCell = useBatteryStore((s) => s.updateCell);

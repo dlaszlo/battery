@@ -22,7 +22,7 @@ function CellsContent() {
         </div>
       );
     }
-    return <CellDetail cell={cell} />;
+    return <CellDetail key={cell.internalId} cell={cell} />;
   }
 
   return (
