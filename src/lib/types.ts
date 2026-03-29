@@ -61,6 +61,7 @@ export interface CellTemplate {
   continuousDischargeCurrent?: number;
   peakDischargeCurrent?: number;
   weight?: number;
+  imageFileName?: string;
   archived?: boolean;
   createdAt: string;
   updatedAt: string;
@@ -91,6 +92,7 @@ export interface Cell {
   currentDevice?: string;
   group?: string;
   notes?: string;
+  imageFileName?: string;
   measurements: Measurement[];
   events: CellEvent[];
   createdAt: string;

@@ -140,6 +140,68 @@ export async function deleteFile(
   }
 }
 
+// --- Image file operations ---
+
+export async function saveRawFile(
+  config: GitHubConfig,
+  filePath: string,
+  base64Content: string,
+  sha: string | null,
+  message?: string
+): Promise<string> {
+  const url = `${API_BASE}/repos/${config.owner}/${config.repo}/contents/${filePath}`;
+
+  const body: Record<string, string> = {
+    message: message || `Upload ${filePath}`,
+    content: base64Content,
+  };
+
+  if (sha) body.sha = sha;
+
+  const response = await fetch(url, {
+    method: "PUT",
+    headers: headers(config.token),
+    body: JSON.stringify(body),
+  });
+
+  if (response.status === 409) throw new Error("CONFLICT");
+  if (!response.ok) throw new Error(sanitizeApiError(response.status));
+
+  const result = await response.json();
+  return result.content.sha;
+}
+
+export async function fetchRawFile(
+  config: GitHubConfig,
+  filePath: string
+): Promise<{ base64: string; sha: string } | null> {
+  const url = `${API_BASE}/repos/${config.owner}/${config.repo}/contents/${filePath}`;
+  const response = await fetch(url, { headers: headers(config.token) });
+
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error(sanitizeApiError(response.status));
+
+  const file: GitHubFileResponse = await response.json();
+  return { base64: file.content.replace(/[\s\n\r]/g, ""), sha: file.sha };
+}
+
+export async function fetchFileSha(
+  config: GitHubConfig,
+  filePath: string
+): Promise<string | null> {
+  const url = `${API_BASE}/repos/${config.owner}/${config.repo}/contents/${filePath}`;
+  const response = await fetch(url, {
+    method: "HEAD",
+    headers: headers(config.token),
+  });
+  if (!response.ok) return null;
+  // HEAD doesn't return body; use GET with a single field
+  const getResponse = await fetch(url, { headers: headers(config.token) });
+  if (!getResponse.ok) return null;
+  const file = await getResponse.json();
+  return file.sha;
+}
+
 // Lightweight SHA check — single API call via Git Trees API
 export async function fetchTreeShas(
   config: GitHubConfig,

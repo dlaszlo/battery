@@ -103,6 +103,11 @@ export function clientSettingsFilePath(clientId: string): string {
 
 export const DATA_VERSION = 1;
 
+// Image upload
+export const IMAGES_FOLDER = "images";
+export const IMAGE_MAX_DIMENSION = 800;
+export const IMAGE_MAX_BYTES = 200 * 1024; // 200KB
+
 export const STATUS_COLORS: Record<CellStatus, string> = {
   new: "bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-300",
   used: "bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300",

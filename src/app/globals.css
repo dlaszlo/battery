@@ -45,22 +45,30 @@
   animation: scale-in 0.15s ease-out;
 }
 
-/* Battery logo — default: bars 1-2 visible (40%), bars 3-5 hidden */
+/* Battery logo — default: bars 1-2 always visible, bars 3-5 hidden */
 .charge-bar-1,
 .charge-bar-2 { opacity: 1; }
 .charge-bar-3,
 .charge-bar-4,
 .charge-bar-5 { opacity: 0; }
 
-/* On hover: all bars loop a 0%→100% charging animation */
-@keyframes charge-loop {
-  0%, 5% { opacity: 0; }
-  10%, 85% { opacity: 1; }
+/* On hover: bars 1-2 stay, bars 3→4→5 appear one by one then reset, loop */
+@keyframes charge-step-3 {
+  0%, 20% { opacity: 0; }
+  25%, 90% { opacity: 1; }
+  95%, 100% { opacity: 0; }
+}
+@keyframes charge-step-4 {
+  0%, 45% { opacity: 0; }
+  50%, 90% { opacity: 1; }
+  95%, 100% { opacity: 0; }
+}
+@keyframes charge-step-5 {
+  0%, 70% { opacity: 0; }
+  75%, 90% { opacity: 1; }
   95%, 100% { opacity: 0; }
 }
 
-.group:hover .charge-bar-1 { animation: charge-loop 2.5s ease-in-out 0s infinite; }
-.group:hover .charge-bar-2 { animation: charge-loop 2.5s ease-in-out 0.3s infinite; }
-.group:hover .charge-bar-3 { animation: charge-loop 2.5s ease-in-out 0.6s infinite; }
-.group:hover .charge-bar-4 { animation: charge-loop 2.5s ease-in-out 0.9s infinite; }
-.group:hover .charge-bar-5 { animation: charge-loop 2.5s ease-in-out 1.2s infinite; }
+.group:hover .charge-bar-3 { animation: charge-step-3 2.4s ease-in-out infinite; }
+.group:hover .charge-bar-4 { animation: charge-step-4 2.4s ease-in-out infinite; }
+.group:hover .charge-bar-5 { animation: charge-step-5 2.4s ease-in-out infinite; }

@@ -31,6 +31,7 @@ interface MeasurementFormProps {
 export default function MeasurementForm({ cellId, onDone, lastDischargeCurrent, editMeasurement }: MeasurementFormProps) {
   const addMeasurement = useBatteryStore((s) => s.addMeasurement);
   const updateMeasurement = useBatteryStore((s) => s.updateMeasurement);
+  const pushToGitHub = useBatteryStore((s) => s.pushToGitHub);
   const settings = useBatteryStore((s) => s.settings);
   const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
   const { toast } = useToast();
@@ -106,6 +107,7 @@ export default function MeasurementForm({ cellId, onDone, lastDischargeCurrent, 
       toast(t("measurement.saved", lang));
     }
     onDone();
+    pushToGitHub();
   };
 
   return (

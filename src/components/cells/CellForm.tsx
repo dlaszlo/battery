@@ -18,6 +18,7 @@ import {
 } from "@/lib/constants";
 import { todayISO } from "@/lib/utils";
 import { t, enumLabel } from "@/lib/i18n";
+import ImagePicker from "@/components/ui/ImagePicker";
 import type { Cell } from "@/lib/types";
 
 interface CellFormProps {
@@ -33,6 +34,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
   const cells = useBatteryStore((s) => s.cells);
   const templates = useBatteryStore((s) => s.templates);
   const settings = useBatteryStore((s) => s.settings);
+  const pushToGitHub = useBatteryStore((s) => s.pushToGitHub);
   const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
 
   const { toast } = useToast();
@@ -60,6 +62,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
       peakDischargeCurrent: tmpl.peakDischargeCurrent?.toString() ?? "",
       weight: tmpl.weight?.toString() ?? "",
     }));
+    if (tmpl.imageFileName) setImageFileName(tmpl.imageFileName);
   };
 
   const [form, setForm] = useState({
@@ -87,6 +90,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
     notes: src?.notes ?? "",
   });
 
+  const [imageFileName, setImageFileName] = useState<string | undefined>(src?.imageFileName);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const set = (field: string, value: string) => {
@@ -149,6 +153,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
       currentDevice: form.currentDevice || undefined,
       group: form.group.trim() || undefined,
       notes: form.notes.trim() || undefined,
+      imageFileName,
     };
 
     if (isEdit) {
@@ -160,6 +165,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
       toast(t("cell.added", lang));
       router.push(`/cells?id=${cellData.id}`);
     }
+    pushToGitHub();
   };
 
   const formFactorOptions = FORM_FACTORS.map((f) => ({ value: f, label: enumLabel("formFactor", f, lang) }));
@@ -394,6 +400,13 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
           />
         </div>
       </fieldset>
+
+      {/* Kép */}
+      <ImagePicker
+        currentFileName={imageFileName}
+        onImageChange={setImageFileName}
+        lang={lang}
+      />
 
       {/* Megjegyzés */}
       <div>

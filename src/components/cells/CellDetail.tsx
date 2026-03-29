@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useBatteryStore } from "@/lib/store";
@@ -21,6 +21,7 @@ import MeasurementForm from "@/components/measurements/MeasurementForm";
 import MeasurementList from "@/components/measurements/MeasurementList";
 import CapacityChart from "@/components/measurements/CapacityChart";
 import EventLog from "./EventLog";
+import { loadImage } from "@/lib/image-utils";
 
 interface CellDetailProps {
   cell: Cell;
@@ -38,6 +39,18 @@ export default function CellDetail({ cell }: CellDetailProps) {
   const [showDelete, setShowDelete] = useState(false);
   const [showScrap, setShowScrap] = useState(false);
   const updateCell = useBatteryStore((s) => s.updateCell);
+  const pushToGitHub = useBatteryStore((s) => s.pushToGitHub);
+  const githubConfig = useBatteryStore((s) => s.githubConfig);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!cell.imageFileName || !githubConfig) { setImageUrl(null); return; }
+    let cancelled = false;
+    loadImage(githubConfig, cell.imageFileName).then((url) => {
+      if (!cancelled && url) setImageUrl(url);
+    });
+    return () => { cancelled = true; };
+  }, [cell.imageFileName, githubConfig]);
 
   const lastMeasurement =
     cell.measurements.length > 0
@@ -85,21 +98,30 @@ export default function CellDetail({ cell }: CellDetailProps) {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-3">
-            <Link href="/cells" className="text-gray-400 hover:text-gray-600 transition-colors dark:text-gray-500 dark:hover:text-gray-300">
-              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-              </svg>
-            </Link>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
-              #{cell.id} &middot; {cell.brand}{cell.model ? ` ${cell.model}` : ""}
-            </h2>
-            <StatusBadge status={cell.status} />
+        <div className="flex items-start gap-4">
+          {imageUrl && (
+            <img
+              src={imageUrl}
+              alt={`${cell.brand} ${cell.model ?? ""}`}
+              className="h-16 w-16 rounded-xl object-cover border border-gray-200 dark:border-gray-600 flex-shrink-0"
+            />
+          )}
+          <div>
+            <div className="flex items-center gap-3">
+              <Link href="/cells" className="text-gray-400 hover:text-gray-600 transition-colors dark:text-gray-500 dark:hover:text-gray-300">
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                </svg>
+              </Link>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
+                #{cell.id} &middot; {cell.brand}{cell.model ? ` ${cell.model}` : ""}
+              </h2>
+              <StatusBadge status={cell.status} />
+            </div>
+            <p className="mt-1 ml-8 text-sm text-gray-500 dark:text-gray-400">
+              {enumLabel("formFactor", cell.formFactor, lang)} &middot; {cell.chemistry} &middot; {formatCapacity(cell.nominalCapacity)}
+            </p>
           </div>
-          <p className="mt-1 ml-8 text-sm text-gray-500 dark:text-gray-400">
-            {enumLabel("formFactor", cell.formFactor, lang)} &middot; {cell.chemistry} &middot; {formatCapacity(cell.nominalCapacity)}
-          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="secondary" size="sm" onClick={() => setDuplicating(true)}>
@@ -262,6 +284,7 @@ export default function CellDetail({ cell }: CellDetailProps) {
           updateCell(cell.internalId, { status: "scrapped" });
           setShowScrap(false);
           toast(t("cell.scrapped", lang));
+          pushToGitHub();
         }}
         title={t("cell.scrapTitle", lang)}
         message={t("cell.scrapDisclaimer", lang)}
@@ -275,6 +298,7 @@ export default function CellDetail({ cell }: CellDetailProps) {
         onConfirm={() => {
           deleteCell(cell.internalId);
           toast(t("cell.deleted", lang));
+          pushToGitHub();
           router.push("/cells");
         }}
         title={t("cell.deleteTitle", lang)}

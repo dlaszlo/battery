@@ -16,6 +16,7 @@ interface MeasurementListProps {
 
 export default function MeasurementList({ cellId, measurements, nominalCapacity }: MeasurementListProps) {
   const deleteMeasurement = useBatteryStore((s) => s.deleteMeasurement);
+  const pushToGitHub = useBatteryStore((s) => s.pushToGitHub);
   const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
@@ -139,7 +140,7 @@ export default function MeasurementList({ cellId, measurements, nominalCapacity 
         open={deleteId !== null}
         onClose={() => setDeleteId(null)}
         onConfirm={() => {
-          if (deleteId) deleteMeasurement(cellId, deleteId);
+          if (deleteId) { deleteMeasurement(cellId, deleteId); pushToGitHub(); }
           setDeleteId(null);
         }}
         title={t("measurement.deleteTitle", lang)}

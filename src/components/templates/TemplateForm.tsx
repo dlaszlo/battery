@@ -8,6 +8,7 @@ import ComboBox from "@/components/ui/ComboBox";
 import { useBatteryStore } from "@/lib/store";
 import { FORM_FACTORS, CHEMISTRIES, CATHODE_TYPES, CONTACT_TYPES } from "@/lib/constants";
 import { t, enumLabel } from "@/lib/i18n";
+import ImagePicker from "@/components/ui/ImagePicker";
 import type { CellTemplate } from "@/lib/types";
 
 interface TemplateFormProps {
@@ -20,6 +21,7 @@ export default function TemplateForm({ template, onSave, onCancel }: TemplateFor
   const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
   const addTemplate = useBatteryStore((s) => s.addTemplate);
   const updateTemplate = useBatteryStore((s) => s.updateTemplate);
+  const pushToGitHub = useBatteryStore((s) => s.pushToGitHub);
   const isEdit = !!template;
 
   const [form, setForm] = useState({
@@ -36,6 +38,7 @@ export default function TemplateForm({ template, onSave, onCancel }: TemplateFor
     weight: template?.weight?.toString() ?? "",
   });
 
+  const [imageFileName, setImageFileName] = useState<string | undefined>(template?.imageFileName);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const set = (field: string, value: string) => {
@@ -76,6 +79,7 @@ export default function TemplateForm({ template, onSave, onCancel }: TemplateFor
       continuousDischargeCurrent: form.continuousDischargeCurrent ? Number(form.continuousDischargeCurrent) : undefined,
       peakDischargeCurrent: form.peakDischargeCurrent ? Number(form.peakDischargeCurrent) : undefined,
       weight: form.weight ? Number(form.weight) : undefined,
+      imageFileName,
     };
 
     if (isEdit) {
@@ -84,6 +88,7 @@ export default function TemplateForm({ template, onSave, onCancel }: TemplateFor
       addTemplate(data);
     }
     onSave();
+    pushToGitHub();
   };
 
   const ffOptions = FORM_FACTORS.map((f) => ({ value: f, label: enumLabel("formFactor", f, lang) }));
@@ -174,6 +179,12 @@ export default function TemplateForm({ template, onSave, onCancel }: TemplateFor
           onChange={(e) => set("weight", e.target.value)}
         />
       </div>
+
+      <ImagePicker
+        currentFileName={imageFileName}
+        onImageChange={setImageFileName}
+        lang={lang}
+      />
 
       <div className="flex justify-end gap-3">
         <Button type="button" variant="secondary" onClick={onCancel}>
