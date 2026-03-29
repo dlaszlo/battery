@@ -22,6 +22,7 @@ import MeasurementList from "@/components/measurements/MeasurementList";
 import CapacityChart from "@/components/measurements/CapacityChart";
 import EventLog from "./EventLog";
 import { loadImage } from "@/lib/image-utils";
+import { estimateSoH, gradeColor, gradeBgColor, gradeBarColor } from "@/lib/soh";
 
 interface CellDetailProps {
   cell: Cell;
@@ -201,6 +202,9 @@ export default function CellDetail({ cell }: CellDetailProps) {
       {cell.measurements.length > 0 && (
         <CellProfileCard measurements={cell.measurements} nominalCapacity={cell.nominalCapacity} lang={lang} />
       )}
+
+      {/* SoH estimation */}
+      {cell.measurements.length > 0 && <SoHCard cell={cell} lang={lang} />}
 
       {/* Storage warnings */}
       {storageMonths >= 3 && (
@@ -425,6 +429,56 @@ function CellProfileCard({
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function SoHCard({ cell, lang }: { cell: Cell; lang: import("@/lib/types").Language }) {
+  const soh = estimateSoH(cell, lang);
+  if (!soh) return null;
+
+  return (
+    <div className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+      <div className="border-b px-6 py-4 dark:border-gray-700">
+        <h3 className="font-semibold text-gray-900 dark:text-gray-100">{t("soh.title", lang)}</h3>
+      </div>
+      <div className="px-6 py-4">
+        {/* Score + gauge */}
+        <div className="flex items-center gap-6">
+          <div className={`flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-full ${gradeBgColor(soh.grade)}`}>
+            <span className={`text-2xl font-bold ${gradeColor(soh.grade)}`}>{soh.score}%</span>
+          </div>
+          <div className="flex-1">
+            <p className={`text-lg font-semibold ${gradeColor(soh.grade)}`}>
+              {t(`soh.${soh.grade}` as import("@/lib/i18n").TranslationKey, lang)}
+            </p>
+            {/* Progress bar */}
+            <div className="mt-2 h-3 w-full rounded-full bg-gray-100 dark:bg-gray-700 overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${gradeBarColor(soh.grade)}`}
+                style={{ width: `${soh.score}%` }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Factors breakdown */}
+        <div className="mt-4 space-y-2">
+          <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{t("soh.factors", lang)}</p>
+          {soh.factors.map((factor) => (
+            <div key={factor.label} className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-2">
+                <span className={`inline-block h-2 w-2 rounded-full ${
+                  factor.impact === "positive" ? "bg-green-500" :
+                  factor.impact === "neutral" ? "bg-amber-500" : "bg-red-500"
+                }`} />
+                <span className="text-gray-600 dark:text-gray-300">{factor.label}</span>
+              </div>
+              <span className="font-medium text-gray-900 dark:text-gray-100">{factor.value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
