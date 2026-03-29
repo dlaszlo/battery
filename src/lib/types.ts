@@ -99,6 +99,12 @@ export interface Cell {
   updatedAt: string;
 }
 
+export interface Device {
+  id: string;
+  name: string;
+  imageFileName?: string;
+}
+
 export interface GitHubConfig {
   token: string;
   owner: string;
@@ -112,7 +118,7 @@ export type Language = "hu" | "en";
 // Shared settings — synced across all clients via three-way merge
 export interface SharedSettings {
   scrapThresholdPercent: number;
-  devices: string[];
+  devices: Device[];
   testDevices: string[];
 }
 

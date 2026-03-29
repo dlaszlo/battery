@@ -64,6 +64,16 @@ export function migrateCellEnums(cells: Cell[]): Cell[] {
   }));
 }
 
+/** Migrate devices from string[] to Device[] format */
+export function migrateDevices(devices: unknown[]): import("./types").Device[] {
+  return devices.map((d, i) => {
+    if (typeof d === "string") {
+      return { id: crypto.randomUUID?.() ?? `dev-${i}-${Date.now()}`, name: d };
+    }
+    return d as import("./types").Device;
+  });
+}
+
 export function migrateTemplateEnums(templates: CellTemplate[]): CellTemplate[] {
   return templates.map((tmpl) => ({
     ...tmpl,
@@ -194,6 +204,11 @@ export function loadFromLocalStorage(): AppData {
     try {
       templates = JSON.parse(templatesRaw);
     } catch { /* ignore */ }
+  }
+
+  // Migrate devices from string[] to Device[]
+  if (settings.devices) {
+    settings.devices = migrateDevices(settings.devices);
   }
 
   return {
@@ -465,6 +480,10 @@ async function pullMultiFile(config: GitHubConfig): Promise<AppData> {
   ]);
 
   const sharedSettings = settingsResult?.data.settings || { ...DEFAULT_SHARED_SETTINGS };
+  // Migrate devices from string[] to Device[]
+  if (sharedSettings.devices) {
+    sharedSettings.devices = migrateDevices(sharedSettings.devices);
+  }
   const clientSettings = clientSettingsResult?.data.settings || { ...DEFAULT_CLIENT_SETTINGS };
 
   const appData: AppData = {

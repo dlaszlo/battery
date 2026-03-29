@@ -377,7 +377,7 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
             <ComboBox
               label={t("form.currentDevice", lang)}
               tooltip={t("tooltip.currentDevice", lang)}
-              options={settings.devices || []}
+              options={(settings.devices || []).map((d) => typeof d === "string" ? d : { value: d.name, label: d.name })}
               value={form.currentDevice}
               onChange={(v) => set("currentDevice", v)}
               placeholder={t("form.currentDevicePlaceholder", lang)}

@@ -53,13 +53,13 @@ export const PLATFORMS = [
   "other",
 ];
 
-export const DEFAULT_DEVICES = [
-  "Raktáron",
-  "E-bike #1",
-  "Powerwall",
-  "LT1",
-  "Lámpa",
-  "Tesztelés alatt",
+export const DEFAULT_DEVICES: import("./types").Device[] = [
+  { id: "storage", name: "Raktáron" },
+  { id: "ebike1", name: "E-bike #1" },
+  { id: "powerwall", name: "Powerwall" },
+  { id: "lt1", name: "LT1" },
+  { id: "lamp", name: "Lámpa" },
+  { id: "testing", name: "Tesztelés alatt" },
 ];
 
 export const DEFAULT_TEST_DEVICES = [

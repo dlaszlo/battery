@@ -1,4 +1,4 @@
-import type { Cell, CellEvent, CellTemplate, Measurement, SharedSettings } from "./types";
+import type { Cell, CellEvent, CellTemplate, Device, Measurement, SharedSettings } from "./types";
 import { nowISO } from "./utils";
 
 // --- Deep equality ---
@@ -384,6 +384,61 @@ export function threeWayMergeTemplates(
   return result;
 }
 
+// --- Device merge ---
+
+export function mergeDevices(
+  base: Device[],
+  remote: Device[],
+  local: Device[],
+): Device[] {
+  const baseMap = new Map(base.map((d) => [d.id, d]));
+  const remoteMap = new Map(remote.map((d) => [d.id, d]));
+  const localMap = new Map(local.map((d) => [d.id, d]));
+
+  const allIds = new Set([
+    ...baseMap.keys(),
+    ...remoteMap.keys(),
+    ...localMap.keys(),
+  ]);
+
+  const result: Device[] = [];
+
+  for (const id of allIds) {
+    const b = baseMap.get(id);
+    const r = remoteMap.get(id);
+    const l = localMap.get(id);
+
+    if (!b) {
+      // New device
+      if (l && r) {
+        result.push({ ...l, name: l.name || r.name, imageFileName: l.imageFileName ?? r.imageFileName });
+      } else if (l) {
+        result.push(l);
+      } else if (r) {
+        result.push(r);
+      }
+    } else {
+      // Existed in base
+      if (l && r) {
+        // Merge fields
+        const name = mergeFieldValue(b.name, r.name, l.name) ?? l.name;
+        const imageFileName = mergeFieldValue(b.imageFileName, r.imageFileName, l.imageFileName);
+        result.push({ id, name, imageFileName });
+      } else if (!l && r) {
+        // Locally deleted
+      } else if (l && !r) {
+        // Remotely deleted — check if local modified
+        if (!deepEqual(b, l)) {
+          result.push(l);
+        }
+      }
+      // Both deleted → skip
+    }
+  }
+
+  return result;
+}
+
 // --- Settings merge ---
 
 export function threeWayMergeSharedSettings(
@@ -400,12 +455,13 @@ export function threeWayMergeSharedSettings(
     local.scrapThresholdPercent,
   );
 
-  // Merge array fields as sets
-  result.devices = mergeArrayAsSet(
+  // Merge devices as entities
+  result.devices = mergeDevices(
     base.devices || [],
     remote.devices || [],
     local.devices || [],
   );
+  // Merge test devices as string set
   result.testDevices = mergeArrayAsSet(
     base.testDevices || [],
     remote.testDevices || [],
