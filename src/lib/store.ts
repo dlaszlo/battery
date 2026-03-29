@@ -27,6 +27,7 @@ import {
   resetPinAttempts,
   getPinLockoutDelay,
   getLocalShas,
+  updateLocalShasFromTree,
 } from "./sync";
 import { fetchTreeShas } from "./github";
 import type { DirtyFlags } from "./sync";
@@ -561,6 +562,16 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
       };
       const currentDirtyFlags = { ...get().dirtyFlags };
       await pushDirtyFiles(githubConfig, localData, currentDirtyFlags);
+
+      // Sync local SHA cache with remote to prevent false "remote changed" detection
+      try {
+        const remoteShas = await fetchTreeShas(githubConfig);
+        if (Object.keys(remoteShas).length > 0) {
+          updateLocalShasFromTree(remoteShas);
+        }
+      } catch {
+        // Non-critical — worst case polling will briefly show "remote changed"
+      }
 
       set({
         syncState: { status: "idle", lastSynced: nowISO(), error: null, pendingChanges: false, retryCount: 0, remoteChanged: false },

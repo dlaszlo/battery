@@ -382,6 +382,21 @@ export function getLocalShas(): Record<string, string | null> {
   };
 }
 
+/** Update local SHA cache from remote tree to prevent false "remote changed" after push */
+export function updateLocalShasFromTree(remoteShas: Record<string, string>): void {
+  const pathToKey: Record<string, string> = {
+    [CELLS_FILE_PATH]: SHA_CELLS_KEY,
+    [SETTINGS_FILE_PATH]: SHA_SETTINGS_KEY,
+    [clientSettingsFilePath(getClientId())]: SHA_CLIENT_SETTINGS_KEY,
+    [TEMPLATES_FILE_PATH]: SHA_TEMPLATES_KEY,
+  };
+  for (const [path, key] of Object.entries(pathToKey)) {
+    if (remoteShas[path]) {
+      saveShaFor(key, remoteShas[path]);
+    }
+  }
+}
+
 // --- Migration: data.json → multi-file ---
 
 async function migrateToMultiFile(config: GitHubConfig): Promise<AppData> {
