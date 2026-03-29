@@ -9,6 +9,12 @@ import { useBatteryStore } from "@/lib/store";
 import { todayISO } from "@/lib/utils";
 import { t } from "@/lib/i18n";
 
+function hmmToMinutes(hmm: string): number | undefined {
+  const match = hmm.match(/^(\d+):(\d{1,2})$/);
+  if (!match) return undefined;
+  return parseInt(match[1]) * 60 + parseInt(match[2]);
+}
+
 interface MeasurementFormProps {
   cellId: string;
   onDone: () => void;
@@ -28,6 +34,11 @@ export default function MeasurementForm({ cellId, onDone, lastDischargeCurrent }
     chargeCurrent: (settings.defaultChargeCurrent ?? "").toString(),
     internalResistance: "",
     weight: "",
+    chargeTemperature: "",
+    dischargeTemperature: "",
+    ambientTemperature: "",
+    chargeTime: "",
+    dischargeTime: "",
     testDevice: settings.defaultTestDevice,
     notes: "",
   });
@@ -68,6 +79,11 @@ export default function MeasurementForm({ cellId, onDone, lastDischargeCurrent }
       chargeCurrent: form.chargeCurrent ? Number(form.chargeCurrent) : undefined,
       internalResistance: form.internalResistance ? Number(form.internalResistance) : undefined,
       weight: form.weight ? Number(form.weight) : undefined,
+      chargeTemperature: form.chargeTemperature ? Number(form.chargeTemperature) : undefined,
+      dischargeTemperature: form.dischargeTemperature ? Number(form.dischargeTemperature) : undefined,
+      ambientTemperature: form.ambientTemperature ? Number(form.ambientTemperature) : undefined,
+      chargeTime: form.chargeTime ? hmmToMinutes(form.chargeTime) : undefined,
+      dischargeTime: form.dischargeTime ? hmmToMinutes(form.dischargeTime) : undefined,
       testDevice: form.testDevice,
       notes: form.notes.trim() || undefined,
     });
@@ -140,6 +156,42 @@ export default function MeasurementForm({ cellId, onDone, lastDischargeCurrent }
           placeholder={t("measurement.weightPlaceholder", lang)}
           value={form.weight}
           onChange={(e) => set("weight", e.target.value)}
+        />
+        <Input
+          label={t("measurement.chargeTemperature", lang)}
+          type="number"
+          step="0.1"
+          placeholder={t("measurement.temperaturePlaceholder", lang)}
+          value={form.chargeTemperature}
+          onChange={(e) => set("chargeTemperature", e.target.value)}
+        />
+        <Input
+          label={t("measurement.dischargeTemperature", lang)}
+          type="number"
+          step="0.1"
+          placeholder={t("measurement.temperaturePlaceholder", lang)}
+          value={form.dischargeTemperature}
+          onChange={(e) => set("dischargeTemperature", e.target.value)}
+        />
+        <Input
+          label={t("measurement.ambientTemperature", lang)}
+          type="number"
+          step="0.1"
+          placeholder={t("measurement.temperaturePlaceholder", lang)}
+          value={form.ambientTemperature}
+          onChange={(e) => set("ambientTemperature", e.target.value)}
+        />
+        <Input
+          label={t("measurement.chargeTime", lang)}
+          placeholder="H:MM"
+          value={form.chargeTime}
+          onChange={(e) => set("chargeTime", e.target.value)}
+        />
+        <Input
+          label={t("measurement.dischargeTime", lang)}
+          placeholder="H:MM"
+          value={form.dischargeTime}
+          onChange={(e) => set("dischargeTime", e.target.value)}
         />
         <ComboBox
           label={t("measurement.testDevice", lang)}

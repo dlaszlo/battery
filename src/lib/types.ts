@@ -21,6 +21,11 @@ export interface Measurement {
   chargeCurrent?: number;
   internalResistance?: number;
   weight?: number;
+  chargeTemperature?: number;
+  dischargeTemperature?: number;
+  ambientTemperature?: number;
+  chargeTime?: number;
+  dischargeTime?: number;
   testDevice: string;
   notes?: string;
 }

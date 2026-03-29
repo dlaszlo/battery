@@ -30,6 +30,12 @@ export function nowISO(): string {
   return new Date().toISOString();
 }
 
+export function formatMinutes(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return `${h}:${m.toString().padStart(2, "0")}`;
+}
+
 export function capacityPercent(
   measured: number,
   nominal: number

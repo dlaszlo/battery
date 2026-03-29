@@ -189,6 +189,12 @@ const translations = {
   "measurement.internalResistancePlaceholder": { hu: "pl. 25", en: "e.g. 25" },
   "measurement.weight": { hu: "Tömeg (g)", en: "Weight (g)" },
   "measurement.weightPlaceholder": { hu: "pl. 45.2", en: "e.g. 45.2" },
+  "measurement.chargeTemperature": { hu: "Töltési hőmérséklet (°C)", en: "Charge Temperature (°C)" },
+  "measurement.dischargeTemperature": { hu: "Lemerítési hőmérséklet (°C)", en: "Discharge Temperature (°C)" },
+  "measurement.ambientTemperature": { hu: "Környezeti hőmérséklet (°C)", en: "Ambient Temperature (°C)" },
+  "measurement.temperaturePlaceholder": { hu: "pl. 25", en: "e.g. 25" },
+  "measurement.chargeTime": { hu: "Töltési idő (Ó:PP)", en: "Charge Time (H:MM)" },
+  "measurement.dischargeTime": { hu: "Lemerítési idő (Ó:PP)", en: "Discharge Time (H:MM)" },
   "measurement.testDevice": { hu: "Tesztelő eszköz", en: "Test Device" },
   "measurement.notes": { hu: "Megjegyzés", en: "Notes" },
   "measurement.save": { hu: "Mérés mentése", en: "Save Measurement" },
@@ -207,6 +213,10 @@ const translations = {
   "measurement.headerChargeCurrent": { hu: "Töltés", en: "Charge" },
   "measurement.headerResistance": { hu: "Ellenállás", en: "Resistance" },
   "measurement.headerWeight": { hu: "Tömeg", en: "Weight" },
+  "measurement.headerChargeTemp": { hu: "Tölt. °C", en: "Chg °C" },
+  "measurement.headerDischargeTemp": { hu: "Lem. °C", en: "Dis °C" },
+  "measurement.headerChargeTime": { hu: "Tölt. idő", en: "Chg time" },
+  "measurement.headerDischargeTime": { hu: "Lem. idő", en: "Dis time" },
   "measurement.headerDevice": { hu: "Eszköz", en: "Device" },
 
   // Chart
