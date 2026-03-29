@@ -1,4 +1,4 @@
-import type { Cell, CellEvent, CellTemplate, Measurement, AppSettings } from "./types";
+import type { Cell, CellEvent, CellTemplate, Measurement, SharedSettings } from "./types";
 import { nowISO } from "./utils";
 
 // --- Deep equality ---
@@ -386,30 +386,19 @@ export function threeWayMergeTemplates(
 
 // --- Settings merge ---
 
-export function threeWayMergeSettings(
-  base: AppSettings,
-  remote: AppSettings,
-  local: AppSettings,
-): AppSettings {
+export function threeWayMergeSharedSettings(
+  base: SharedSettings,
+  remote: SharedSettings,
+  local: SharedSettings,
+): SharedSettings {
   const result = { ...local };
 
   // Merge scalar fields
-  const scalarKeys: (keyof AppSettings)[] = [
-    "scrapThresholdPercent",
-    "defaultTestDevice",
-    "defaultDischargeCurrent",
-    "defaultChargeCurrent",
-    "theme",
-    "language",
-  ];
-
-  for (const key of scalarKeys) {
-    (result as Record<string, unknown>)[key] = mergeFieldValue(
-      base[key],
-      remote[key],
-      local[key],
-    );
-  }
+  (result as Record<string, unknown>).scrapThresholdPercent = mergeFieldValue(
+    base.scrapThresholdPercent,
+    remote.scrapThresholdPercent,
+    local.scrapThresholdPercent,
+  );
 
   // Merge array fields as sets
   result.devices = mergeArrayAsSet(

@@ -101,16 +101,38 @@ export interface GitHubConfig {
 export type Theme = "light" | "dark" | "system";
 export type Language = "hu" | "en";
 
-export interface AppSettings {
+// Shared settings — synced across all clients via three-way merge
+export interface SharedSettings {
   scrapThresholdPercent: number;
+  devices: string[];
+  testDevices: string[];
+}
+
+// Client-specific settings — stored per-device, no merge
+export interface ClientSettings {
   defaultTestDevice: string;
   defaultDischargeCurrent: number;
   defaultChargeCurrent: number;
-  devices: string[];
-  testDevices: string[];
   theme: Theme;
   language: Language;
 }
+
+// Combined settings used by the app
+export interface AppSettings extends SharedSettings, ClientSettings {}
+
+export const SHARED_SETTINGS_KEYS: (keyof SharedSettings)[] = [
+  "scrapThresholdPercent",
+  "devices",
+  "testDevices",
+];
+
+export const CLIENT_SETTINGS_KEYS: (keyof ClientSettings)[] = [
+  "defaultTestDevice",
+  "defaultDischargeCurrent",
+  "defaultChargeCurrent",
+  "theme",
+  "language",
+];
 
 export interface BatteryData {
   version: number;
@@ -126,7 +148,12 @@ export interface CellsFile {
 
 export interface SettingsFile {
   version: number;
-  settings: AppSettings;
+  settings: SharedSettings;
+}
+
+export interface ClientSettingsFile {
+  version: number;
+  settings: ClientSettings;
 }
 
 export interface TemplatesFile {

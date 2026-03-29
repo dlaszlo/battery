@@ -1,4 +1,4 @@
-import type { AppSettings, CellStatus, Chemistry, FormFactor } from "./types";
+import type { AppSettings, SharedSettings, ClientSettings, CellStatus, Chemistry, FormFactor } from "./types";
 
 export const FORM_FACTORS: FormFactor[] = [
   "18650",
@@ -70,15 +70,23 @@ export const DEFAULT_TEST_DEVICES = [
   "Opus BT-C3100",
 ];
 
-export const DEFAULT_SETTINGS: AppSettings = {
+export const DEFAULT_SHARED_SETTINGS: SharedSettings = {
   scrapThresholdPercent: 60,
+  devices: [...DEFAULT_DEVICES],
+  testDevices: [...DEFAULT_TEST_DEVICES],
+};
+
+export const DEFAULT_CLIENT_SETTINGS: ClientSettings = {
   defaultTestDevice: "LiitoKala Lii-700",
   defaultDischargeCurrent: 500,
   defaultChargeCurrent: 1000,
-  devices: [...DEFAULT_DEVICES],
-  testDevices: [...DEFAULT_TEST_DEVICES],
   theme: "system",
   language: "hu",
+};
+
+export const DEFAULT_SETTINGS: AppSettings = {
+  ...DEFAULT_SHARED_SETTINGS,
+  ...DEFAULT_CLIENT_SETTINGS,
 };
 
 export const DEFAULT_GITHUB_REPO = "battery-cell-data";
@@ -88,6 +96,10 @@ export const DEFAULT_GITHUB_FILE_PATH = "data.json";
 export const CELLS_FILE_PATH = "cells.json";
 export const SETTINGS_FILE_PATH = "settings.json";
 export const TEMPLATES_FILE_PATH = "templates.json";
+
+export function clientSettingsFilePath(clientId: string): string {
+  return `settings_${clientId}.json`;
+}
 
 export const DATA_VERSION = 1;
 

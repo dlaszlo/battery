@@ -1,8 +1,8 @@
-import type { BatteryData, GitHubConfig, CellsFile, SettingsFile, TemplatesFile, CellTemplate, Cell, AppSettings } from "./types";
+import type { BatteryData, GitHubConfig, CellsFile, SettingsFile, ClientSettingsFile, TemplatesFile, CellTemplate, Cell, AppSettings, SharedSettings, ClientSettings } from "./types";
 import { fetchFile, saveFile, fetchData, deleteFile } from "./github";
-import { DEFAULT_SETTINGS, DATA_VERSION, CELLS_FILE_PATH, SETTINGS_FILE_PATH, TEMPLATES_FILE_PATH } from "./constants";
+import { DEFAULT_SETTINGS, DEFAULT_SHARED_SETTINGS, DEFAULT_CLIENT_SETTINGS, DATA_VERSION, CELLS_FILE_PATH, SETTINGS_FILE_PATH, TEMPLATES_FILE_PATH, clientSettingsFilePath } from "./constants";
 import { encryptToken, decryptToken } from "./crypto";
-import { threeWayMergeCells, threeWayMergeSettings, threeWayMergeTemplates } from "./merge";
+import { threeWayMergeCells, threeWayMergeSharedSettings, threeWayMergeTemplates } from "./merge";
 import type { EncryptedData } from "./crypto";
 
 const STORAGE_KEY = "battery-data";
@@ -14,12 +14,26 @@ const PIN_ATTEMPTS_KEY = "battery-pin-attempts";
 const SHA_CELLS_KEY = "battery-sha-cells";
 const SHA_SETTINGS_KEY = "battery-sha-settings";
 const SHA_TEMPLATES_KEY = "battery-sha-templates";
+const SHA_CLIENT_SETTINGS_KEY = "battery-sha-client-settings";
 const MIGRATED_KEY = "battery-migrated-v2";
+const CLIENT_ID_KEY = "battery-client-id";
 
 // Base snapshot keys for three-way merge
 const BASE_CELLS_KEY = "battery-sync-base-cells";
 const BASE_SETTINGS_KEY = "battery-sync-base-settings";
 const BASE_TEMPLATES_KEY = "battery-sync-base-templates";
+
+// --- Client ID ---
+
+export function getClientId(): string {
+  if (typeof window === "undefined") return "000000";
+  let id = localStorage.getItem(CLIENT_ID_KEY);
+  if (!id) {
+    id = Math.random().toString(16).slice(2, 8).padStart(6, "0");
+    localStorage.setItem(CLIENT_ID_KEY, id);
+  }
+  return id;
+}
 
 const MAX_PIN_ATTEMPTS = 10;
 const LOCKOUT_DELAYS_MS = [0, 0, 0, 2000, 5000, 10000, 15000, 30000, 60000, 60000];
@@ -84,6 +98,7 @@ interface StoredConfig {
 export interface DirtyFlags {
   cellsDirty: boolean;
   settingsDirty: boolean;
+  clientSettingsDirty: boolean;
   templatesDirty: boolean;
 }
 
@@ -169,10 +184,32 @@ function loadBaseSnapshot<T>(key: string): T | null {
   }
 }
 
-function saveAllBaseSnapshots(cells: Cell[], settings: AppSettings, templates: CellTemplate[]): void {
+function saveAllBaseSnapshots(cells: Cell[], sharedSettings: SharedSettings, templates: CellTemplate[]): void {
   saveBaseSnapshot(BASE_CELLS_KEY, cells);
-  saveBaseSnapshot(BASE_SETTINGS_KEY, settings);
+  saveBaseSnapshot(BASE_SETTINGS_KEY, sharedSettings);
   saveBaseSnapshot(BASE_TEMPLATES_KEY, templates);
+}
+
+export function extractSharedSettings(settings: AppSettings): SharedSettings {
+  return {
+    scrapThresholdPercent: settings.scrapThresholdPercent,
+    devices: settings.devices,
+    testDevices: settings.testDevices,
+  };
+}
+
+export function extractClientSettings(settings: AppSettings): ClientSettings {
+  return {
+    defaultTestDevice: settings.defaultTestDevice,
+    defaultDischargeCurrent: settings.defaultDischargeCurrent,
+    defaultChargeCurrent: settings.defaultChargeCurrent,
+    theme: settings.theme,
+    language: settings.language,
+  };
+}
+
+export function combineSettings(shared: SharedSettings, client: ClientSettings): AppSettings {
+  return { ...shared, ...client } as AppSettings;
 }
 
 function clearBaseSnapshots(): void {
@@ -262,6 +299,7 @@ export function clearGitHubConfig(): void {
   localStorage.removeItem(SHA_KEY);
   localStorage.removeItem(SHA_CELLS_KEY);
   localStorage.removeItem(SHA_SETTINGS_KEY);
+  localStorage.removeItem(SHA_CLIENT_SETTINGS_KEY);
   localStorage.removeItem(SHA_TEMPLATES_KEY);
   clearBaseSnapshots();
 }
@@ -289,6 +327,7 @@ export function getLocalShas(): Record<string, string | null> {
   return {
     [CELLS_FILE_PATH]: loadShaFor(SHA_CELLS_KEY),
     [SETTINGS_FILE_PATH]: loadShaFor(SHA_SETTINGS_KEY),
+    [clientSettingsFilePath(getClientId())]: loadShaFor(SHA_CLIENT_SETTINGS_KEY),
     [TEMPLATES_FILE_PATH]: loadShaFor(SHA_TEMPLATES_KEY),
   };
 }
@@ -310,18 +349,26 @@ async function migrateToMultiFile(config: GitHubConfig): Promise<AppData> {
       templates: oldData.templates || [],
     };
 
+    const sharedSettings = extractSharedSettings(appData.settings);
+    const clientSettings = extractClientSettings(appData.settings);
+    const clientId = getClientId();
+    const clientPath = clientSettingsFilePath(clientId);
+
     const cellsFile: CellsFile = { version: DATA_VERSION, cells: appData.cells };
-    const settingsFile: SettingsFile = { version: DATA_VERSION, settings: appData.settings };
+    const settingsFile: SettingsFile = { version: DATA_VERSION, settings: sharedSettings };
+    const clientFile: ClientSettingsFile = { version: DATA_VERSION, settings: clientSettings };
     const templatesFile: TemplatesFile = { version: DATA_VERSION, templates: appData.templates };
 
-    const [cellsSha, settingsSha, templatesSha] = await Promise.all([
+    const [cellsSha, settingsSha, clientSettingsSha, templatesSha] = await Promise.all([
       saveFile(config, CELLS_FILE_PATH, cellsFile, null, "Migrate: create cells.json"),
       saveFile(config, SETTINGS_FILE_PATH, settingsFile, null, "Migrate: create settings.json"),
+      saveFile(config, clientPath, clientFile, null, `Migrate: create ${clientPath}`),
       saveFile(config, TEMPLATES_FILE_PATH, templatesFile, null, "Migrate: create templates.json"),
     ]);
 
     saveShaFor(SHA_CELLS_KEY, cellsSha);
     saveShaFor(SHA_SETTINGS_KEY, settingsSha);
+    saveShaFor(SHA_CLIENT_SETTINGS_KEY, clientSettingsSha);
     saveShaFor(SHA_TEMPLATES_KEY, templatesSha);
 
     try {
@@ -332,7 +379,7 @@ async function migrateToMultiFile(config: GitHubConfig): Promise<AppData> {
 
     if (typeof window !== "undefined") localStorage.setItem(MIGRATED_KEY, "1");
     saveToLocalStorage(appData);
-    saveAllBaseSnapshots(appData.cells, appData.settings, appData.templates);
+    saveAllBaseSnapshots(appData.cells, sharedSettings, appData.templates);
     return appData;
   }
 
@@ -342,15 +389,22 @@ async function migrateToMultiFile(config: GitHubConfig): Promise<AppData> {
 // --- Multi-file pull ---
 
 async function pullMultiFile(config: GitHubConfig): Promise<AppData> {
-  const [cellsResult, settingsResult, templatesResult] = await Promise.all([
+  const clientId = getClientId();
+  const clientPath = clientSettingsFilePath(clientId);
+
+  const [cellsResult, settingsResult, clientSettingsResult, templatesResult] = await Promise.all([
     fetchFile<CellsFile>(config, CELLS_FILE_PATH),
     fetchFile<SettingsFile>(config, SETTINGS_FILE_PATH),
+    fetchFile<ClientSettingsFile>(config, clientPath),
     fetchFile<TemplatesFile>(config, TEMPLATES_FILE_PATH),
   ]);
 
+  const sharedSettings = settingsResult?.data.settings || { ...DEFAULT_SHARED_SETTINGS };
+  const clientSettings = clientSettingsResult?.data.settings || { ...DEFAULT_CLIENT_SETTINGS };
+
   const appData: AppData = {
     cells: cleanupSoftDeletes(ensureCellInternalIds(cellsResult?.data.cells || [])),
-    settings: settingsResult?.data.settings || { ...DEFAULT_SETTINGS },
+    settings: combineSettings(sharedSettings, clientSettings),
     templates: ensureTemplateInternalIds(templatesResult?.data.templates || []),
   };
 
@@ -363,11 +417,19 @@ async function pullMultiFile(config: GitHubConfig): Promise<AppData> {
   }
 
   if (!settingsResult) {
-    const settingsFile: SettingsFile = { version: DATA_VERSION, settings: appData.settings };
+    const settingsFile: SettingsFile = { version: DATA_VERSION, settings: sharedSettings };
     const sha = await saveFile(config, SETTINGS_FILE_PATH, settingsFile, null, "Initialize settings.json");
     saveShaFor(SHA_SETTINGS_KEY, sha);
   } else {
     saveShaFor(SHA_SETTINGS_KEY, settingsResult.sha);
+  }
+
+  if (!clientSettingsResult) {
+    const clientFile: ClientSettingsFile = { version: DATA_VERSION, settings: clientSettings };
+    const sha = await saveFile(config, clientPath, clientFile, null, `Initialize ${clientPath}`);
+    saveShaFor(SHA_CLIENT_SETTINGS_KEY, sha);
+  } else {
+    saveShaFor(SHA_CLIENT_SETTINGS_KEY, clientSettingsResult.sha);
   }
 
   if (!templatesResult) {
@@ -380,8 +442,8 @@ async function pullMultiFile(config: GitHubConfig): Promise<AppData> {
 
   if (typeof window !== "undefined") localStorage.setItem(MIGRATED_KEY, "1");
   saveToLocalStorage(appData);
-  // After pull, local == remote == base
-  saveAllBaseSnapshots(appData.cells, appData.settings, appData.templates);
+  // After pull, local == remote == base (only shared settings need base)
+  saveAllBaseSnapshots(appData.cells, sharedSettings, appData.templates);
   return appData;
 }
 
@@ -460,52 +522,67 @@ export async function pullFromGitHub(config: GitHubConfig): Promise<AppData> {
 }
 
 export async function fullSync(config: GitHubConfig, localData: AppData, dirtyFlags: DirtyFlags): Promise<AppData> {
+  const clientId = getClientId();
+  const clientPath = clientSettingsFilePath(clientId);
+
   // 1. Pull remote data
-  const [cellsResult, settingsResult, templatesResult] = await Promise.all([
+  const [cellsResult, settingsResult, clientSettingsResult, templatesResult] = await Promise.all([
     fetchFile<CellsFile>(config, CELLS_FILE_PATH),
     fetchFile<SettingsFile>(config, SETTINGS_FILE_PATH),
+    fetchFile<ClientSettingsFile>(config, clientPath),
     fetchFile<TemplatesFile>(config, TEMPLATES_FILE_PATH),
   ]);
 
   const remoteCells = cleanupSoftDeletes(ensureCellInternalIds(cellsResult?.data.cells || []));
-  const remoteSettings = settingsResult?.data.settings || { ...DEFAULT_SETTINGS };
+  const remoteSharedSettings = settingsResult?.data.settings || { ...DEFAULT_SHARED_SETTINGS };
   const remoteTemplates = ensureTemplateInternalIds(templatesResult?.data.templates || []);
 
   // Update SHAs from pull
   if (cellsResult) saveShaFor(SHA_CELLS_KEY, cellsResult.sha);
   if (settingsResult) saveShaFor(SHA_SETTINGS_KEY, settingsResult.sha);
+  if (clientSettingsResult) saveShaFor(SHA_CLIENT_SETTINGS_KEY, clientSettingsResult.sha);
   if (templatesResult) saveShaFor(SHA_TEMPLATES_KEY, templatesResult.sha);
 
-  // 2. Load base snapshots
+  // 2. Load base snapshots (only for shared settings)
   const baseCells = loadBaseSnapshot<Cell[]>(BASE_CELLS_KEY) || [];
-  const baseSettings = loadBaseSnapshot<AppSettings>(BASE_SETTINGS_KEY) || { ...DEFAULT_SETTINGS };
+  const baseSharedSettings = loadBaseSnapshot<SharedSettings>(BASE_SETTINGS_KEY) || { ...DEFAULT_SHARED_SETTINGS };
   const baseTemplates = loadBaseSnapshot<CellTemplate[]>(BASE_TEMPLATES_KEY) || [];
 
-  // 3. Three-way merge
+  // 3. Three-way merge (shared settings only; client settings: local wins)
   const mergedCells = threeWayMergeCells(baseCells, remoteCells, localData.cells);
-  const mergedSettings = threeWayMergeSettings(baseSettings, remoteSettings, localData.settings);
+  const localSharedSettings = extractSharedSettings(localData.settings);
+  const mergedSharedSettings = threeWayMergeSharedSettings(baseSharedSettings, remoteSharedSettings, localSharedSettings);
   const mergedTemplates = threeWayMergeTemplates(baseTemplates, remoteTemplates, localData.templates);
 
-  // 4. Push only dirty files (where merged differs from remote)
+  // Client settings: local always wins (no merge)
+  const localClientSettings = extractClientSettings(localData.settings);
+  const mergedSettings = combineSettings(mergedSharedSettings, localClientSettings);
+
+  // 4. Push only dirty files
   const cellsChanged = dirtyFlags.cellsDirty || JSON.stringify(mergedCells) !== JSON.stringify(remoteCells);
-  const settingsChanged = dirtyFlags.settingsDirty || JSON.stringify(mergedSettings) !== JSON.stringify(remoteSettings);
+  const sharedSettingsChanged = dirtyFlags.settingsDirty || JSON.stringify(mergedSharedSettings) !== JSON.stringify(remoteSharedSettings);
+  const clientSettingsChanged = dirtyFlags.clientSettingsDirty;
   const templatesChanged = dirtyFlags.templatesDirty || JSON.stringify(mergedTemplates) !== JSON.stringify(remoteTemplates);
 
   if (cellsChanged) {
     const cellsFile: CellsFile = { version: DATA_VERSION, cells: mergedCells };
     await pushFileWithRetry(config, CELLS_FILE_PATH, cellsFile, SHA_CELLS_KEY);
   }
-  if (settingsChanged) {
-    const settingsFile: SettingsFile = { version: DATA_VERSION, settings: mergedSettings };
+  if (sharedSettingsChanged) {
+    const settingsFile: SettingsFile = { version: DATA_VERSION, settings: mergedSharedSettings };
     await pushFileWithRetry(config, SETTINGS_FILE_PATH, settingsFile, SHA_SETTINGS_KEY);
+  }
+  if (clientSettingsChanged) {
+    const clientFile: ClientSettingsFile = { version: DATA_VERSION, settings: localClientSettings };
+    await pushFileWithRetry(config, clientPath, clientFile, SHA_CLIENT_SETTINGS_KEY);
   }
   if (templatesChanged) {
     const templatesFile: TemplatesFile = { version: DATA_VERSION, templates: mergedTemplates };
     await pushFileWithRetry(config, TEMPLATES_FILE_PATH, templatesFile, SHA_TEMPLATES_KEY);
   }
 
-  // 5. Save merged data as new base snapshots
-  saveAllBaseSnapshots(mergedCells, mergedSettings, mergedTemplates);
+  // 5. Save merged data as new base snapshots (only shared settings)
+  saveAllBaseSnapshots(mergedCells, mergedSharedSettings, mergedTemplates);
 
   return {
     cells: mergedCells,

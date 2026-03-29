@@ -11,6 +11,7 @@ import type {
   GitHubConfig,
   SyncState,
 } from "./types";
+import { SHARED_SETTINGS_KEYS, CLIENT_SETTINGS_KEYS } from "./types";
 import { DEFAULT_SETTINGS, DATA_VERSION } from "./constants";
 import { shouldMarkAsScrap, getScrapNote } from "./scrap-detection";
 import {
@@ -119,7 +120,7 @@ function persist(store: BatteryStore) {
 
 function markDirty(
   set: (fn: (state: BatteryStore) => Partial<BatteryStore>) => void,
-  file: "cells" | "settings" | "templates",
+  file: "cells" | "settings" | "clientSettings" | "templates",
 ) {
   changeCounter++;
   set((state) => ({
@@ -150,6 +151,7 @@ function debouncedSync(syncFn: () => Promise<void>) {
 const DEFAULT_DIRTY_FLAGS: DirtyFlags = {
   cellsDirty: false,
   settingsDirty: false,
+  clientSettingsDirty: false,
   templatesDirty: false,
 };
 
@@ -482,7 +484,11 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     });
 
     if (get().githubConfig) {
-      markDirty(set, "settings");
+      const keys = Object.keys(updates) as (keyof AppSettings)[];
+      const hasShared = keys.some((k) => (SHARED_SETTINGS_KEYS as readonly string[]).includes(k));
+      const hasClient = keys.some((k) => (CLIENT_SETTINGS_KEYS as readonly string[]).includes(k));
+      if (hasShared) markDirty(set, "settings");
+      if (hasClient) markDirty(set, "clientSettings");
       debouncedSync(() => get().syncWithGitHub());
     }
   },
