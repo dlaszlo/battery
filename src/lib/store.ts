@@ -563,19 +563,19 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
       const currentDirtyFlags = { ...get().dirtyFlags };
       await pushDirtyFiles(githubConfig, localData, currentDirtyFlags);
 
-      // Sync local SHA cache with remote to prevent false "remote changed" detection
-      try {
-        const remoteShas = await fetchTreeShas(githubConfig);
-        if (Object.keys(remoteShas).length > 0) {
-          updateLocalShasFromTree(remoteShas);
-        }
-      } catch {
-        // Non-critical — worst case polling will briefly show "remote changed"
-      }
+      // Only clear the dirty flags we actually pushed — new changes during push are preserved
+      const latestFlags = get().dirtyFlags;
+      const newFlags: DirtyFlags = {
+        cellsDirty: latestFlags.cellsDirty && !currentDirtyFlags.cellsDirty,
+        settingsDirty: latestFlags.settingsDirty && !currentDirtyFlags.settingsDirty,
+        clientSettingsDirty: latestFlags.clientSettingsDirty && !currentDirtyFlags.clientSettingsDirty,
+        templatesDirty: latestFlags.templatesDirty && !currentDirtyFlags.templatesDirty,
+      };
+      const stillDirty = newFlags.cellsDirty || newFlags.settingsDirty || newFlags.clientSettingsDirty || newFlags.templatesDirty;
 
       set({
-        syncState: { status: "idle", lastSynced: nowISO(), error: null, pendingChanges: false, retryCount: 0, remoteChanged: false },
-        dirtyFlags: { ...DEFAULT_DIRTY_FLAGS },
+        syncState: { status: "idle", lastSynced: nowISO(), error: null, pendingChanges: stillDirty, retryCount: 0, remoteChanged: false },
+        dirtyFlags: newFlags,
       });
     } catch (error) {
       const code = error instanceof Error ? error.message : "";
