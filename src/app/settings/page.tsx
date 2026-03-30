@@ -13,8 +13,9 @@ import { useBatteryStore } from "@/lib/store";
 import { exportToFile, importFromFile } from "@/lib/sync";
 import { formatDate } from "@/lib/utils";
 import { t } from "@/lib/i18n";
-import type { Device, Language } from "@/lib/types";
+import type { Device, TestDevice, Language } from "@/lib/types";
 import { compressToWebp, uploadImage, loadImage, getCachedImageUrl } from "@/lib/image-utils";
+import ImageLightbox from "@/components/ui/ImageLightbox";
 
 export default function SettingsPage() {
   const settings = useBatteryStore((s) => s.settings);
@@ -67,7 +68,9 @@ export default function SettingsPage() {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const testDeviceOptions = (settings.testDevices || []).map((d) => ({ value: d, label: d }));
+  const testDeviceOptions = (settings.testDevices || []).map((d) =>
+    typeof d === "string" ? { value: d, label: d } : { value: d.name, label: d.name }
+  );
 
   return (
     <AppShell>
@@ -177,31 +180,34 @@ export default function SettingsPage() {
         {/* Tesztelő eszközök */}
         <Section title={t("settings.testDevices", lang)} description={t("settings.testDevicesDesc", lang)}>
           <div className="space-y-3">
-            <div className="flex flex-wrap gap-2">
-              {(settings.testDevices || []).map((device) => (
-                <span
-                  key={device}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 dark:bg-gray-700 px-3 py-1 text-sm text-gray-700 dark:text-gray-300"
-                >
-                  {device}
-                  <button
-                    type="button"
-                    onClick={() => {
+            {(settings.testDevices || []).length === 0 ? (
+              <p className="text-sm text-gray-400">{t("settings.noTestDevices", lang)}</p>
+            ) : (
+              <div className="space-y-2">
+                {(settings.testDevices || []).map((device: TestDevice) => (
+                  <TestDeviceRow
+                    key={typeof device === "string" ? device : device.id}
+                    device={typeof device === "string" ? { id: device, name: device } : device}
+                    onRename={(name) => {
                       updateSettings({
-                        testDevices: (settings.testDevices || []).filter((d) => d !== device),
+                        testDevices: (settings.testDevices || []).map((d: TestDevice) =>
+                          d.id === (typeof device === "string" ? device : device.id) ? { ...d, name } : d
+                        ),
                       });
-                      toast(`"${device}" ${t("settings.testDeviceRemoved", lang)}`);
                     }}
-                    className="ml-0.5 text-gray-400 hover:text-red-500 transition-colors"
-                  >
-                    &times;
-                  </button>
-                </span>
-              ))}
-              {(settings.testDevices || []).length === 0 && (
-                <p className="text-sm text-gray-400">{t("settings.noTestDevices", lang)}</p>
-              )}
-            </div>
+                    onRemove={() => {
+                      updateSettings({
+                        testDevices: (settings.testDevices || []).filter((d: TestDevice) =>
+                          (typeof d === "string" ? d : d.id) !== (typeof device === "string" ? device : device.id)
+                        ),
+                      });
+                      toast(`"${typeof device === "string" ? device : device.name}" ${t("settings.testDeviceRemoved", lang)}`);
+                    }}
+                    lang={lang}
+                  />
+                ))}
+              </div>
+            )}
             <div className="flex gap-2">
               <Input
                 placeholder={t("settings.newTestDevicePlaceholder", lang)}
@@ -211,10 +217,11 @@ export default function SettingsPage() {
               <Button
                 variant="secondary"
                 size="sm"
-                disabled={!newTestDevice.trim() || (settings.testDevices || []).includes(newTestDevice.trim())}
+                disabled={!newTestDevice.trim() || (settings.testDevices || []).some((d: TestDevice) => (typeof d === "string" ? d : d.name) === newTestDevice.trim())}
                 onClick={() => {
+                  const id = crypto.randomUUID?.() ?? `td-${Date.now()}`;
                   updateSettings({
-                    testDevices: [...(settings.testDevices || []), newTestDevice.trim()],
+                    testDevices: [...(settings.testDevices || []), { id, name: newTestDevice.trim() }],
                   });
                   setNewTestDevice("");
                   toast(`"${newTestDevice.trim()}" ${t("settings.testDeviceAdded", lang)}`);
@@ -501,7 +508,7 @@ function DeviceRow({
   if (editing) {
     return (
       <div className="flex items-center gap-2 rounded-lg border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20 p-2">
-        <DeviceThumb device={device} />
+        <EntityThumb imageFileName={device.imageFileName} icon="device" />
         <Input
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -526,10 +533,14 @@ function DeviceRow({
 
   return (
     <div className="flex items-center gap-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 p-2">
-      <DeviceThumb device={device} />
+      <EntityThumb imageFileName={device.imageFileName} icon="device" />
       <span className="flex-1 text-sm font-medium text-gray-900 dark:text-gray-100">{device.name}</span>
       {githubConfig && (
-        <DeviceImageButton device={device} lang={lang} />
+        <EntityImageButton
+          entity={device}
+          entityType="devices"
+          lang={lang}
+        />
       )}
       <button
         type="button"
@@ -555,38 +566,151 @@ function DeviceRow({
   );
 }
 
-function DeviceThumb({ device }: { device: Device }) {
+function TestDeviceRow({
+  device,
+  onRename,
+  onRemove,
+  lang,
+}: {
+  device: TestDevice;
+  onRename: (name: string) => void;
+  onRemove: () => void;
+  lang: Language;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(device.name);
   const githubConfig = useBatteryStore((s) => s.githubConfig);
-  const [url, setUrl] = useState<string | null>(() => device.imageFileName ? getCachedImageUrl(device.imageFileName) ?? null : null);
+
+  if (editing) {
+    return (
+      <div className="flex items-center gap-2 rounded-lg border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20 p-2">
+        <EntityThumb imageFileName={device.imageFileName} icon="test" />
+        <Input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="flex-1"
+        />
+        <Button
+          size="sm"
+          disabled={!name.trim()}
+          onClick={() => {
+            onRename(name.trim());
+            setEditing(false);
+          }}
+        >
+          {t("form.save", lang)}
+        </Button>
+        <Button variant="ghost" size="sm" onClick={() => { setName(device.name); setEditing(false); }}>
+          {t("form.cancel", lang)}
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 p-2">
+      <EntityThumb imageFileName={device.imageFileName} icon="test" />
+      <span className="flex-1 text-sm font-medium text-gray-900 dark:text-gray-100">{device.name}</span>
+      {githubConfig && (
+        <EntityImageButton
+          entity={device}
+          entityType="testDevices"
+          lang={lang}
+        />
+      )}
+      <button
+        type="button"
+        onClick={() => setEditing(true)}
+        className="p-1 text-gray-400 hover:text-blue-500 transition-colors"
+        title={lang === "hu" ? "Átnevezés" : "Rename"}
+      >
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        onClick={onRemove}
+        className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+        title={lang === "hu" ? "Törlés" : "Delete"}
+      >
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
+function useEntityImage(imageFileName?: string) {
+  const githubConfig = useBatteryStore((s) => s.githubConfig);
+  const [url, setUrl] = useState<string | null>(() => imageFileName ? getCachedImageUrl(imageFileName) ?? null : null);
 
   useEffect(() => {
-    if (!device.imageFileName || !githubConfig) { setUrl(null); return; }
-    const cached = getCachedImageUrl(device.imageFileName);
+    if (!imageFileName || !githubConfig) { setUrl(null); return; }
+    const cached = getCachedImageUrl(imageFileName);
     if (cached) { setUrl(cached); return; }
     let cancelled = false;
-    loadImage(githubConfig, device.imageFileName).then((u) => { if (!cancelled && u) setUrl(u); });
+    loadImage(githubConfig, imageFileName).then((u) => { if (!cancelled && u) setUrl(u); });
     return () => { cancelled = true; };
-  }, [device.imageFileName, githubConfig]);
+  }, [imageFileName, githubConfig]);
+
+  return url;
+}
+
+function EntityThumb({ imageFileName, icon }: { imageFileName?: string; icon: "device" | "test" }) {
+  const url = useEntityImage(imageFileName);
+  const [lightbox, setLightbox] = useState(false);
 
   if (url) {
-    return <img src={url} alt="" className="h-8 w-8 rounded object-cover flex-shrink-0 border border-gray-200 dark:border-gray-600" />;
+    return (
+      <>
+        <button onClick={() => setLightbox(true)} className="cursor-pointer flex-shrink-0">
+          <img src={url} alt="" className="h-8 w-8 rounded object-cover border border-gray-200 dark:border-gray-600 hover:ring-2 hover:ring-blue-400 transition-all" />
+        </button>
+        {lightbox && <ImageLightbox src={url} onClose={() => setLightbox(false)} />}
+      </>
+    );
   }
 
   return (
     <span className="flex h-8 w-8 items-center justify-center rounded bg-gray-200 dark:bg-gray-600 flex-shrink-0">
-      <svg className="h-4 w-4 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 002.25-2.25V6.75a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25z" />
-      </svg>
+      {icon === "device" ? (
+        <svg className="h-4 w-4 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 3v1.5M4.5 8.25H3m18 0h-1.5M4.5 12H3m18 0h-1.5m-15 3.75H3m18 0h-1.5M8.25 19.5V21M12 3v1.5m0 15V21m3.75-18v1.5m0 15V21m-9-1.5h10.5a2.25 2.25 0 002.25-2.25V6.75a2.25 2.25 0 00-2.25-2.25H6.75A2.25 2.25 0 004.5 6.75v10.5a2.25 2.25 0 002.25 2.25z" />
+        </svg>
+      ) : (
+        <svg className="h-4 w-4 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" />
+        </svg>
+      )}
     </span>
   );
 }
 
-function DeviceImageButton({ device, lang }: { device: Device; lang: Language }) {
+function EntityImageButton({
+  entity,
+  entityType,
+  lang,
+}: {
+  entity: Device | TestDevice;
+  entityType: "devices" | "testDevices";
+  lang: Language;
+}) {
   const githubConfig = useBatteryStore((s) => s.githubConfig);
   const updateSettings = useBatteryStore((s) => s.updateSettings);
   const settings = useBatteryStore((s) => s.settings);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const updateEntity = (imageFileName: string | undefined) => {
+    const list = (settings[entityType] || []) as (Device | TestDevice)[];
+    updateSettings({
+      [entityType]: list.map((d) =>
+        d.id === entity.id ? { ...d, imageFileName } : d
+      ),
+    });
+  };
 
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -594,11 +718,7 @@ function DeviceImageButton({ device, lang }: { device: Device; lang: Language })
     try {
       const base64 = await compressToWebp(file);
       const fileName = await uploadImage(githubConfig, base64);
-      updateSettings({
-        devices: (settings.devices || []).map((d: Device) =>
-          d.id === device.id ? { ...d, imageFileName: fileName } : d
-        ),
-      });
+      updateEntity(fileName);
       toast(lang === "hu" ? "Kép feltöltve" : "Image uploaded");
     } catch {
       toast(lang === "hu" ? "Hiba a feltöltésnél" : "Upload error", "error");
@@ -606,17 +726,11 @@ function DeviceImageButton({ device, lang }: { device: Device; lang: Language })
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  if (device.imageFileName) {
+  if (entity.imageFileName) {
     return (
       <button
         type="button"
-        onClick={() => {
-          updateSettings({
-            devices: (settings.devices || []).map((d: Device) =>
-              d.id === device.id ? { ...d, imageFileName: undefined } : d
-            ),
-          });
-        }}
+        onClick={() => updateEntity(undefined)}
         className="p-1 text-gray-400 hover:text-red-500 transition-colors"
         title={lang === "hu" ? "Kép eltávolítása" : "Remove image"}
       >
@@ -628,20 +742,18 @@ function DeviceImageButton({ device, lang }: { device: Device; lang: Language })
   }
 
   return (
-    <>
-      <label className="p-1 text-gray-400 hover:text-blue-500 transition-colors cursor-pointer" title={lang === "hu" ? "Kép feltöltése" : "Upload image"}>
-        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.41a2.25 2.25 0 013.182 0l2.909 2.91m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-        </svg>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleFile}
-          className="sr-only"
-        />
-      </label>
-    </>
+    <label className="p-1 text-gray-400 hover:text-blue-500 transition-colors cursor-pointer" title={lang === "hu" ? "Kép feltöltése" : "Upload image"}>
+      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.41a2.25 2.25 0 013.182 0l2.909 2.91m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+      </svg>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFile}
+        className="sr-only"
+      />
+    </label>
   );
 }
 

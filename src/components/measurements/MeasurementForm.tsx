@@ -214,7 +214,7 @@ export default function MeasurementForm({ cellId, onDone, lastDischargeCurrent, 
         <ComboBox
           label={t("measurement.testDevice", lang)}
           tooltip={t("tooltip.testDevice", lang)}
-          options={settings.testDevices || []}
+          options={(settings.testDevices || []).map((d) => typeof d === "string" ? d : { value: d.name, label: d.name })}
           value={form.testDevice}
           onChange={(v) => set("testDevice", v)}
           placeholder={t("measurement.testDevicePlaceholder", lang)}

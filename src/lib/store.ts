@@ -27,7 +27,6 @@ import {
   resetPinAttempts,
   getPinLockoutDelay,
   getLocalShas,
-  updateLocalShasFromTree,
 } from "./sync";
 import { fetchTreeShas } from "./github";
 import type { DirtyFlags } from "./sync";

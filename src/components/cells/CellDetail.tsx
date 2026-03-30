@@ -23,6 +23,8 @@ import CapacityChart from "@/components/measurements/CapacityChart";
 import EventLog from "./EventLog";
 import { loadImage } from "@/lib/image-utils";
 import { estimateSoH, gradeColor, gradeBgColor, gradeBarColor } from "@/lib/soh";
+import ImageLightbox from "@/components/ui/ImageLightbox";
+import type { Device } from "@/lib/types";
 
 interface CellDetailProps {
   cell: Cell;
@@ -50,8 +52,12 @@ export default function CellDetail({ cell }: CellDetailProps) {
   const updateCell = useBatteryStore((s) => s.updateCell);
   const pushToGitHub = useBatteryStore((s) => s.pushToGitHub);
   const githubConfig = useBatteryStore((s) => s.githubConfig);
+  const devices = useBatteryStore((s) => s.settings.devices) || [];
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [deviceImageUrl, setDeviceImageUrl] = useState<string | null>(null);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
+  // Load cell image
   useEffect(() => {
     if (!cell.imageFileName || !githubConfig) { setImageUrl(null); return; }
     let cancelled = false;
@@ -60,6 +66,20 @@ export default function CellDetail({ cell }: CellDetailProps) {
     });
     return () => { cancelled = true; };
   }, [cell.imageFileName, githubConfig]);
+
+  // Load device image
+  const currentDevice: Device | undefined = cell.currentDevice
+    ? devices.find((d) => d.name === cell.currentDevice)
+    : undefined;
+
+  useEffect(() => {
+    if (!currentDevice?.imageFileName || !githubConfig) { setDeviceImageUrl(null); return; }
+    let cancelled = false;
+    loadImage(githubConfig, currentDevice.imageFileName).then((url) => {
+      if (!cancelled && url) setDeviceImageUrl(url);
+    });
+    return () => { cancelled = true; };
+  }, [currentDevice?.imageFileName, githubConfig]);
 
   const lastMeasurement =
     cell.measurements.length > 0
@@ -105,15 +125,34 @@ export default function CellDetail({ cell }: CellDetailProps) {
 
   return (
     <div className="space-y-6">
+      {lightboxSrc && (
+        <ImageLightbox src={lightboxSrc} alt={cell.brand} onClose={() => setLightboxSrc(null)} />
+      )}
+
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-start gap-4">
-          {imageUrl && (
-            <img
-              src={imageUrl}
-              alt={`${cell.brand} ${cell.model ?? ""}`}
-              className="h-16 w-16 rounded-xl object-cover border border-gray-200 dark:border-gray-600 flex-shrink-0"
-            />
+          {(imageUrl || deviceImageUrl) && (
+            <div className="flex gap-2 flex-shrink-0">
+              {imageUrl && (
+                <button onClick={() => setLightboxSrc(imageUrl)} className="cursor-pointer" title={t("cell.viewImage", lang)}>
+                  <img
+                    src={imageUrl}
+                    alt={`${cell.brand} ${cell.model ?? ""}`}
+                    className="h-16 w-16 rounded-xl object-cover border border-gray-200 dark:border-gray-600 hover:ring-2 hover:ring-blue-400 transition-all"
+                  />
+                </button>
+              )}
+              {deviceImageUrl && (
+                <button onClick={() => setLightboxSrc(deviceImageUrl)} className="cursor-pointer" title={currentDevice?.name}>
+                  <img
+                    src={deviceImageUrl}
+                    alt={currentDevice?.name ?? ""}
+                    className="h-16 w-16 rounded-xl object-cover border border-gray-200 dark:border-gray-600 hover:ring-2 hover:ring-blue-400 transition-all"
+                  />
+                </button>
+              )}
+            </div>
           )}
           <div>
             <div className="flex items-center gap-3">

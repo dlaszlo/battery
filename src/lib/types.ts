@@ -105,6 +105,12 @@ export interface Device {
   imageFileName?: string;
 }
 
+export interface TestDevice {
+  id: string;
+  name: string;
+  imageFileName?: string;
+}
+
 export interface GitHubConfig {
   token: string;
   owner: string;
@@ -119,7 +125,7 @@ export type Language = "hu" | "en";
 export interface SharedSettings {
   scrapThresholdPercent: number;
   devices: Device[];
-  testDevices: string[];
+  testDevices: TestDevice[];
 }
 
 // Client-specific settings — stored per-device, no merge

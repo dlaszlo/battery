@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCells } from "@/hooks/useCells";
@@ -12,7 +12,6 @@ import type { CellStatus, Chemistry, FormFactor } from "@/lib/types";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import StatusBadge from "./StatusBadge";
-import { loadImage, getCachedImageUrl } from "@/lib/image-utils";
 
 type SortField = "id" | "brand" | "nominalCapacity" | "status" | "updatedAt" | "purchaseDate";
 
@@ -140,8 +139,7 @@ export default function CellTable() {
                       />
                     </td>
                     <td className="px-4 py-3">
-                      <Link href={`/cells?id=${cell.id}`} className="flex items-center gap-2">
-                        <CellThumb fileName={cell.imageFileName} />
+                      <Link href={`/cells?id=${cell.id}`}>
                         <span className="font-mono font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
                           #{cell.id}
                         </span>
@@ -186,34 +184,5 @@ export default function CellTable() {
         </div>
       )}
     </div>
-  );
-}
-
-function CellThumb({ fileName }: { fileName?: string }) {
-  const githubConfig = useBatteryStore((s) => s.githubConfig);
-  const [url, setUrl] = useState<string | null>(() => fileName ? getCachedImageUrl(fileName) ?? null : null);
-
-  useEffect(() => {
-    if (!fileName || !githubConfig) { setUrl(null); return; }
-    // Already cached
-    const cached = getCachedImageUrl(fileName);
-    if (cached) { setUrl(cached); return; }
-    // Lazy load
-    let cancelled = false;
-    loadImage(githubConfig, fileName).then((u) => { if (!cancelled && u) setUrl(u); });
-    return () => { cancelled = true; };
-  }, [fileName, githubConfig]);
-
-  if (url) {
-    return <img src={url} alt="" className="h-7 w-7 rounded object-cover flex-shrink-0 border border-gray-200 dark:border-gray-600" />;
-  }
-
-  // Placeholder
-  return (
-    <span className="flex h-7 w-7 items-center justify-center rounded bg-gray-100 dark:bg-gray-700 flex-shrink-0">
-      <svg className="h-4 w-4 text-gray-300 dark:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 7.125C2.25 6.504 2.754 6 3.375 6h6c.621 0 1.125.504 1.125 1.125v3.75c0 .621-.504 1.125-1.125 1.125h-6a1.125 1.125 0 01-1.125-1.125v-3.75zM14.25 8.625c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125v.75c0 .621-.504 1.125-1.125 1.125h-5.25a1.125 1.125 0 01-1.125-1.125v-.75z" />
-      </svg>
-    </span>
   );
 }

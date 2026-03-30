@@ -62,12 +62,12 @@ export const DEFAULT_DEVICES: import("./types").Device[] = [
   { id: "testing", name: "Tesztelés alatt" },
 ];
 
-export const DEFAULT_TEST_DEVICES = [
-  "LiitoKala Lii-700",
-  "LiitoKala Lii-500",
-  "LiitoKala Lii-M4S",
-  "XTAR VC4SL",
-  "Opus BT-C3100",
+export const DEFAULT_TEST_DEVICES: import("./types").TestDevice[] = [
+  { id: "liitokala-lii-700", name: "LiitoKala Lii-700" },
+  { id: "liitokala-lii-500", name: "LiitoKala Lii-500" },
+  { id: "liitokala-lii-m4s", name: "LiitoKala Lii-M4S" },
+  { id: "xtar-vc4sl", name: "XTAR VC4SL" },
+  { id: "opus-bt-c3100", name: "Opus BT-C3100" },
 ];
 
 export const DEFAULT_SHARED_SETTINGS: SharedSettings = {

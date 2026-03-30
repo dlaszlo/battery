@@ -38,6 +38,7 @@ const translations = {
   "cell.newFromTemplate": { hu: "Új cella (#{id} alapján)", en: "New cell (based on #{id})" },
   "cell.duplicate": { hu: "Másolás", en: "Duplicate" },
   "cell.edit": { hu: "Szerkesztés", en: "Edit" },
+  "cell.viewImage": { hu: "Kép megtekintése", en: "View image" },
   "cell.delete": { hu: "Törlés", en: "Delete" },
   "cell.scrap": { hu: "Kiselejtezés", en: "Scrap" },
   "cell.scrapTitle": { hu: "Cella kiselejtezése", en: "Scrap Cell" },
