@@ -357,20 +357,22 @@ function AlertsSection({ alerts, lang }: { alerts: AlertCell[]; lang: Language }
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
                     </svg>
                   </button>
-                  {isOpen && (
-                    <div className={`${config.bgColor} px-4 pb-4 pt-2`}>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
-                        {items.map((a) => (
-                          <AlertCard
-                            key={`${reason}-${a.cell.internalId}`}
-                            alert={a}
-                            config={config}
-                            imageUrl={imageUrls[a.cell.internalId]}
-                          />
-                        ))}
+                  <div className={`grid transition-[grid-template-rows] duration-250 ease-in-out ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
+                    <div className="overflow-hidden">
+                      <div className={`${config.bgColor} px-4 pb-4 pt-2`}>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+                          {items.map((a) => (
+                            <AlertCard
+                              key={`${reason}-${a.cell.internalId}`}
+                              alert={a}
+                              config={config}
+                              imageUrl={imageUrls[a.cell.internalId]}
+                            />
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               );
             })}
