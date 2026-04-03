@@ -100,6 +100,7 @@ export default function CellTable() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const dashboardFilter = searchParams.get("filter") || "";
+  const fromDashboard = searchParams.get("from") === "dashboard";
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<CellStatus | "">("");
   const [chemistryFilter, setChemistryFilter] = useState<Chemistry | "">("");
@@ -175,20 +176,33 @@ export default function CellTable() {
         />
       </div>
 
-      {/* Dashboard filter badge */}
-      {dashboardFilter && (
+      {/* Dashboard back + filter badge */}
+      {(fromDashboard || dashboardFilter) && (
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1.5 text-sm font-medium text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
-            {getFilterLabel(dashboardFilter, lang)}
+          {fromDashboard && (
             <button
-              onClick={clearDashboardFilter}
-              className="ml-0.5 rounded-full p-0.5 hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors cursor-pointer"
+              onClick={() => router.back()}
+              className="inline-flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors cursor-pointer"
             >
               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
               </svg>
+              {t("dashboard.backToDashboard", lang)}
             </button>
-          </span>
+          )}
+          {dashboardFilter && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1.5 text-sm font-medium text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
+              {getFilterLabel(dashboardFilter, lang)}
+              <button
+                onClick={clearDashboardFilter}
+                className="ml-0.5 rounded-full p-0.5 hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors cursor-pointer"
+              >
+                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </span>
+          )}
         </div>
       )}
 
@@ -245,7 +259,7 @@ export default function CellTable() {
                       />
                     </td>
                     <td className="px-4 py-3">
-                      <Link href={`/cells?id=${cell.internalId}`}>
+                      <Link href={`/cells?id=${cell.internalId}${fromDashboard ? "&from=dashboard" : ""}`}>
                         <span className="font-mono font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
                           #{cell.id}
                         </span>

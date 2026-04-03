@@ -12,6 +12,11 @@ import { t, enumLabel } from "@/lib/i18n";
 import { loadImage } from "@/lib/image-utils";
 import StatCard from "./StatCard";
 
+/** Append from=dashboard to a URL */
+function dLink(href: string) {
+  return href + (href.includes("?") ? "&" : "?") + "from=dashboard";
+}
+
 export default function DashboardGrid() {
   const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
   const stats = useCellStats(lang);
@@ -24,7 +29,7 @@ export default function DashboardGrid() {
           label={t("dashboard.totalCells", lang)}
           value={stats.total}
           color="blue"
-          href="/cells"
+          href={dLink("/cells")}
           icon={
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 10.5h.375c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125H21M4.5 10.5h6.75V15H4.5v-4.5zM3.75 18h15A2.25 2.25 0 0021 15.75v-6a2.25 2.25 0 00-2.25-2.25h-15A2.25 2.25 0 001.5 9.75v6A2.25 2.25 0 003.75 18z" />
@@ -35,7 +40,7 @@ export default function DashboardGrid() {
           label={t("dashboard.activeCells", lang)}
           value={stats.active}
           color="green"
-          href="/cells"
+          href={dLink("/cells")}
           icon={
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -46,7 +51,7 @@ export default function DashboardGrid() {
           label={t("dashboard.scrappedCells", lang)}
           value={stats.scrapped}
           color="red"
-          href="/cells?filter=status:scrapped"
+          href={dLink("/cells?filter=status:scrapped")}
           icon={
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
@@ -74,7 +79,7 @@ export default function DashboardGrid() {
         <div className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
           <div className="flex items-center justify-between border-b px-6 py-4 dark:border-gray-700">
             <h2 className="font-semibold text-gray-900 dark:text-gray-100">{t("dashboard.recentCells", lang)}</h2>
-            <Link href="/cells" className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
+            <Link href={dLink("/cells")} className="text-sm font-medium text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
               {t("dashboard.allArrow", lang)} &rarr;
             </Link>
           </div>
@@ -87,7 +92,7 @@ export default function DashboardGrid() {
               {stats.recentCells.map((cell) => (
                 <Link
                   key={cell.internalId}
-                  href={`/cells?id=${cell.internalId}`}
+                  href={dLink(`/cells?id=${cell.internalId}`)}
                   className="flex items-center justify-between px-6 py-3 hover:bg-gray-50 transition-colors dark:hover:bg-gray-700"
                 >
                   <div className="flex items-center gap-4">
@@ -127,7 +132,7 @@ export default function DashboardGrid() {
                 return (
                   <Link
                     key={`${rm.cell.internalId}-${rm.date}-${i}`}
-                    href={`/cells?id=${rm.cell.internalId}`}
+                    href={dLink(`/cells?id=${rm.cell.internalId}`)}
                     className="flex items-center justify-between px-6 py-3 hover:bg-gray-50 transition-colors dark:hover:bg-gray-700"
                   >
                     <div className="flex items-center gap-4">
@@ -160,7 +165,7 @@ export default function DashboardGrid() {
             <h3 className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">{t("dashboard.byDevice", lang)}</h3>
             <div className="space-y-2">
               {Object.entries(stats.byDevice).map(([device, count]) => (
-                <Link key={device} href={`/cells?filter=device:${encodeURIComponent(device)}`} className="flex items-center justify-between text-sm hover:bg-gray-50 dark:hover:bg-gray-700 rounded px-2 py-1 -mx-2 transition-colors">
+                <Link key={device} href={dLink(`/cells?filter=device:${encodeURIComponent(device)}`)} className="flex items-center justify-between text-sm hover:bg-gray-50 dark:hover:bg-gray-700 rounded px-2 py-1 -mx-2 transition-colors">
                   <span className="text-gray-600 dark:text-gray-300 truncate mr-2">
                     {device === "__none__" ? t("dashboard.noDevice", lang) : device}
                   </span>
@@ -173,7 +178,7 @@ export default function DashboardGrid() {
             <h3 className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">{t("dashboard.byChemistry", lang)}</h3>
             <div className="space-y-2">
               {Object.entries(stats.byChemistry).map(([chem, count]) => (
-                <Link key={chem} href={`/cells?filter=chemistry:${encodeURIComponent(chem)}`} className="flex items-center justify-between text-sm hover:bg-gray-50 dark:hover:bg-gray-700 rounded px-2 py-1 -mx-2 transition-colors">
+                <Link key={chem} href={dLink(`/cells?filter=chemistry:${encodeURIComponent(chem)}`)} className="flex items-center justify-between text-sm hover:bg-gray-50 dark:hover:bg-gray-700 rounded px-2 py-1 -mx-2 transition-colors">
                   <span className="text-gray-600 dark:text-gray-300">{chem}</span>
                   <span className="font-medium text-blue-600 dark:text-blue-400">{count} {t("dashboard.pcs", lang)} &rarr;</span>
                 </Link>
@@ -184,7 +189,7 @@ export default function DashboardGrid() {
             <h3 className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">{t("dashboard.byFormFactor", lang)}</h3>
             <div className="space-y-2">
               {Object.entries(stats.byFormFactor).map(([ff, count]) => (
-                <Link key={ff} href={`/cells?filter=formFactor:${encodeURIComponent(ff)}`} className="flex items-center justify-between text-sm hover:bg-gray-50 dark:hover:bg-gray-700 rounded px-2 py-1 -mx-2 transition-colors">
+                <Link key={ff} href={dLink(`/cells?filter=formFactor:${encodeURIComponent(ff)}`)} className="flex items-center justify-between text-sm hover:bg-gray-50 dark:hover:bg-gray-700 rounded px-2 py-1 -mx-2 transition-colors">
                   <span className="text-gray-600 dark:text-gray-300">{enumLabel("formFactor", ff, lang)}</span>
                   <span className="font-medium text-blue-600 dark:text-blue-400">{count} {t("dashboard.pcs", lang)} &rarr;</span>
                 </Link>
@@ -360,7 +365,7 @@ function AlertsSection({ alerts, lang }: { alerts: AlertCell[]; lang: Language }
                       </svg>
                     </button>
                     <Link
-                      href={`/cells?filter=alert:${reason}`}
+                      href={dLink(`/cells?filter=alert:${reason}`)}
                       className="flex items-center gap-1 text-xs opacity-70 hover:opacity-100 transition-opacity"
                     >
                       {t("dashboard.allArrow", lang)} &rarr;
@@ -404,7 +409,7 @@ function AlertCard({
   const { cell, detail } = alert;
   return (
     <Link
-      href={`/cells?id=${cell.internalId}`}
+      href={dLink(`/cells?id=${cell.internalId}`)}
       className={`flex items-center gap-2.5 rounded-lg border ${config.borderColor} ${config.bgColor} p-2.5 hover:shadow-md transition-all`}
     >
       {imageUrl ? (

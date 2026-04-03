@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useBatteryStore } from "@/lib/store";
 import {
   formatDate,
@@ -32,6 +32,8 @@ interface CellDetailProps {
 export default function CellDetail({ cell }: CellDetailProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const fromDashboard = searchParams.get("from") === "dashboard";
   const deleteCell = useBatteryStore((s) => s.deleteCell);
   const settings = useBatteryStore((s) => s.settings);
   const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
@@ -155,7 +157,7 @@ export default function CellDetail({ cell }: CellDetailProps) {
           )}
           <div>
             <div className="flex items-center gap-3">
-              <button onClick={() => router.push("/cells")} className="text-gray-400 hover:text-gray-600 transition-colors dark:text-gray-500 dark:hover:text-gray-300 cursor-pointer">
+              <button onClick={() => fromDashboard ? router.back() : router.push("/cells")} className="text-gray-400 hover:text-gray-600 transition-colors dark:text-gray-500 dark:hover:text-gray-300 cursor-pointer">
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                 </svg>

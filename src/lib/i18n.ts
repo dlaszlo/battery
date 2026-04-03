@@ -455,6 +455,7 @@ const translations = {
   // Dashboard extra
   "dashboard.allArrow": { hu: "Összes", en: "All" },
   "dashboard.pcs": { hu: "db", en: "pcs" },
+  "dashboard.backToDashboard": { hu: "Vissza a főoldalra", en: "Back to dashboard" },
 
   // Onboarding wizard steps
   "onboarding.step.welcome": { hu: "Üdvözlünk", en: "Welcome" },
