@@ -72,15 +72,10 @@ export default function MeasurementList({ cellId, measurements, nominalCapacity 
               <th className="px-4 py-2.5">{t("measurement.headerCapacity", lang)}</th>
               <th className="px-4 py-2.5 hidden sm:table-cell">{t("measurement.headerPercent", lang)}</th>
               <th className="px-4 py-2.5 hidden sm:table-cell">{t("measurement.headerDischargeCurrent", lang)}</th>
-              <th className="px-4 py-2.5 hidden sm:table-cell">{t("measurement.headerChargeCurrent", lang)}</th>
               <th className="px-4 py-2.5 hidden md:table-cell">{t("measurement.headerResistance", lang)}</th>
               <th className="px-4 py-2.5 hidden md:table-cell">{t("measurement.headerWeight", lang)}</th>
-              <th className="px-4 py-2.5 hidden xl:table-cell">{t("measurement.headerChargeTemp", lang)}</th>
-              <th className="px-4 py-2.5 hidden xl:table-cell">{t("measurement.headerDischargeTemp", lang)}</th>
               <th className="px-4 py-2.5 hidden xl:table-cell">{t("measurement.headerChargeTime", lang)}</th>
-              <th className="px-4 py-2.5 hidden xl:table-cell">{t("measurement.headerDischargeTime", lang)}</th>
               <th className="px-4 py-2.5 hidden lg:table-cell">{t("measurement.headerDevice", lang)}</th>
-              <th className="px-4 py-2.5 hidden lg:table-cell">{t("measurement.headerNotes", lang)}</th>
               <th className="px-4 py-2.5 w-20"></th>
             </tr>
           </thead>
@@ -91,7 +86,7 @@ export default function MeasurementList({ cellId, measurements, nominalCapacity 
 
               return editId === m.id ? (
                 <tr key={m.id}>
-                  <td colSpan={14} className="px-4 py-4">
+                  <td colSpan={9} className="px-4 py-4">
                     <div className="rounded-lg border border-blue-200 bg-blue-50/50 p-4 dark:border-blue-800 dark:bg-blue-900/30">
                       <h4 className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">{t("measurement.editTitle", lang)}</h4>
                       <MeasurementForm
@@ -114,9 +109,6 @@ export default function MeasurementList({ cellId, measurements, nominalCapacity 
                   <td className="px-4 py-2.5 hidden sm:table-cell text-gray-600 dark:text-gray-300">
                     {m.dischargeCurrent} mA
                   </td>
-                  <td className="px-4 py-2.5 hidden sm:table-cell text-gray-600 dark:text-gray-300">
-                    {m.chargeCurrent ? `${m.chargeCurrent} mA` : "—"}
-                  </td>
                   <td className="px-4 py-2.5 hidden md:table-cell text-gray-600 dark:text-gray-300">
                     {m.internalResistance ? formatResistance(m.internalResistance) : "—"}
                   </td>
@@ -124,16 +116,7 @@ export default function MeasurementList({ cellId, measurements, nominalCapacity 
                     {m.weight ? `${m.weight} g` : "—"}
                   </td>
                   <td className="px-4 py-2.5 hidden xl:table-cell text-gray-600 dark:text-gray-300">
-                    {m.chargeTemperature != null ? `${m.chargeTemperature} °C` : "—"}
-                  </td>
-                  <td className="px-4 py-2.5 hidden xl:table-cell text-gray-600 dark:text-gray-300">
-                    {m.dischargeTemperature != null ? `${m.dischargeTemperature} °C` : "—"}
-                  </td>
-                  <td className="px-4 py-2.5 hidden xl:table-cell text-gray-600 dark:text-gray-300">
                     {m.chargeTime != null ? formatMinutes(m.chargeTime) : "—"}
-                  </td>
-                  <td className="px-4 py-2.5 hidden xl:table-cell text-gray-600 dark:text-gray-300">
-                    {m.dischargeTime != null ? formatMinutes(m.dischargeTime) : "—"}
                   </td>
                   <td className="px-4 py-2.5 hidden lg:table-cell text-gray-500 text-xs dark:text-gray-400">
                     <div className="flex items-center gap-1.5">
@@ -152,9 +135,6 @@ export default function MeasurementList({ cellId, measurements, nominalCapacity 
                       )}
                       {m.testDevice}
                     </div>
-                  </td>
-                  <td className="px-4 py-2.5 hidden lg:table-cell text-gray-500 text-xs truncate max-w-[150px] dark:text-gray-400">
-                    {m.notes || "—"}
                   </td>
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-1">
