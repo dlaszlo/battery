@@ -286,21 +286,36 @@ function AlertsSection({ alerts, lang }: { alerts: AlertCell[]; lang: Language }
                     <AlertIcon type={reason} />
                     {t(reasonKey, lang)} ({items.length})
                   </div>
-                  <div className="space-y-1.5">
-                    {items.map((a) => (
-                      <Link
-                        key={`${reason}-${a.cell.internalId}`}
-                        href={`/cells?id=${a.cell.internalId}`}
-                        className="flex items-center justify-between rounded px-2 py-1 text-sm hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors"
-                      >
-                        <span className="text-gray-700 dark:text-gray-300">
-                          <span className="font-mono font-bold">#{a.cell.id}</span>
-                          {" "}{a.cell.brand}{a.cell.model ? ` ${a.cell.model}` : ""}
-                        </span>
-                        <span className={`text-xs font-medium ${config.color}`}>{a.detail}</span>
-                      </Link>
-                    ))}
-                  </div>
+                  {reason === "neverMeasured" ? (
+                    <div className="flex flex-wrap gap-1.5">
+                      {items.map((a) => (
+                        <Link
+                          key={`${reason}-${a.cell.internalId}`}
+                          href={`/cells?id=${a.cell.internalId}`}
+                          className="inline-flex items-center rounded-full bg-white/60 dark:bg-gray-800/60 px-2.5 py-1 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700 transition-colors"
+                        >
+                          <span className="font-mono font-bold mr-1">#{a.cell.id}</span>
+                          {a.cell.brand}
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {items.map((a) => (
+                        <Link
+                          key={`${reason}-${a.cell.internalId}`}
+                          href={`/cells?id=${a.cell.internalId}`}
+                          className="flex items-center justify-between rounded px-2 py-1 text-sm hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors"
+                        >
+                          <span className="text-gray-700 dark:text-gray-300">
+                            <span className="font-mono font-bold">#{a.cell.id}</span>
+                            {" "}{a.cell.brand}{a.cell.model ? ` ${a.cell.model}` : ""}
+                          </span>
+                          <span className={`text-xs font-medium ${config.color}`}>{a.detail}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
                 </div>
               );
             })}
