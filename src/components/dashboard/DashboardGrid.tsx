@@ -1,13 +1,15 @@
 "use client";
 
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useCellStats } from "@/hooks/useCells";
 import type { AlertCell } from "@/hooks/useCells";
 import { useBatteryStore } from "@/lib/store";
 import { formatDate, formatCapacity } from "@/lib/utils";
 import { STATUS_COLORS } from "@/lib/constants";
-import type { CellStatus, Language } from "@/lib/types";
+import type { Cell, CellStatus, Language } from "@/lib/types";
 import { t, enumLabel } from "@/lib/i18n";
+import { loadImage } from "@/lib/image-utils";
 import StatCard from "./StatCard";
 
 export default function DashboardGrid() {
@@ -192,16 +194,16 @@ export default function DashboardGrid() {
   );
 }
 
-const ALERT_CONFIG: Record<string, { icon: string; color: string; bgColor: string; borderColor: string }> = {
-  neverMeasured: { icon: "plus", color: "text-gray-600 dark:text-gray-400", bgColor: "bg-gray-50 dark:bg-gray-700/30", borderColor: "border-gray-200 dark:border-gray-600" },
-  notMeasured: { icon: "clock", color: "text-amber-600 dark:text-amber-400", bgColor: "bg-amber-50 dark:bg-amber-900/20", borderColor: "border-amber-200 dark:border-amber-800" },
-  weakening: { icon: "trending-down", color: "text-orange-600 dark:text-orange-400", bgColor: "bg-orange-50 dark:bg-orange-900/20", borderColor: "border-orange-200 dark:border-orange-800" },
-  poorSoH: { icon: "heart", color: "text-red-600 dark:text-red-400", bgColor: "bg-red-50 dark:bg-red-900/20", borderColor: "border-red-200 dark:border-red-800" },
-  longStorage: { icon: "box", color: "text-blue-600 dark:text-blue-400", bgColor: "bg-blue-50 dark:bg-blue-900/20", borderColor: "border-blue-200 dark:border-blue-800" },
+const ALERT_CONFIG: Record<string, { color: string; bgColor: string; borderColor: string; badgeColor: string }> = {
+  neverMeasured: { color: "text-gray-600 dark:text-gray-400", bgColor: "bg-gray-50 dark:bg-gray-700/30", borderColor: "border-gray-200 dark:border-gray-600", badgeColor: "bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-300" },
+  notMeasured: { color: "text-amber-600 dark:text-amber-400", bgColor: "bg-amber-50 dark:bg-amber-900/20", borderColor: "border-amber-200 dark:border-amber-800", badgeColor: "bg-amber-200 text-amber-800 dark:bg-amber-800 dark:text-amber-200" },
+  weakening: { color: "text-orange-600 dark:text-orange-400", bgColor: "bg-orange-50 dark:bg-orange-900/20", borderColor: "border-orange-200 dark:border-orange-800", badgeColor: "bg-orange-200 text-orange-800 dark:bg-orange-800 dark:text-orange-200" },
+  poorSoH: { color: "text-red-600 dark:text-red-400", bgColor: "bg-red-50 dark:bg-red-900/20", borderColor: "border-red-200 dark:border-red-800", badgeColor: "bg-red-200 text-red-800 dark:bg-red-800 dark:text-red-200" },
+  longStorage: { color: "text-blue-600 dark:text-blue-400", bgColor: "bg-blue-50 dark:bg-blue-900/20", borderColor: "border-blue-200 dark:border-blue-800", badgeColor: "bg-blue-200 text-blue-800 dark:bg-blue-800 dark:text-blue-200" },
 };
 
-function AlertIcon({ type }: { type: string }) {
-  const cls = "h-4 w-4 flex-shrink-0";
+function AlertIcon({ type, className }: { type: string; className?: string }) {
+  const cls = className || "h-4 w-4 flex-shrink-0";
   switch (type) {
     case "neverMeasured":
       return (
@@ -238,6 +240,38 @@ function AlertIcon({ type }: { type: string }) {
   }
 }
 
+function useCellImages(cells: Cell[]) {
+  const githubConfig = useBatteryStore((s) => s.githubConfig);
+  const [urls, setUrls] = useState<Record<string, string>>({});
+
+  const fileNames = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const c of cells) {
+      if (c.imageFileName) map[c.internalId] = c.imageFileName;
+    }
+    return map;
+  }, [cells]);
+
+  useEffect(() => {
+    if (!githubConfig || Object.keys(fileNames).length === 0) return;
+    let cancelled = false;
+    const load = async () => {
+      const result: Record<string, string> = {};
+      await Promise.all(
+        Object.entries(fileNames).map(async ([id, fileName]) => {
+          const url = await loadImage(githubConfig, fileName);
+          if (url) result[id] = url;
+        })
+      );
+      if (!cancelled) setUrls(result);
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [githubConfig, fileNames]);
+
+  return urls;
+}
+
 function AlertsSection({ alerts, lang }: { alerts: AlertCell[]; lang: Language }) {
   // Group by reason
   const grouped = new Map<string, AlertCell[]>();
@@ -247,7 +281,21 @@ function AlertsSection({ alerts, lang }: { alerts: AlertCell[]; lang: Language }
     grouped.set(a.reason, arr);
   }
 
-  // Deduplicate: one cell can appear multiple times, show each cell only once per reason
+  // Collect unique cells for image loading
+  const uniqueCells = useMemo(() => {
+    const seen = new Set<string>();
+    const result: Cell[] = [];
+    for (const a of alerts) {
+      if (!seen.has(a.cell.internalId)) {
+        seen.add(a.cell.internalId);
+        result.push(a.cell);
+      }
+    }
+    return result;
+  }, [alerts]);
+
+  const imageUrls = useCellImages(uniqueCells);
+
   const reasonOrder = ["poorSoH", "weakening", "notMeasured", "neverMeasured", "longStorage"];
 
   return (
@@ -274,48 +322,28 @@ function AlertsSection({ alerts, lang }: { alerts: AlertCell[]; lang: Language }
             {t("dashboard.alertsEmpty", lang)}
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-5">
             {reasonOrder.map((reason) => {
               const items = grouped.get(reason);
               if (!items || items.length === 0) return null;
               const config = ALERT_CONFIG[reason];
               const reasonKey = `dashboard.${reason}` as import("@/lib/i18n").TranslationKey;
               return (
-                <div key={reason} className={`rounded-lg border ${config.borderColor} ${config.bgColor} p-4`}>
-                  <div className={`flex items-center gap-2 mb-2 text-sm font-medium ${config.color}`}>
+                <div key={reason}>
+                  <div className={`flex items-center gap-2 mb-3 text-sm font-medium ${config.color}`}>
                     <AlertIcon type={reason} />
                     {t(reasonKey, lang)} ({items.length})
                   </div>
-                  {reason === "neverMeasured" ? (
-                    <div className="flex flex-wrap gap-1.5">
-                      {items.map((a) => (
-                        <Link
-                          key={`${reason}-${a.cell.internalId}`}
-                          href={`/cells?id=${a.cell.internalId}`}
-                          className="inline-flex items-center rounded-full bg-white/60 dark:bg-gray-800/60 px-2.5 py-1 text-xs font-medium text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-700 transition-colors"
-                        >
-                          <span className="font-mono font-bold mr-1">#{a.cell.id}</span>
-                          {a.cell.brand}
-                        </Link>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="space-y-1.5">
-                      {items.map((a) => (
-                        <Link
-                          key={`${reason}-${a.cell.internalId}`}
-                          href={`/cells?id=${a.cell.internalId}`}
-                          className="flex items-center justify-between rounded px-2 py-1 text-sm hover:bg-white/50 dark:hover:bg-gray-800/50 transition-colors"
-                        >
-                          <span className="text-gray-700 dark:text-gray-300">
-                            <span className="font-mono font-bold">#{a.cell.id}</span>
-                            {" "}{a.cell.brand}{a.cell.model ? ` ${a.cell.model}` : ""}
-                          </span>
-                          <span className={`text-xs font-medium ${config.color}`}>{a.detail}</span>
-                        </Link>
-                      ))}
-                    </div>
-                  )}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+                    {items.map((a) => (
+                      <AlertCard
+                        key={`${reason}-${a.cell.internalId}`}
+                        alert={a}
+                        config={config}
+                        imageUrl={imageUrls[a.cell.internalId]}
+                      />
+                    ))}
+                  </div>
                 </div>
               );
             })}
@@ -323,5 +351,47 @@ function AlertsSection({ alerts, lang }: { alerts: AlertCell[]; lang: Language }
         )}
       </div>
     </div>
+  );
+}
+
+function AlertCard({
+  alert,
+  config,
+  imageUrl,
+}: {
+  alert: AlertCell;
+  config: (typeof ALERT_CONFIG)[string];
+  imageUrl?: string;
+}) {
+  const { cell, detail } = alert;
+  return (
+    <Link
+      href={`/cells?id=${cell.internalId}`}
+      className={`flex items-center gap-2.5 rounded-lg border ${config.borderColor} ${config.bgColor} p-2.5 hover:shadow-md transition-all`}
+    >
+      {imageUrl ? (
+        <img
+          src={imageUrl}
+          alt={cell.brand}
+          className="h-10 w-10 rounded-lg object-cover border border-gray-200 dark:border-gray-600 flex-shrink-0"
+        />
+      ) : (
+        <div className="h-10 w-10 rounded-lg bg-gray-200 dark:bg-gray-600 flex items-center justify-center flex-shrink-0">
+          <svg className="h-5 w-5 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 10.5h.375c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125H21M4.5 10.5h6.75V15H4.5v-4.5zM3.75 18h15A2.25 2.25 0 0021 15.75v-6a2.25 2.25 0 00-2.25-2.25h-15A2.25 2.25 0 001.5 9.75v6A2.25 2.25 0 003.75 18z" />
+          </svg>
+        </div>
+      )}
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-bold text-gray-900 dark:text-gray-100 truncate">
+          <span className="font-mono">#{cell.id}</span> {cell.brand}
+        </p>
+        {detail && (
+          <span className={`inline-block mt-0.5 rounded px-1.5 py-0.5 text-[10px] font-semibold ${config.badgeColor}`}>
+            {detail}
+          </span>
+        )}
+      </div>
+    </Link>
   );
 }

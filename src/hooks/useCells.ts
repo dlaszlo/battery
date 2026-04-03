@@ -112,6 +112,16 @@ export function useCellStats(lang: Language = "hu") {
     const THREE_MONTHS = 3 * 30 * 24 * 60 * 60 * 1000;
     const alerts: AlertCell[] = [];
 
+    // TODO: TEMPORARY — force all alert types for preview, remove after review
+    for (const cell of cells) {
+      if (cell.status === "scrapped") continue;
+      alerts.push({ cell, reason: "neverMeasured", detail: "" });
+      alerts.push({ cell, reason: "notMeasured", detail: "8" });
+      alerts.push({ cell, reason: "weakening", detail: "62%" });
+      alerts.push({ cell, reason: "poorSoH", detail: "28% (poor)" });
+      alerts.push({ cell, reason: "longStorage", detail: "5" });
+    }
+    /* ORIGINAL LOGIC — restore after review:
     for (const cell of cells) {
       if (cell.status === "scrapped") continue;
 
@@ -155,6 +165,7 @@ export function useCellStats(lang: Language = "hu") {
         }
       }
     }
+    */
 
     // --- Recent measurements ---
     const recentMeasurements: RecentMeasurement[] = [];
