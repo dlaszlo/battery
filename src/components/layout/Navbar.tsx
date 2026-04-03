@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useSearchParams, useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useBatteryStore } from "@/lib/store";
 import { useState, useEffect } from "react";
 import { t } from "@/lib/i18n";
@@ -19,7 +19,6 @@ const navItems: { href: string; labelKey: TranslationKey }[] = [
 
 export default function Navbar() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const router = useRouter();
   const syncState = useBatteryStore((s) => s.syncState);
   const githubConfig = useBatteryStore((s) => s.githubConfig);

@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCells } from "@/hooks/useCells";
 import { useBatteryStore } from "@/lib/store";
-import { formatCapacity } from "@/lib/utils";
+import { formatCapacity, capacityPercent } from "@/lib/utils";
+import { estimateSoH } from "@/lib/soh";
 import { t, enumLabel } from "@/lib/i18n";
 import { CELL_STATUSES, CHEMISTRIES, FORM_FACTORS } from "@/lib/constants";
-import type { CellStatus, Chemistry, FormFactor } from "@/lib/types";
+import type { Cell, CellStatus, Chemistry, FormFactor } from "@/lib/types";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import StatusBadge from "./StatusBadge";
@@ -16,10 +17,89 @@ import StatusBadge from "./StatusBadge";
 type SortField = "id" | "brand" | "nominalCapacity" | "status" | "updatedAt" | "purchaseDate";
 
 const MAX_COMPARE = 5;
+const SIX_MONTHS = 6 * 30 * 24 * 60 * 60 * 1000;
+const THREE_MONTHS = 3 * 30 * 24 * 60 * 60 * 1000;
+
+/** Filter labels for URL-based dashboard filters */
+function getFilterLabel(filter: string, lang: "hu" | "en"): string {
+  const [type, value] = filter.split(":");
+  switch (type) {
+    case "status": return enumLabel("status", value, lang);
+    case "chemistry": return value;
+    case "formFactor": return enumLabel("formFactor", value, lang);
+    case "device": return value;
+    case "alert": {
+      const keys: Record<string, string> = {
+        neverMeasured: lang === "hu" ? "Még nem mért" : "Never measured",
+        notMeasured: lang === "hu" ? "Régóta nem mért" : "Not measured (6+ mo)",
+        weakening: lang === "hu" ? "Gyengülő (<70%)" : "Weakening (<70%)",
+        poorSoH: lang === "hu" ? "Rossz állapotú" : "Poor SoH",
+        longStorage: lang === "hu" ? "Régóta raktáron" : "Long storage",
+      };
+      return keys[value] || value;
+    }
+    default: return filter;
+  }
+}
+
+function applyDashboardFilter(cells: Cell[], filter: string, lang: "hu" | "en"): Cell[] {
+  const [type, value] = filter.split(":");
+  const now = Date.now();
+  switch (type) {
+    case "status":
+      return cells.filter((c) => c.status === value);
+    case "chemistry":
+      return cells.filter((c) => c.chemistry === value);
+    case "formFactor":
+      return cells.filter((c) => c.formFactor === value);
+    case "device":
+      return value === "__none__"
+        ? cells.filter((c) => !c.currentDevice)
+        : cells.filter((c) => c.currentDevice === value);
+    case "alert":
+      switch (value) {
+        case "neverMeasured":
+          return cells.filter((c) => c.status !== "scrapped" && c.measurements.length === 0);
+        case "notMeasured":
+          return cells.filter((c) => {
+            if (c.status === "scrapped" || c.measurements.length === 0) return false;
+            const lastDate = c.measurements.reduce((a, b) => (a.date > b.date ? a : b)).date;
+            return (now - new Date(lastDate).getTime()) > SIX_MONTHS;
+          });
+        case "weakening":
+          return cells.filter((c) => {
+            if (c.status === "scrapped" || c.measurements.length === 0) return false;
+            const last = c.measurements.reduce((a, b) => (a.date > b.date ? a : b));
+            return capacityPercent(last.measuredCapacity, c.nominalCapacity) < 70;
+          });
+        case "poorSoH":
+          return cells.filter((c) => {
+            if (c.status === "scrapped") return false;
+            const soh = estimateSoH(c, lang);
+            return soh != null && (soh.grade === "poor" || soh.grade === "critical");
+          });
+        case "longStorage":
+          return cells.filter((c) => {
+            if (c.status === "scrapped" || c.currentDevice !== "Raktáron") return false;
+            const deviceEvent = [...(c.events || [])]
+              .reverse()
+              .find((e) => e.type === "device_changed" && e.description.includes("Raktáron"));
+            const sinceDate = deviceEvent ? deviceEvent.date : c.updatedAt;
+            return (now - new Date(sinceDate).getTime()) > THREE_MONTHS;
+          });
+        default:
+          return cells;
+      }
+    default:
+      return cells;
+  }
+}
 
 export default function CellTable() {
   const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const dashboardFilter = searchParams.get("filter") || "";
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<CellStatus | "">("");
   const [chemistryFilter, setChemistryFilter] = useState<Chemistry | "">("");
@@ -28,11 +108,20 @@ export default function CellTable() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
   const [compareIds, setCompareIds] = useState<string[]>([]);
 
-  const cells = useCells(
+  const allFiltered = useCells(
     { search, status: statusFilter, chemistry: chemistryFilter, formFactor: formFactorFilter },
     sortField,
     sortDir
   );
+
+  const cells = useMemo(
+    () => dashboardFilter ? applyDashboardFilter(allFiltered, dashboardFilter, lang) : allFiltered,
+    [allFiltered, dashboardFilter, lang]
+  );
+
+  const clearDashboardFilter = () => {
+    router.replace("/cells");
+  };
 
   const toggleSort = (field: SortField) => {
     if (sortField === field) {
@@ -85,6 +174,23 @@ export default function CellTable() {
           onChange={(e) => setFormFactorFilter(e.target.value as FormFactor | "")}
         />
       </div>
+
+      {/* Dashboard filter badge */}
+      {dashboardFilter && (
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1.5 text-sm font-medium text-blue-700 dark:bg-blue-900/50 dark:text-blue-300">
+            {getFilterLabel(dashboardFilter, lang)}
+            <button
+              onClick={clearDashboardFilter}
+              className="ml-0.5 rounded-full p-0.5 hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors cursor-pointer"
+            >
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </span>
+        </div>
+      )}
 
       {/* Table */}
       <div className="overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">

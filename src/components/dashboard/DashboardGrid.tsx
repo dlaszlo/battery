@@ -24,6 +24,7 @@ export default function DashboardGrid() {
           label={t("dashboard.totalCells", lang)}
           value={stats.total}
           color="blue"
+          href="/cells"
           icon={
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 10.5h.375c.621 0 1.125.504 1.125 1.125v2.25c0 .621-.504 1.125-1.125 1.125H21M4.5 10.5h6.75V15H4.5v-4.5zM3.75 18h15A2.25 2.25 0 0021 15.75v-6a2.25 2.25 0 00-2.25-2.25h-15A2.25 2.25 0 001.5 9.75v6A2.25 2.25 0 003.75 18z" />
@@ -34,6 +35,7 @@ export default function DashboardGrid() {
           label={t("dashboard.activeCells", lang)}
           value={stats.active}
           color="green"
+          href="/cells"
           icon={
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -44,6 +46,7 @@ export default function DashboardGrid() {
           label={t("dashboard.scrappedCells", lang)}
           value={stats.scrapped}
           color="red"
+          href="/cells?filter=status:scrapped"
           icon={
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
@@ -157,12 +160,12 @@ export default function DashboardGrid() {
             <h3 className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">{t("dashboard.byDevice", lang)}</h3>
             <div className="space-y-2">
               {Object.entries(stats.byDevice).map(([device, count]) => (
-                <div key={device} className="flex items-center justify-between text-sm">
+                <Link key={device} href={`/cells?filter=device:${encodeURIComponent(device)}`} className="flex items-center justify-between text-sm hover:bg-gray-50 dark:hover:bg-gray-700 rounded px-2 py-1 -mx-2 transition-colors">
                   <span className="text-gray-600 dark:text-gray-300 truncate mr-2">
                     {device === "__none__" ? t("dashboard.noDevice", lang) : device}
                   </span>
-                  <span className="font-medium text-gray-900 dark:text-gray-100 flex-shrink-0">{count} {t("dashboard.pcs", lang)}</span>
-                </div>
+                  <span className="font-medium text-blue-600 dark:text-blue-400 flex-shrink-0">{count} {t("dashboard.pcs", lang)} &rarr;</span>
+                </Link>
               ))}
             </div>
           </div>
@@ -170,10 +173,10 @@ export default function DashboardGrid() {
             <h3 className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">{t("dashboard.byChemistry", lang)}</h3>
             <div className="space-y-2">
               {Object.entries(stats.byChemistry).map(([chem, count]) => (
-                <div key={chem} className="flex items-center justify-between text-sm">
+                <Link key={chem} href={`/cells?filter=chemistry:${encodeURIComponent(chem)}`} className="flex items-center justify-between text-sm hover:bg-gray-50 dark:hover:bg-gray-700 rounded px-2 py-1 -mx-2 transition-colors">
                   <span className="text-gray-600 dark:text-gray-300">{chem}</span>
-                  <span className="font-medium text-gray-900 dark:text-gray-100">{count} {t("dashboard.pcs", lang)}</span>
-                </div>
+                  <span className="font-medium text-blue-600 dark:text-blue-400">{count} {t("dashboard.pcs", lang)} &rarr;</span>
+                </Link>
               ))}
             </div>
           </div>
@@ -181,10 +184,10 @@ export default function DashboardGrid() {
             <h3 className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">{t("dashboard.byFormFactor", lang)}</h3>
             <div className="space-y-2">
               {Object.entries(stats.byFormFactor).map(([ff, count]) => (
-                <div key={ff} className="flex items-center justify-between text-sm">
+                <Link key={ff} href={`/cells?filter=formFactor:${encodeURIComponent(ff)}`} className="flex items-center justify-between text-sm hover:bg-gray-50 dark:hover:bg-gray-700 rounded px-2 py-1 -mx-2 transition-colors">
                   <span className="text-gray-600 dark:text-gray-300">{enumLabel("formFactor", ff, lang)}</span>
-                  <span className="font-medium text-gray-900 dark:text-gray-100">{count} {t("dashboard.pcs", lang)}</span>
-                </div>
+                  <span className="font-medium text-blue-600 dark:text-blue-400">{count} {t("dashboard.pcs", lang)} &rarr;</span>
+                </Link>
               ))}
             </div>
           </div>
@@ -339,24 +342,30 @@ function AlertsSection({ alerts, lang }: { alerts: AlertCell[]; lang: Language }
               const isOpen = openSection === reason;
               return (
                 <div key={reason} className={`rounded-lg border ${config.borderColor} overflow-hidden`}>
-                  <button
-                    onClick={() => toggleSection(reason)}
-                    className={`flex w-full items-center justify-between px-4 py-3 text-sm font-medium ${config.color} ${config.bgColor} cursor-pointer transition-colors hover:brightness-95`}
-                  >
-                    <div className="flex items-center gap-2">
+                  <div className={`flex w-full items-center justify-between px-4 py-3 text-sm font-medium ${config.color} ${config.bgColor}`}>
+                    <button
+                      onClick={() => toggleSection(reason)}
+                      className="flex items-center gap-2 cursor-pointer flex-1"
+                    >
                       <AlertIcon type={reason} />
                       {t(reasonKey, lang)} ({items.length})
-                    </div>
-                    <svg
-                      className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={2}
+                      <svg
+                        className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                      </svg>
+                    </button>
+                    <Link
+                      href={`/cells?filter=alert:${reason}`}
+                      className="flex items-center gap-1 text-xs opacity-70 hover:opacity-100 transition-opacity"
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                    </svg>
-                  </button>
+                      {t("dashboard.allArrow", lang)} &rarr;
+                    </Link>
+                  </div>
                   <div className={`grid transition-[grid-template-rows] duration-250 ease-in-out ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
                     <div className="overflow-hidden">
                       <div className={`${config.bgColor} px-4 pb-4 pt-2`}>

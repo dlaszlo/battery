@@ -112,16 +112,6 @@ export function useCellStats(lang: Language = "hu") {
     const THREE_MONTHS = 3 * 30 * 24 * 60 * 60 * 1000;
     const alerts: AlertCell[] = [];
 
-    // TODO: TEMPORARY — force all alert types for preview, remove after review
-    for (const cell of cells) {
-      if (cell.status === "scrapped") continue;
-      alerts.push({ cell, reason: "neverMeasured", detail: "" });
-      alerts.push({ cell, reason: "notMeasured", detail: "8" });
-      alerts.push({ cell, reason: "weakening", detail: "62%" });
-      alerts.push({ cell, reason: "poorSoH", detail: "28% (poor)" });
-      alerts.push({ cell, reason: "longStorage", detail: "5" });
-    }
-    /* ORIGINAL LOGIC — restore after review:
     for (const cell of cells) {
       if (cell.status === "scrapped") continue;
 
@@ -158,14 +148,13 @@ export function useCellStats(lang: Language = "hu") {
           .reverse()
           .find((e) => e.type === "device_changed" && e.description.includes("Raktáron"));
         const sinceDate = deviceEvent ? deviceEvent.date : cell.updatedAt;
-        const elapsed = now - new Date(sinceDate).getTime();
-        if (elapsed > THREE_MONTHS) {
-          const months = Math.floor(elapsed / (30 * 24 * 60 * 60 * 1000));
+        const storageElapsed = now - new Date(sinceDate).getTime();
+        if (storageElapsed > THREE_MONTHS) {
+          const months = Math.floor(storageElapsed / (30 * 24 * 60 * 60 * 1000));
           alerts.push({ cell, reason: "longStorage", detail: `${months}` });
         }
       }
     }
-    */
 
     // --- Recent measurements ---
     const recentMeasurements: RecentMeasurement[] = [];
