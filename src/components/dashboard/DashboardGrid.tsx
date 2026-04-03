@@ -297,6 +297,19 @@ function AlertsSection({ alerts, lang }: { alerts: AlertCell[]; lang: Language }
   const imageUrls = useCellImages(uniqueCells);
 
   const reasonOrder = ["poorSoH", "weakening", "notMeasured", "neverMeasured", "longStorage"];
+  const activeReasons = reasonOrder.filter((r) => (grouped.get(r)?.length ?? 0) > 0);
+
+  // Track which sections are open — first one open by default
+  const [openSections, setOpenSections] = useState<Set<string>>(() => new Set(activeReasons.slice(0, 1)));
+
+  const toggleSection = (reason: string) => {
+    setOpenSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(reason)) next.delete(reason);
+      else next.add(reason);
+      return next;
+    });
+  };
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
@@ -322,28 +335,47 @@ function AlertsSection({ alerts, lang }: { alerts: AlertCell[]; lang: Language }
             {t("dashboard.alertsEmpty", lang)}
           </div>
         ) : (
-          <div className="space-y-5">
+          <div className="space-y-2">
             {reasonOrder.map((reason) => {
               const items = grouped.get(reason);
               if (!items || items.length === 0) return null;
               const config = ALERT_CONFIG[reason];
               const reasonKey = `dashboard.${reason}` as import("@/lib/i18n").TranslationKey;
+              const isOpen = openSections.has(reason);
               return (
-                <div key={reason}>
-                  <div className={`flex items-center gap-2 mb-3 text-sm font-medium ${config.color}`}>
-                    <AlertIcon type={reason} />
-                    {t(reasonKey, lang)} ({items.length})
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
-                    {items.map((a) => (
-                      <AlertCard
-                        key={`${reason}-${a.cell.internalId}`}
-                        alert={a}
-                        config={config}
-                        imageUrl={imageUrls[a.cell.internalId]}
-                      />
-                    ))}
-                  </div>
+                <div key={reason} className={`rounded-lg border ${config.borderColor} overflow-hidden`}>
+                  <button
+                    onClick={() => toggleSection(reason)}
+                    className={`flex w-full items-center justify-between px-4 py-3 text-sm font-medium ${config.color} ${config.bgColor} cursor-pointer transition-colors hover:brightness-95`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <AlertIcon type={reason} />
+                      {t(reasonKey, lang)} ({items.length})
+                    </div>
+                    <svg
+                      className={`h-4 w-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                    </svg>
+                  </button>
+                  {isOpen && (
+                    <div className={`${config.bgColor} px-4 pb-4 pt-2`}>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+                        {items.map((a) => (
+                          <AlertCard
+                            key={`${reason}-${a.cell.internalId}`}
+                            alert={a}
+                            config={config}
+                            imageUrl={imageUrls[a.cell.internalId]}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
