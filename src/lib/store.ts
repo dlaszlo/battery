@@ -70,7 +70,7 @@ interface BatteryStore {
   lockSession: () => void;
 
   // Cell CRUD
-  addCell: (cell: Omit<Cell, "internalId" | "measurements" | "events" | "createdAt" | "updatedAt">) => void;
+  addCell: (cell: Omit<Cell, "internalId" | "measurements" | "events" | "createdAt" | "updatedAt">) => string;
   updateCell: (internalId: string, updates: Partial<Cell>) => void;
   deleteCell: (internalId: string) => void;
   getCell: (id: string) => Cell | undefined;
@@ -270,6 +270,8 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
     if (get().githubConfig) {
       markDirty(set, "cells");
     }
+
+    return cell.internalId;
   },
 
   updateCell: (internalId, updates) => {

@@ -11,7 +11,7 @@ import { t } from "@/lib/i18n";
 function CellsContent() {
   const searchParams = useSearchParams();
   const cellId = searchParams.get("id");
-  const cell = useBatteryStore((s) => cellId ? s.cells.find((c) => c.id === cellId) : undefined);
+  const cell = useBatteryStore((s) => cellId ? s.cells.find((c) => c.internalId === cellId || c.id === cellId) : undefined);
   const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
 
   if (cellId) {

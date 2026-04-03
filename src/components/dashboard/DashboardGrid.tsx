@@ -75,8 +75,8 @@ export default function DashboardGrid() {
           <div className="divide-y dark:divide-gray-700">
             {stats.recentCells.map((cell) => (
               <Link
-                key={cell.id}
-                href={`/cells?id=${cell.id}`}
+                key={cell.internalId}
+                href={`/cells?id=${cell.internalId}`}
                 className="flex items-center justify-between px-6 py-3 hover:bg-gray-50 transition-colors dark:hover:bg-gray-700"
               >
                 <div className="flex items-center gap-4">

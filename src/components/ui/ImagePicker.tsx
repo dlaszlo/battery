@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useBatteryStore } from "@/lib/store";
 import { t } from "@/lib/i18n";
-import { loadImage, compressToWebp, downloadImageFromUrl, uploadImage } from "@/lib/image-utils";
+import { loadImage, compressToWebp, uploadImage, downloadImageFromUrl } from "@/lib/image-utils";
 import type { Language } from "@/lib/types";
 
 interface ImagePickerProps {

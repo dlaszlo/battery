@@ -161,9 +161,9 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
       toast(t("cell.modified", lang));
       onSave?.();
     } else {
-      addCell(cellData);
+      const newInternalId = addCell(cellData);
       toast(t("cell.added", lang));
-      router.push(`/cells?id=${cellData.id}`);
+      router.push(`/cells?id=${newInternalId}`);
     }
     pushToGitHub();
   };

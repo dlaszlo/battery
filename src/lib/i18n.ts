@@ -387,7 +387,7 @@ const translations = {
   "measurement.headerNotes": { hu: "Megjegyzés", en: "Notes" },
 
   // Chart extra
-  "chart.minDataRequired": { hu: "Legalább 2 mérés szükséges a grafikon megjelenítéséhez.", en: "At least 2 measurements are needed for the chart." },
+  "chart.minDataRequired": { hu: "Még nincs mérés a grafikon megjelenítéséhez.", en: "No measurements yet for the chart." },
   "chart.scrapBorder": { hu: "Selejt határ", en: "Scrap Limit" },
   "chart.allCurrents": { hu: "Összes", en: "All" },
   "chart.currentLabel": { hu: "{current} mA", en: "{current} mA" },
@@ -541,10 +541,19 @@ const translations = {
   "help.measureField1": { hu: "Mért kapacitás (mAh) — a tényleges kapacitás, amit a tesztelő mért", en: "Measured capacity (mAh) — the actual capacity your tester measured" },
   "help.measureField2": { hu: "Lemerítési és töltési áram (mA) — az összehasonlításhoz azonos áram kell", en: "Discharge and charge current (mA) — use the same current for comparison" },
   "help.measureField3": { hu: "Belső ellenállás (mOhm) — alacsonyabb = jobb, öregedéssel nő", en: "Internal resistance (mOhm) — lower is better, increases with age" },
-  "help.measureField4": { hu: "Tesztelő eszköz és megjegyzések", en: "Test device and notes" },
+  "help.measureField4": { hu: "Súly (g), töltési/lemerítési hőmérséklet (°C), töltési/lemerítési idő", en: "Weight (g), charge/discharge temperature (°C), charge/discharge time" },
+  "help.measureField5": { hu: "Tesztelő eszköz és megjegyzések", en: "Test device and notes" },
 
   "help.scrapTitle": { hu: "Automatikus selejtezés", en: "Automatic Scrap Detection" },
   "help.scrapDesc": { hu: "Ha egy mérés a névleges kapacitás beállított százaléka alá esik (alapértelmezés: 60%), a cella automatikusan selejtnek jelölődik. A küszöbértéket a Beállításokban módosíthatod.", en: "When a measurement drops below the configured percentage of nominal capacity (default: 60%), the cell is automatically flagged as scrapped. You can adjust the threshold in Settings." },
+
+  "help.sohTitle": { hu: "Állapotbecslés (SoH)", en: "State of Health (SoH)" },
+  "help.sohDesc": { hu: "Az app automatikusan becsüli a cella egészségi állapotát (State of Health) az alábbi tényezők súlyozott átlaga alapján:", en: "The app automatically estimates the cell's State of Health based on a weighted average of the following factors:" },
+  "help.sohFactor1": { hu: "Kapacitás-megtartás (50%) — a legjobb mért kapacitás a névlegeshez képest", en: "Capacity retention (50%) — best measured capacity vs nominal" },
+  "help.sohFactor2": { hu: "Belső ellenállás (20%) — átlagos belső ellenállás (alacsony = jó: ≤40 mΩ kiváló, 40–80 mΩ elfogadható, 80–150 mΩ rossz, 150+ mΩ kritikus)", en: "Internal resistance (20%) — average IR (low = good: ≤40 mΩ excellent, 40–80 mΩ acceptable, 80–150 mΩ poor, 150+ mΩ critical)" },
+  "help.sohFactor3": { hu: "Cella kora (15%) — a vásárlás dátumától számítva (≤1 év kiváló, 1–3 év jó, 3–6 év közepes, 6+ év alacsony)", en: "Cell age (15%) — from purchase date (≤1 year excellent, 1–3 years good, 3–6 years fair, 6+ years low)" },
+  "help.sohFactor4": { hu: "Kapacitás-trend (15%) — az első és utolsó mérés közötti változás (stabil/javuló = jó, csökkenő = rossz)", en: "Capacity trend (15%) — change between first and last measurement (stable/improving = good, declining = bad)" },
+  "help.sohGrades": { hu: "Értékelés: Kiváló (≥85%), Jó (70–84%), Közepes (50–69%), Gyenge (30–49%), Kritikus (<30%)", en: "Grades: Excellent (≥85%), Good (70–84%), Fair (50–69%), Poor (30–49%), Critical (<30%)" },
 
   "help.storageTitle": { hu: "Tárolási tippek", en: "Storage Tips" },
   "help.storageDesc": { hu: "Li-ion cellák helyes tárolása:", en: "Proper storage of Li-ion cells:" },
@@ -553,11 +562,11 @@ const translations = {
   "help.storageTip3": { hu: "Hosszú tárolás után (3+ hónap) ellenőrizd a feszültséget — az app figyelmeztet erre", en: "After long storage (3+ months) check the voltage — the app will remind you" },
 
   "help.dataTitle": { hu: "Adattárolás", en: "Data Storage" },
-  "help.dataDesc": { hu: "Az app a GitHub Contents API-n keresztül egyetlen JSON fájlt olvas/ír a privát repódban:", en: "The app reads/writes a single JSON file in your private repo via the GitHub Contents API:" },
+  "help.dataDesc": { hu: "Az app a GitHub Contents API-n keresztül három JSON fájlt olvas/ír a privát repódban (cells.json, settings.json, templates.json):", en: "The app reads/writes three JSON files in your private repo via the GitHub Contents API (cells.json, settings.json, templates.json):" },
   "help.dataPerk1": { hu: "Verziókövetett — minden mentés egy Git commit, teljes előzmény", en: "Version-controlled — every save is a Git commit, full history" },
   "help.dataPerk2": { hu: "Privát — csak te férsz hozzá a repódhoz", en: "Private — only you can access your repository" },
   "help.dataPerk3": { hu: "Hordozható — klónolhatod a repót, vagy exportálhatod JSON-ként", en: "Portable — clone the repo or export as JSON" },
-  "help.dataPerk4": { hu: "Offline is működik — localStorage cache, háttérben szinkronizál", en: "Works offline — localStorage cache, syncs in the background" },
+  "help.dataPerk4": { hu: "Internetkapcsolat szükséges — az adatkonzisztencia érdekében a szinkronizáláshoz online kell lenned", en: "Internet required — you need to be online for sync to maintain data consistency" },
 
   "help.setupTitle": { hu: "Beállítás lépésről lépésre", en: "Setup Guide" },
   "help.setupStep1": { hu: "Hozz létre egy privát repót \"battery-cell-data\" néven:", en: "Create a private repo named \"battery-cell-data\":" },

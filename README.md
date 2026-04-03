@@ -35,9 +35,12 @@ For each cell, you can record:
 Each time you test a cell (e.g., with a LiitoKala Lii-700 or similar charger/analyzer), you can log:
 
 - Measured capacity (mAh)
-- Discharge current (mA)
+- Discharge current and charge current (mA)
 - Internal resistance (mOhm)
-- Test device used
+- Weight (g)
+- Charge and discharge temperature (°C)
+- Charge and discharge time
+- Test device used (with device image if configured)
 - Notes
 
 ### Cell Profile Card
@@ -55,6 +58,17 @@ Compare cells side by side with a dedicated comparison page. Select multiple cel
 ### Cell Templates
 
 Save reusable datasheet specs (brand, model, form factor, chemistry, capacity, discharge currents, weight) as templates. When adding a new cell, select a template to pre-fill the datasheet fields. Templates can be archived (soft delete) and restored.
+
+### State of Health (SoH) Estimation
+
+Each cell gets an automatic health score based on a weighted average of:
+
+- **Capacity retention (50%)** — best measured capacity vs nominal
+- **Internal resistance (20%)** — average IR (≤40 mΩ excellent, 40–80 mΩ acceptable, 80–150 mΩ poor, 150+ mΩ critical)
+- **Cell age (15%)** — from purchase date (≤1 year excellent, 1–3 years good, 3–6 years fair, 6+ years low)
+- **Capacity trend (15%)** — change between first and last measurement (stable/improving = good, declining = bad)
+
+Grades: Excellent (≥85%), Good (70–84%), Fair (50–69%), Poor (30–49%), Critical (<30%).
 
 ### Automatic Scrap Detection
 
@@ -76,7 +90,7 @@ The app uses the **GitHub Contents API** to read and write data files in a priva
 - **Your data is private** — only you can access your repository
 - **Your data is portable** — you can clone the repo, read the JSON, or export it from the app
 - **No server needed** — the app talks directly to GitHub from your browser
-- **Online required** — internet connection is required to prevent data consistency issues
+- **Online required** — internet connection is needed for sync to maintain data consistency
 
 The app uses a **Fine-grained Personal Access Token** (PAT) scoped to a single repository with minimal permissions. Your token is **encrypted with a PIN code** using AES-GCM (Web Crypto API) and stored in your browser's localStorage. The token is never sent anywhere except the GitHub API.
 

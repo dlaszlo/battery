@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useBatteryStore } from "@/lib/store";
 import { formatDate, formatCapacity, formatResistance, formatMinutes, capacityPercent } from "@/lib/utils";
 import type { Measurement } from "@/lib/types";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import MeasurementForm from "@/components/measurements/MeasurementForm";
+import ImageLightbox from "@/components/ui/ImageLightbox";
+import { loadImage } from "@/lib/image-utils";
 import { t } from "@/lib/i18n";
 
 interface MeasurementListProps {
@@ -18,8 +20,36 @@ export default function MeasurementList({ cellId, measurements, nominalCapacity 
   const deleteMeasurement = useBatteryStore((s) => s.deleteMeasurement);
   const pushToGitHub = useBatteryStore((s) => s.pushToGitHub);
   const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
+  const githubConfig = useBatteryStore((s) => s.githubConfig);
+  const testDevices = useBatteryStore((s) => s.settings.testDevices ?? []);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const [deviceImageUrls, setDeviceImageUrls] = useState<Record<string, string>>({});
+
+  // Collect unique test device names that have images
+  const devicesWithImages = useMemo(() => {
+    const names = new Set(measurements.map((m) => m.testDevice));
+    return testDevices.filter((d) => names.has(d.name) && d.imageFileName);
+  }, [measurements, testDevices]);
+
+  // Load device images
+  useEffect(() => {
+    if (!githubConfig || devicesWithImages.length === 0) return;
+    let cancelled = false;
+    const load = async () => {
+      const urls: Record<string, string> = {};
+      await Promise.all(
+        devicesWithImages.map(async (d) => {
+          const url = await loadImage(githubConfig, d.imageFileName!);
+          if (url) urls[d.name] = url;
+        })
+      );
+      if (!cancelled) setDeviceImageUrls(urls);
+    };
+    load();
+    return () => { cancelled = true; };
+  }, [githubConfig, devicesWithImages]);
 
   const sorted = [...measurements].sort((a, b) => b.date.localeCompare(a.date));
 
@@ -31,6 +61,9 @@ export default function MeasurementList({ cellId, measurements, nominalCapacity 
 
   return (
     <>
+      {lightboxSrc && (
+        <ImageLightbox src={lightboxSrc} alt="" onClose={() => setLightboxSrc(null)} />
+      )}
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
@@ -103,7 +136,22 @@ export default function MeasurementList({ cellId, measurements, nominalCapacity 
                     {m.dischargeTime != null ? formatMinutes(m.dischargeTime) : "—"}
                   </td>
                   <td className="px-4 py-2.5 hidden lg:table-cell text-gray-500 text-xs dark:text-gray-400">
-                    {m.testDevice}
+                    <div className="flex items-center gap-1.5">
+                      {deviceImageUrls[m.testDevice] && (
+                        <button
+                          onClick={() => setLightboxSrc(deviceImageUrls[m.testDevice])}
+                          className="cursor-pointer flex-shrink-0"
+                          title={m.testDevice}
+                        >
+                          <img
+                            src={deviceImageUrls[m.testDevice]}
+                            alt={m.testDevice}
+                            className="h-6 w-6 rounded object-cover border border-gray-200 dark:border-gray-600 hover:ring-2 hover:ring-blue-400 transition-all"
+                          />
+                        </button>
+                      )}
+                      {m.testDevice}
+                    </div>
                   </td>
                   <td className="px-4 py-2.5 hidden lg:table-cell text-gray-500 text-xs truncate max-w-[150px] dark:text-gray-400">
                     {m.notes || "—"}

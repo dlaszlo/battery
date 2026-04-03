@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams, useRouter } from "next/navigation";
 import { useBatteryStore } from "@/lib/store";
 import { useState, useEffect } from "react";
 import { t } from "@/lib/i18n";
@@ -19,6 +19,8 @@ const navItems: { href: string; labelKey: TranslationKey }[] = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const syncState = useBatteryStore((s) => s.syncState);
   const githubConfig = useBatteryStore((s) => s.githubConfig);
   const pushToGitHub = useBatteryStore((s) => s.pushToGitHub);
@@ -57,6 +59,12 @@ export default function Navbar() {
                 <Link
                   key={item.href}
                   href={item.href}
+                  onClick={(e) => {
+                    if (pathname === item.href && searchParams.toString()) {
+                      e.preventDefault();
+                      router.push(item.href);
+                    }
+                  }}
                   className={`
                     rounded-lg px-3 py-2 text-sm font-medium transition-colors
                     ${active
@@ -107,7 +115,13 @@ export default function Navbar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={() => setMobileOpen(false)}
+                  onClick={(e) => {
+                    setMobileOpen(false);
+                    if (pathname === item.href && searchParams.toString()) {
+                      e.preventDefault();
+                      router.push(item.href);
+                    }
+                  }}
                   className={`
                     block rounded-lg px-3 py-2 text-sm font-medium transition-colors
                     ${active

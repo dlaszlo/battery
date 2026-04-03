@@ -125,21 +125,21 @@ export default function CellTable() {
                 const lastMeasurement = cell.measurements.length > 0
                   ? cell.measurements.reduce((a, b) => (a.date > b.date ? a : b))
                   : null;
-                const isChecked = compareIds.includes(cell.id);
+                const isChecked = compareIds.includes(cell.internalId);
 
                 return (
-                  <tr key={cell.id} className={`hover:bg-gray-50 transition-colors dark:hover:bg-gray-700 ${isChecked ? "bg-blue-50/50 dark:bg-blue-900/20" : ""}`}>
+                  <tr key={cell.internalId} className={`hover:bg-gray-50 transition-colors dark:hover:bg-gray-700 ${isChecked ? "bg-blue-50/50 dark:bg-blue-900/20" : ""}`}>
                     <td className="px-2 py-3 text-center">
                       <input
                         type="checkbox"
                         checked={isChecked}
                         disabled={!isChecked && compareIds.length >= MAX_COMPARE}
-                        onChange={() => toggleCompare(cell.id)}
+                        onChange={() => toggleCompare(cell.internalId)}
                         className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer dark:border-gray-600 dark:bg-gray-700"
                       />
                     </td>
                     <td className="px-4 py-3">
-                      <Link href={`/cells?id=${cell.id}`}>
+                      <Link href={`/cells?id=${cell.internalId}`}>
                         <span className="font-mono font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300">
                           #{cell.id}
                         </span>

@@ -41,12 +41,25 @@ export default function HelpPage() {
             <li>{t("help.measureField2", lang)}</li>
             <li>{t("help.measureField3", lang)}</li>
             <li>{t("help.measureField4", lang)}</li>
+            <li>{t("help.measureField5", lang)}</li>
           </ul>
         </HelpSection>
 
         {/* Auto selejt */}
         <HelpSection title={t("help.scrapTitle", lang)}>
           <p>{t("help.scrapDesc", lang)}</p>
+        </HelpSection>
+
+        {/* SoH */}
+        <HelpSection title={t("help.sohTitle", lang)}>
+          <p>{t("help.sohDesc", lang)}</p>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-sm">
+            <li>{t("help.sohFactor1", lang)}</li>
+            <li>{t("help.sohFactor2", lang)}</li>
+            <li>{t("help.sohFactor3", lang)}</li>
+            <li>{t("help.sohFactor4", lang)}</li>
+          </ul>
+          <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">{t("help.sohGrades", lang)}</p>
         </HelpSection>
 
         {/* Tárolási tippek */}

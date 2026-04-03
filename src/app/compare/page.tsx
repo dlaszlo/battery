@@ -30,7 +30,7 @@ function ComparePageContent() {
   const [search, setSearch] = useState("");
 
   const selectedCells = useMemo(
-    () => selectedIds.map((id) => allCells.find((c) => c.id === id)).filter(Boolean) as Cell[],
+    () => selectedIds.map((id) => allCells.find((c) => c.internalId === id)).filter(Boolean) as Cell[],
     [selectedIds, allCells]
   );
 
@@ -81,12 +81,12 @@ function ComparePageContent() {
             />
             <div className="flex flex-wrap gap-2 max-h-40 overflow-y-auto">
               {availableCells.map((c) => {
-                const isSelected = selectedIds.includes(c.id);
+                const isSelected = selectedIds.includes(c.internalId);
                 const isDisabled = !isSelected && selectedIds.length >= MAX_COMPARE;
                 return (
                   <button
-                    key={c.id}
-                    onClick={() => toggleCell(c.id)}
+                    key={c.internalId}
+                    onClick={() => toggleCell(c.internalId)}
                     disabled={isDisabled}
                     className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
                       isSelected
@@ -248,11 +248,11 @@ function ProductCompareTable({
             {cells.map((cell) => (
               <th key={cell.id} className="px-4 py-3 text-center min-w-[130px]">
                 <div className="flex flex-col items-center gap-1">
-                  <Link href={`/cells?id=${cell.id}`} className="text-sm font-semibold text-blue-600 hover:underline dark:text-blue-400">
+                  <Link href={`/cells?id=${cell.internalId}`} className="text-sm font-semibold text-blue-600 hover:underline dark:text-blue-400">
                     #{cell.id}
                   </Link>
                   <button
-                    onClick={() => onRemove(cell.id)}
+                    onClick={() => onRemove(cell.internalId)}
                     className="rounded p-0.5 text-gray-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400"
                     title={t("compare.remove", lang)}
                   >
@@ -392,13 +392,13 @@ function BestPairs({ cells, lang }: { cells: Cell[]; lang: Language }) {
               return (
                 <tr key={i} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                   <td className="px-4 py-2.5">
-                    <Link href={`/cells?id=${p.cellA.id}`} className="text-blue-600 hover:underline dark:text-blue-400">
+                    <Link href={`/cells?id=${p.cellA.internalId}`} className="text-blue-600 hover:underline dark:text-blue-400">
                       #{p.cellA.id}
                     </Link>
                     <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">({formatCapacity(p.capA)})</span>
                   </td>
                   <td className="px-4 py-2.5">
-                    <Link href={`/cells?id=${p.cellB.id}`} className="text-blue-600 hover:underline dark:text-blue-400">
+                    <Link href={`/cells?id=${p.cellB.internalId}`} className="text-blue-600 hover:underline dark:text-blue-400">
                       #{p.cellB.id}
                     </Link>
                     <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">({formatCapacity(p.capB)})</span>
