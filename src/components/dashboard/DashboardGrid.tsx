@@ -193,6 +193,7 @@ export default function DashboardGrid() {
 }
 
 const ALERT_CONFIG: Record<string, { icon: string; color: string; bgColor: string; borderColor: string }> = {
+  neverMeasured: { icon: "plus", color: "text-gray-600 dark:text-gray-400", bgColor: "bg-gray-50 dark:bg-gray-700/30", borderColor: "border-gray-200 dark:border-gray-600" },
   notMeasured: { icon: "clock", color: "text-amber-600 dark:text-amber-400", bgColor: "bg-amber-50 dark:bg-amber-900/20", borderColor: "border-amber-200 dark:border-amber-800" },
   weakening: { icon: "trending-down", color: "text-orange-600 dark:text-orange-400", bgColor: "bg-orange-50 dark:bg-orange-900/20", borderColor: "border-orange-200 dark:border-orange-800" },
   poorSoH: { icon: "heart", color: "text-red-600 dark:text-red-400", bgColor: "bg-red-50 dark:bg-red-900/20", borderColor: "border-red-200 dark:border-red-800" },
@@ -202,6 +203,12 @@ const ALERT_CONFIG: Record<string, { icon: string; color: string; bgColor: strin
 function AlertIcon({ type }: { type: string }) {
   const cls = "h-4 w-4 flex-shrink-0";
   switch (type) {
+    case "neverMeasured":
+      return (
+        <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      );
     case "notMeasured":
       return (
         <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -241,7 +248,7 @@ function AlertsSection({ alerts, lang }: { alerts: AlertCell[]; lang: Language }
   }
 
   // Deduplicate: one cell can appear multiple times, show each cell only once per reason
-  const reasonOrder = ["poorSoH", "weakening", "notMeasured", "longStorage"];
+  const reasonOrder = ["poorSoH", "weakening", "notMeasured", "neverMeasured", "longStorage"];
 
   return (
     <div className="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">

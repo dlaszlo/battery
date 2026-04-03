@@ -115,23 +115,25 @@ export function useCellStats(lang: Language = "hu") {
     for (const cell of cells) {
       if (cell.status === "scrapped") continue;
 
+      // Never measured
+      if (cell.measurements.length === 0) {
+        alerts.push({ cell, reason: "neverMeasured", detail: "" });
+        continue;
+      }
+
       // Not measured in 6+ months
-      if (cell.measurements.length > 0) {
-        const lastDate = cell.measurements.reduce((a, b) => (a.date > b.date ? a : b)).date;
-        const elapsed = now - new Date(lastDate).getTime();
-        if (elapsed > SIX_MONTHS) {
-          const months = Math.floor(elapsed / (30 * 24 * 60 * 60 * 1000));
-          alerts.push({ cell, reason: "notMeasured", detail: `${months}` });
-        }
+      const lastDate = cell.measurements.reduce((a, b) => (a.date > b.date ? a : b)).date;
+      const elapsed = now - new Date(lastDate).getTime();
+      if (elapsed > SIX_MONTHS) {
+        const months = Math.floor(elapsed / (30 * 24 * 60 * 60 * 1000));
+        alerts.push({ cell, reason: "notMeasured", detail: `${months}` });
       }
 
       // Weakening: last measurement <70%
-      if (cell.measurements.length > 0) {
-        const last = cell.measurements.reduce((a, b) => (a.date > b.date ? a : b));
-        const pct = capacityPercent(last.measuredCapacity, cell.nominalCapacity);
-        if (pct < 70) {
-          alerts.push({ cell, reason: "weakening", detail: `${pct}%` });
-        }
+      const last = cell.measurements.reduce((a, b) => (a.date > b.date ? a : b));
+      const pct = capacityPercent(last.measuredCapacity, cell.nominalCapacity);
+      if (pct < 70) {
+        alerts.push({ cell, reason: "weakening", detail: `${pct}%` });
       }
 
       // Poor/critical SoH

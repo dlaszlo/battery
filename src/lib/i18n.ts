@@ -24,6 +24,7 @@ const translations = {
   "dashboard.byFormFactor": { hu: "Form faktor szerint", en: "By Form Factor" },
   "dashboard.alerts": { hu: "Figyelem", en: "Alerts" },
   "dashboard.alertsEmpty": { hu: "Minden rendben, nincs tennivaló.", en: "All good, nothing to do." },
+  "dashboard.neverMeasured": { hu: "Még nem mért cellák", en: "Never measured cells" },
   "dashboard.notMeasured": { hu: "Régóta nem mért cellák (6+ hónap)", en: "Cells not measured in 6+ months" },
   "dashboard.weakening": { hu: "Gyengülő cellák (<70%)", en: "Weakening cells (<70%)" },
   "dashboard.poorSoH": { hu: "Rossz állapotú cellák", en: "Poor condition cells" },
