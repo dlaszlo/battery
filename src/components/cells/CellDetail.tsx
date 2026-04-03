@@ -156,11 +156,11 @@ export default function CellDetail({ cell }: CellDetailProps) {
           )}
           <div>
             <div className="flex items-center gap-3">
-              <Link href="/cells" className="text-gray-400 hover:text-gray-600 transition-colors dark:text-gray-500 dark:hover:text-gray-300">
+              <button onClick={() => router.push("/cells")} className="text-gray-400 hover:text-gray-600 transition-colors dark:text-gray-500 dark:hover:text-gray-300 cursor-pointer">
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                 </svg>
-              </Link>
+              </button>
               <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100">
                 #{cell.id} &middot; {cell.brand}{cell.model ? ` ${cell.model}` : ""}
               </h2>

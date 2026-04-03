@@ -60,9 +60,9 @@ export default function Navbar() {
                   key={item.href}
                   href={item.href}
                   onClick={(e) => {
-                    if (pathname === item.href && searchParams.toString()) {
+                    if (pathname === item.href) {
                       e.preventDefault();
-                      router.push(item.href);
+                      router.replace(item.href);
                     }
                   }}
                   className={`
@@ -117,9 +117,9 @@ export default function Navbar() {
                   href={item.href}
                   onClick={(e) => {
                     setMobileOpen(false);
-                    if (pathname === item.href && searchParams.toString()) {
+                    if (pathname === item.href) {
                       e.preventDefault();
-                      router.push(item.href);
+                      router.replace(item.href);
                     }
                   }}
                   className={`
