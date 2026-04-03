@@ -22,6 +22,17 @@ const translations = {
   "dashboard.addFirst": { hu: "Adj hozzá egyet!", en: "Add one!" },
   "dashboard.byChemistry": { hu: "Kémia szerint", en: "By Chemistry" },
   "dashboard.byFormFactor": { hu: "Form faktor szerint", en: "By Form Factor" },
+  "dashboard.alerts": { hu: "Figyelem", en: "Alerts" },
+  "dashboard.alertsEmpty": { hu: "Minden rendben, nincs tennivaló.", en: "All good, nothing to do." },
+  "dashboard.notMeasured": { hu: "Régóta nem mért cellák (6+ hónap)", en: "Cells not measured in 6+ months" },
+  "dashboard.weakening": { hu: "Gyengülő cellák (<70%)", en: "Weakening cells (<70%)" },
+  "dashboard.poorSoH": { hu: "Rossz állapotú cellák", en: "Poor condition cells" },
+  "dashboard.longStorage": { hu: "Régóta raktáron (3+ hónap)", en: "In storage for 3+ months" },
+  "dashboard.lastMeasured": { hu: "Utolsó mérés", en: "Last measured" },
+  "dashboard.ago": { hu: "ezelőtt", en: "ago" },
+  "dashboard.byDevice": { hu: "Eszköz szerint", en: "By Device" },
+  "dashboard.noDevice": { hu: "Nincs hozzárendelve", en: "Unassigned" },
+  "dashboard.recentMeasurements": { hu: "Legutóbbi mérések", en: "Recent Measurements" },
 
   // Cell list
   "cells.title": { hu: "Cellák", en: "Cells" },

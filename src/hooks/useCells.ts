@@ -1,6 +1,8 @@
 import { useMemo } from "react";
 import { useBatteryStore } from "@/lib/store";
-import type { CellStatus, Chemistry, FormFactor } from "@/lib/types";
+import { estimateSoH } from "@/lib/soh";
+import { capacityPercent } from "@/lib/utils";
+import type { Cell, CellStatus, Chemistry, FormFactor, Language } from "@/lib/types";
 
 interface CellFilters {
   search?: string;
@@ -62,46 +64,125 @@ export function useCells(
   }, [cells, filters, sortField, sortDirection]);
 }
 
-export function useCellStats() {
+export interface AlertCell {
+  cell: Cell;
+  reason: string;
+  detail: string;
+}
+
+export interface RecentMeasurement {
+  cell: Cell;
+  date: string;
+  capacity: number;
+  pct: number;
+}
+
+export function useCellStats(lang: Language = "hu") {
   const cells = useBatteryStore((s) => s.cells);
 
   return useMemo(() => {
-    const activeCells = cells;
-    const total = activeCells.length;
-    const active = activeCells.filter((c) => c.status !== "scrapped").length;
-    const scrapped = activeCells.filter((c) => c.status === "scrapped").length;
-    const totalValue = activeCells.reduce((sum, c) => sum + c.pricePerUnit, 0);
-    const totalMeasurements = activeCells.reduce((sum, c) => sum + c.measurements.length, 0);
+    const total = cells.length;
+    const active = cells.filter((c) => c.status !== "scrapped").length;
+    const scrapped = cells.filter((c) => c.status === "scrapped").length;
+    const totalMeasurements = cells.reduce((sum, c) => sum + c.measurements.length, 0);
 
     const byStatus: Record<string, number> = {};
     const byChemistry: Record<string, number> = {};
     const byFormFactor: Record<string, number> = {};
+    const byDevice: Record<string, number> = {};
 
-    for (const cell of activeCells) {
+    for (const cell of cells) {
       byStatus[cell.status] = (byStatus[cell.status] || 0) + 1;
       byChemistry[cell.chemistry] = (byChemistry[cell.chemistry] || 0) + 1;
       byFormFactor[cell.formFactor] = (byFormFactor[cell.formFactor] || 0) + 1;
+      const device = cell.currentDevice || "__none__";
+      byDevice[device] = (byDevice[device] || 0) + 1;
     }
 
-    const recentCells = [...activeCells]
+    const recentCells = [...cells]
       .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
       .slice(0, 5);
 
     const sortedByCount = (rec: Record<string, number>) =>
       Object.fromEntries(Object.entries(rec).sort(([, a], [, b]) => b - a));
 
+    // --- Alerts ---
+    const now = Date.now();
+    const SIX_MONTHS = 6 * 30 * 24 * 60 * 60 * 1000;
+    const THREE_MONTHS = 3 * 30 * 24 * 60 * 60 * 1000;
+    const alerts: AlertCell[] = [];
+
+    for (const cell of cells) {
+      if (cell.status === "scrapped") continue;
+
+      // Not measured in 6+ months
+      if (cell.measurements.length > 0) {
+        const lastDate = cell.measurements.reduce((a, b) => (a.date > b.date ? a : b)).date;
+        const elapsed = now - new Date(lastDate).getTime();
+        if (elapsed > SIX_MONTHS) {
+          const months = Math.floor(elapsed / (30 * 24 * 60 * 60 * 1000));
+          alerts.push({ cell, reason: "notMeasured", detail: `${months}` });
+        }
+      }
+
+      // Weakening: last measurement <70%
+      if (cell.measurements.length > 0) {
+        const last = cell.measurements.reduce((a, b) => (a.date > b.date ? a : b));
+        const pct = capacityPercent(last.measuredCapacity, cell.nominalCapacity);
+        if (pct < 70) {
+          alerts.push({ cell, reason: "weakening", detail: `${pct}%` });
+        }
+      }
+
+      // Poor/critical SoH
+      const soh = estimateSoH(cell, lang);
+      if (soh && (soh.grade === "poor" || soh.grade === "critical")) {
+        alerts.push({ cell, reason: "poorSoH", detail: `${soh.score}% (${soh.grade})` });
+      }
+
+      // Long storage (3+ months)
+      if (cell.currentDevice === "Raktáron") {
+        const deviceEvent = [...(cell.events || [])]
+          .reverse()
+          .find((e) => e.type === "device_changed" && e.description.includes("Raktáron"));
+        const sinceDate = deviceEvent ? deviceEvent.date : cell.updatedAt;
+        const elapsed = now - new Date(sinceDate).getTime();
+        if (elapsed > THREE_MONTHS) {
+          const months = Math.floor(elapsed / (30 * 24 * 60 * 60 * 1000));
+          alerts.push({ cell, reason: "longStorage", detail: `${months}` });
+        }
+      }
+    }
+
+    // --- Recent measurements ---
+    const recentMeasurements: RecentMeasurement[] = [];
+    for (const cell of cells) {
+      for (const m of cell.measurements) {
+        recentMeasurements.push({
+          cell,
+          date: m.date,
+          capacity: m.measuredCapacity,
+          pct: capacityPercent(m.measuredCapacity, cell.nominalCapacity),
+        });
+      }
+    }
+    recentMeasurements.sort((a, b) => b.date.localeCompare(a.date));
+    const topMeasurements = recentMeasurements.slice(0, 8);
+
     return {
       total,
       active,
       scrapped,
-      totalValue,
       totalMeasurements,
       byStatus: sortedByCount(byStatus),
       byChemistry: sortedByCount(byChemistry),
       byFormFactor: sortedByCount(byFormFactor),
+      byDevice: sortedByCount(byDevice),
       recentCells,
+      alerts,
+      recentMeasurements: topMeasurements,
     };
-  }, [cells]);
+  }, [cells, lang]);
 }
 
 export function useGroups(): string[] {
