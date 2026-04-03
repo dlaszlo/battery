@@ -299,16 +299,11 @@ function AlertsSection({ alerts, lang }: { alerts: AlertCell[]; lang: Language }
   const reasonOrder = ["poorSoH", "weakening", "notMeasured", "neverMeasured", "longStorage"];
   const activeReasons = reasonOrder.filter((r) => (grouped.get(r)?.length ?? 0) > 0);
 
-  // Track which sections are open — first one open by default
-  const [openSections, setOpenSections] = useState<Set<string>>(() => new Set(activeReasons.slice(0, 1)));
+  // Only one section open at a time — first one by default
+  const [openSection, setOpenSection] = useState<string | null>(activeReasons[0] ?? null);
 
   const toggleSection = (reason: string) => {
-    setOpenSections((prev) => {
-      const next = new Set(prev);
-      if (next.has(reason)) next.delete(reason);
-      else next.add(reason);
-      return next;
-    });
+    setOpenSection((prev) => (prev === reason ? null : reason));
   };
 
   return (
@@ -341,7 +336,7 @@ function AlertsSection({ alerts, lang }: { alerts: AlertCell[]; lang: Language }
               if (!items || items.length === 0) return null;
               const config = ALERT_CONFIG[reason];
               const reasonKey = `dashboard.${reason}` as import("@/lib/i18n").TranslationKey;
-              const isOpen = openSections.has(reason);
+              const isOpen = openSection === reason;
               return (
                 <div key={reason} className={`rounded-lg border ${config.borderColor} overflow-hidden`}>
                   <button
