@@ -272,7 +272,10 @@ export default function CellDetail({ cell }: CellDetailProps) {
             </div>
           </div>
           <button
-            onClick={() => updateCell(cell.internalId, { storageReady: true })}
+            onClick={() => {
+              updateCell(cell.internalId, { storageReady: true });
+              if (githubConfig) pushToGitHub();
+            }}
             className="shrink-0 rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-violet-700 transition-colors"
           >
             {t("storageReady.markReady", lang)}
@@ -290,7 +293,10 @@ export default function CellDetail({ cell }: CellDetailProps) {
             </p>
           </div>
           <button
-            onClick={() => updateCell(cell.internalId, { storageReady: false })}
+            onClick={() => {
+              updateCell(cell.internalId, { storageReady: false });
+              if (githubConfig) pushToGitHub();
+            }}
             className="shrink-0 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
           >
             {t("storageReady.markNotReady", lang)}
