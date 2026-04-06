@@ -280,7 +280,16 @@ export default function CellTable() {
                     <td className="px-4 py-3">
                       <StatusBadge status={cell.status} />
                     </td>
-                    <td className="px-4 py-3 hidden xl:table-cell text-gray-500 dark:text-gray-400">{cell.currentDevice || t("info.inStorage", lang)}</td>
+                    <td className="px-4 py-3 hidden xl:table-cell text-gray-500 dark:text-gray-400">
+                      {cell.currentDevice || t("info.inStorage", lang)}
+                      {!cell.currentDevice && cell.storageReady && (
+                        <span className="ml-1.5 inline-flex items-center text-green-500" title={t("storageReady.ready", lang)}>
+                          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 hidden lg:table-cell text-gray-500 dark:text-gray-400">{cell.group || "—"}</td>
                   </tr>
                 );
