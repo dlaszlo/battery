@@ -144,7 +144,7 @@ export function useCellStats(lang: Language = "hu") {
 
       // Needs discharge (in storage but not discharged to storage voltage)
       // Empty currentDevice = in storage
-      if (!cell.currentDevice && cell.storageReady === false) {
+      if (!cell.currentDevice && !cell.storageReady) {
         alerts.push({ cell, reason: "needsDischarge", detail: "" });
       }
 

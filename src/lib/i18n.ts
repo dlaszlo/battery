@@ -155,7 +155,7 @@ const translations = {
   "storageReady.ready": { hu: "Tárolásra kész", en: "Storage ready" },
   "storageReady.needsDischarge": { hu: "Lemerítésre vár", en: "Needs discharge" },
   "storageReady.markReady": { hu: "Lemerítve", en: "Mark as discharged" },
-  "storageReady.markNotReady": { hu: "Mégsem kész", en: "Mark as not ready" },
+  "storageReady.markNotReady": { hu: "Mégsem", en: "Undo" },
 
   // Form validation
   "validation.idRequired": { hu: "Sorszám kötelező", en: "Serial number is required" },

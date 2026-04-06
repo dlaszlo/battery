@@ -256,7 +256,7 @@ export default function CellDetail({ cell }: CellDetailProps) {
       {cell.measurements.length > 0 && <SoHCard cell={cell} lang={lang} />}
 
       {/* Storage readiness toggle */}
-      {!cell.currentDevice && cell.storageReady === false && (
+      {!cell.currentDevice && !cell.storageReady && (
         <div className="flex items-center justify-between gap-3 rounded-xl border border-violet-300 bg-violet-50 px-5 py-4 dark:border-violet-700 dark:bg-violet-900/30">
           <div className="flex items-center gap-3">
             <svg className="h-5 w-5 flex-shrink-0 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>

@@ -89,7 +89,7 @@ function applyDashboardFilter(cells: Cell[], filter: string, lang: "hu" | "en"):
             return (now - new Date(sinceDate).getTime()) > THREE_MONTHS;
           });
         case "needsDischarge":
-          return cells.filter((c) => !c.currentDevice && c.storageReady === false);
+          return cells.filter((c) => !c.currentDevice && !c.storageReady);
         default:
           return cells;
       }
