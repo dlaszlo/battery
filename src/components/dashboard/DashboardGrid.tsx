@@ -167,7 +167,7 @@ export default function DashboardGrid() {
               {Object.entries(stats.byDevice).map(([device, count]) => (
                 <Link key={device} href={dLink(`/cells?filter=device:${encodeURIComponent(device)}`)} className="flex items-center justify-between text-sm hover:bg-gray-50 dark:hover:bg-gray-700 rounded px-2 py-1 -mx-2 transition-colors">
                   <span className="text-gray-600 dark:text-gray-300 truncate mr-2">
-                    {device === "__none__" ? t("dashboard.noDevice", lang) : device}
+                    {device === "__none__" ? t("info.inStorage", lang) : device}
                   </span>
                   <span className="font-medium text-blue-600 dark:text-blue-400 flex-shrink-0">{count} {t("dashboard.pcs", lang)} &rarr;</span>
                 </Link>

@@ -114,7 +114,7 @@ const translations = {
   "form.batchNumber": { hu: "Gyártási tétel (batch)", en: "Batch Number" },
   "form.batchNumberPlaceholder": { hu: "pl. P298J242A0", en: "e.g. P298J242A0" },
   "form.currentDevice": { hu: "Jelenlegi eszköz", en: "Current Device" },
-  "form.currentDevicePlaceholder": { hu: "pl. Raktáron", en: "e.g. Storage" },
+  "form.currentDevicePlaceholder": { hu: "Üres = raktáron", en: "Empty = in storage" },
   "form.group": { hu: "Csoport / Pakk", en: "Group / Pack" },
   "form.groupPlaceholder": { hu: "pl. E-bike 1. pakk", en: "e.g. E-bike pack 1" },
   "form.notes": { hu: "Megjegyzés", en: "Notes" },
@@ -190,6 +190,7 @@ const translations = {
   "info.batchNumber": { hu: "Gyártási tétel", en: "Batch Number" },
   "info.group": { hu: "Csoport / Pakk", en: "Group / Pack" },
   "info.notes": { hu: "Megjegyzés", en: "Notes" },
+  "info.inStorage": { hu: "Raktáron", en: "In storage" },
 
   // Status values
   "status.new": { hu: "Új", en: "New" },

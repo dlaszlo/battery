@@ -290,10 +290,11 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
           events.push(createEvent("device_changed", `Eszköz: ${from} → ${to}`));
 
           // Storage readiness auto-logic on device change
-          if (updates.currentDevice === "Raktáron" && c.currentDevice !== "Raktáron") {
+          // Empty currentDevice = in storage
+          if (!updates.currentDevice && c.currentDevice) {
             updates.storageReady = false;
             events.push(createEvent("storage_ready_changed", "Lemerítésre vár (raktárba helyezve)"));
-          } else if (updates.currentDevice !== "Raktáron" && c.currentDevice === "Raktáron") {
+          } else if (updates.currentDevice && !c.currentDevice) {
             updates.storageReady = undefined;
           }
         }
@@ -365,11 +366,10 @@ export const useBatteryStore = create<BatteryStore>((set, get) => ({
         };
 
         // Auto-reset storage readiness after measurement (cell is fully charged)
-        if (cell.currentDevice === "Raktáron" && cell.storageReady !== false) {
+        // Empty currentDevice = in storage
+        if (!cell.currentDevice && cell.storageReady !== false) {
           updated.storageReady = false;
           newEvents.push(createEvent("storage_ready_changed", "Lemerítésre vár (mérés után)"));
-        } else if (cell.currentDevice === "Raktáron" && cell.storageReady === false) {
-          // Already false, no event needed
         }
 
         if (

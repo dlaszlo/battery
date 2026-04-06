@@ -87,13 +87,14 @@ export default function CellDetail({ cell }: CellDetailProps) {
       ? cell.measurements.reduce((a, b) => (a.date > b.date ? a : b))
       : null;
 
-  // Storage warning: check if cell has been in "Raktáron" for a long time
+  // Storage warning: check if cell has been in storage for a long time
+  // Empty currentDevice = in storage
   const storageMonths = (() => {
-    if (cell.currentDevice !== "Raktáron") return 0;
+    if (cell.currentDevice) return 0;
     const deviceEvent = [...(cell.events || [])]
       .reverse()
-      .find((e) => e.type === "device_changed" && e.description.includes("Raktáron"));
-    const sinceDate = deviceEvent ? deviceEvent.date : cell.updatedAt;
+      .find((e) => e.type === "device_changed");
+    const sinceDate = deviceEvent ? deviceEvent.date : cell.createdAt;
     const diffMs = Date.now() - new Date(sinceDate).getTime();
     return Math.floor(diffMs / (1000 * 60 * 60 * 24 * 30));
   })();
@@ -207,7 +208,7 @@ export default function CellDetail({ cell }: CellDetailProps) {
           <InfoRow label={t("info.continuousDischargeCurrent", lang)} value={cell.continuousDischargeCurrent ? `${cell.continuousDischargeCurrent} A` : "—"} />
           <InfoRow label={t("info.peakDischargeCurrent", lang)} value={cell.peakDischargeCurrent ? `${cell.peakDischargeCurrent} A` : "—"} />
           <InfoRow label={t("info.status", lang)} value={enumLabel("status", cell.status, lang)} />
-          <InfoRow label={t("info.currentDevice", lang)} value={cell.currentDevice || "—"} />
+          <InfoRow label={t("info.currentDevice", lang)} value={cell.currentDevice || t("info.inStorage", lang)} />
           <InfoRow label={t("info.platform", lang)} value={cell.platform ? enumLabel("platform", cell.platform, lang) : "—"} />
           <InfoRow label={t("info.seller", lang)} value={cell.seller || "—"} />
           {cell.purchaseUrl ? (
@@ -255,7 +256,7 @@ export default function CellDetail({ cell }: CellDetailProps) {
       {cell.measurements.length > 0 && <SoHCard cell={cell} lang={lang} />}
 
       {/* Storage readiness toggle */}
-      {cell.currentDevice === "Raktáron" && cell.storageReady === false && (
+      {!cell.currentDevice && cell.storageReady === false && (
         <div className="flex items-center justify-between gap-3 rounded-xl border border-violet-300 bg-violet-50 px-5 py-4 dark:border-violet-700 dark:bg-violet-900/30">
           <div className="flex items-center gap-3">
             <svg className="h-5 w-5 flex-shrink-0 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -278,7 +279,7 @@ export default function CellDetail({ cell }: CellDetailProps) {
           </button>
         </div>
       )}
-      {cell.currentDevice === "Raktáron" && cell.storageReady === true && (
+      {!cell.currentDevice && cell.storageReady === true && (
         <div className="flex items-center justify-between gap-3 rounded-xl border border-green-300 bg-green-50 px-5 py-4 dark:border-green-700 dark:bg-green-900/30">
           <div className="flex items-center gap-3">
             <svg className="h-5 w-5 flex-shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>

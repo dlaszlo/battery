@@ -54,7 +54,6 @@ export const PLATFORMS = [
 ];
 
 export const DEFAULT_DEVICES: import("./types").Device[] = [
-  { id: "storage", name: "Raktáron" },
   { id: "ebike1", name: "E-bike #1" },
   { id: "powerwall", name: "Powerwall" },
   { id: "lt1", name: "LT1" },

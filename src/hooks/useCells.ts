@@ -143,16 +143,18 @@ export function useCellStats(lang: Language = "hu") {
       }
 
       // Needs discharge (in storage but not discharged to storage voltage)
-      if (cell.currentDevice === "Raktáron" && cell.storageReady === false) {
+      // Empty currentDevice = in storage
+      if (!cell.currentDevice && cell.storageReady === false) {
         alerts.push({ cell, reason: "needsDischarge", detail: "" });
       }
 
-      // Long storage (3+ months)
-      if (cell.currentDevice === "Raktáron") {
+      // Long storage (3+ months) — cells with no device are in storage
+      if (!cell.currentDevice) {
+        // Use the last device_changed event or cell creation date
         const deviceEvent = [...(cell.events || [])]
           .reverse()
-          .find((e) => e.type === "device_changed" && e.description.includes("Raktáron"));
-        const sinceDate = deviceEvent ? deviceEvent.date : cell.updatedAt;
+          .find((e) => e.type === "device_changed");
+        const sinceDate = deviceEvent ? deviceEvent.date : cell.createdAt;
         const storageElapsed = now - new Date(sinceDate).getTime();
         if (storageElapsed > THREE_MONTHS) {
           const months = Math.floor(storageElapsed / (30 * 24 * 60 * 60 * 1000));

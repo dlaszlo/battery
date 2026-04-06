@@ -35,6 +35,7 @@ function getFilterLabel(filter: string, lang: "hu" | "en"): string {
         weakening: lang === "hu" ? "Gyengülő (<70%)" : "Weakening (<70%)",
         poorSoH: lang === "hu" ? "Rossz állapotú" : "Poor SoH",
         longStorage: lang === "hu" ? "Régóta raktáron" : "Long storage",
+        needsDischarge: lang === "hu" ? "Lemerítésre vár" : "Needs discharge",
       };
       return keys[value] || value;
     }
@@ -80,13 +81,15 @@ function applyDashboardFilter(cells: Cell[], filter: string, lang: "hu" | "en"):
           });
         case "longStorage":
           return cells.filter((c) => {
-            if (c.status === "scrapped" || c.currentDevice !== "Raktáron") return false;
+            if (c.status === "scrapped" || c.currentDevice) return false;
             const deviceEvent = [...(c.events || [])]
               .reverse()
-              .find((e) => e.type === "device_changed" && e.description.includes("Raktáron"));
-            const sinceDate = deviceEvent ? deviceEvent.date : c.updatedAt;
+              .find((e) => e.type === "device_changed");
+            const sinceDate = deviceEvent ? deviceEvent.date : c.createdAt;
             return (now - new Date(sinceDate).getTime()) > THREE_MONTHS;
           });
+        case "needsDischarge":
+          return cells.filter((c) => !c.currentDevice && c.storageReady === false);
         default:
           return cells;
       }
@@ -277,7 +280,7 @@ export default function CellTable() {
                     <td className="px-4 py-3">
                       <StatusBadge status={cell.status} />
                     </td>
-                    <td className="px-4 py-3 hidden xl:table-cell text-gray-500 dark:text-gray-400">{cell.currentDevice || "—"}</td>
+                    <td className="px-4 py-3 hidden xl:table-cell text-gray-500 dark:text-gray-400">{cell.currentDevice || t("info.inStorage", lang)}</td>
                     <td className="px-4 py-3 hidden lg:table-cell text-gray-500 dark:text-gray-400">{cell.group || "—"}</td>
                   </tr>
                 );
