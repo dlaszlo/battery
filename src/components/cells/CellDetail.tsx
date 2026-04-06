@@ -158,7 +158,7 @@ export default function CellDetail({ cell }: CellDetailProps) {
           )}
           <div>
             <div className="flex items-center gap-3">
-              <button onClick={() => fromDashboard ? router.back() : router.push("/cells")} className="text-gray-400 hover:text-gray-600 transition-colors dark:text-gray-500 dark:hover:text-gray-300 cursor-pointer">
+              <button onClick={() => fromDashboard ? router.back() : router.replace("/cells")} className="text-gray-400 hover:text-gray-600 transition-colors dark:text-gray-500 dark:hover:text-gray-300 cursor-pointer">
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                 </svg>
@@ -274,7 +274,7 @@ export default function CellDetail({ cell }: CellDetailProps) {
           <button
             onClick={() => {
               updateCell(cell.internalId, { storageReady: true });
-              if (githubConfig) pushToGitHub();
+              if (githubConfig) setTimeout(() => pushToGitHub(), 100);
             }}
             className="shrink-0 rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-violet-700 transition-colors"
           >
@@ -295,7 +295,7 @@ export default function CellDetail({ cell }: CellDetailProps) {
           <button
             onClick={() => {
               updateCell(cell.internalId, { storageReady: false });
-              if (githubConfig) pushToGitHub();
+              if (githubConfig) setTimeout(() => pushToGitHub(), 100);
             }}
             className="shrink-0 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
           >
