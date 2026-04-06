@@ -208,6 +208,7 @@ const ALERT_CONFIG: Record<string, { color: string; bgColor: string; borderColor
   weakening: { color: "text-orange-600 dark:text-orange-400", bgColor: "bg-orange-50 dark:bg-orange-900/20", borderColor: "border-orange-200 dark:border-orange-800", badgeColor: "bg-orange-200 text-orange-800 dark:bg-orange-800 dark:text-orange-200" },
   poorSoH: { color: "text-red-600 dark:text-red-400", bgColor: "bg-red-50 dark:bg-red-900/20", borderColor: "border-red-200 dark:border-red-800", badgeColor: "bg-red-200 text-red-800 dark:bg-red-800 dark:text-red-200" },
   longStorage: { color: "text-blue-600 dark:text-blue-400", bgColor: "bg-blue-50 dark:bg-blue-900/20", borderColor: "border-blue-200 dark:border-blue-800", badgeColor: "bg-blue-200 text-blue-800 dark:bg-blue-800 dark:text-blue-200" },
+  needsDischarge: { color: "text-violet-600 dark:text-violet-400", bgColor: "bg-violet-50 dark:bg-violet-900/20", borderColor: "border-violet-200 dark:border-violet-800", badgeColor: "bg-violet-200 text-violet-800 dark:bg-violet-800 dark:text-violet-200" },
 };
 
 function AlertIcon({ type, className }: { type: string; className?: string }) {
@@ -241,6 +242,12 @@ function AlertIcon({ type, className }: { type: string; className?: string }) {
       return (
         <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+        </svg>
+      );
+    case "needsDischarge":
+      return (
+        <svg className={cls} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
         </svg>
       );
     default:
@@ -304,7 +311,7 @@ function AlertsSection({ alerts, lang }: { alerts: AlertCell[]; lang: Language }
 
   const imageUrls = useCellImages(uniqueCells);
 
-  const reasonOrder = ["poorSoH", "weakening", "notMeasured", "neverMeasured", "longStorage"];
+  const reasonOrder = ["poorSoH", "weakening", "notMeasured", "neverMeasured", "needsDischarge", "longStorage"];
   const activeReasons = reasonOrder.filter((r) => (grouped.get(r)?.length ?? 0) > 0);
 
   // Only one section open at a time — first one by default

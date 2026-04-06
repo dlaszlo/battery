@@ -27,6 +27,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         <input
           ref={ref}
           id={inputId}
+          lang={props.type === "number" ? "en" : undefined}
           className={`
             block w-full rounded-lg border px-3 py-2 text-sm
             transition-colors duration-150

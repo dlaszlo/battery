@@ -29,6 +29,7 @@ const translations = {
   "dashboard.weakening": { hu: "Gyengülő cellák (<70%)", en: "Weakening cells (<70%)" },
   "dashboard.poorSoH": { hu: "Rossz állapotú cellák", en: "Poor condition cells" },
   "dashboard.longStorage": { hu: "Régóta raktáron (3+ hónap)", en: "In storage for 3+ months" },
+  "dashboard.needsDischarge": { hu: "Lemerítésre vár", en: "Needs discharge" },
   "dashboard.lastMeasured": { hu: "Utolsó mérés", en: "Last measured" },
   "dashboard.ago": { hu: "ezelőtt", en: "ago" },
   "dashboard.byDevice": { hu: "Eszköz szerint", en: "By Device" },
@@ -151,6 +152,10 @@ const translations = {
   // Storage warnings
   "warning.storageVoltage": { hu: "Hosszú távú tároláshoz merítsd le ~3.6-3.7V-ra (40-50% töltöttség). A 4.2V-on tárolt cellák gyorsabban degradálódnak.", en: "For long-term storage, discharge to ~3.6-3.7V (40-50% charge). Cells stored at 4.2V degrade faster." },
   "warning.storageCheck": { hu: "{months} hónapja raktáron — ellenőrizd a feszültséget és a cella állapotát.", en: "In storage for {months} months — check the voltage and cell condition." },
+  "storageReady.ready": { hu: "Tárolásra kész", en: "Storage ready" },
+  "storageReady.needsDischarge": { hu: "Lemerítésre vár", en: "Needs discharge" },
+  "storageReady.markReady": { hu: "Lemerítve", en: "Mark as discharged" },
+  "storageReady.markNotReady": { hu: "Mégsem kész", en: "Mark as not ready" },
 
   // Form validation
   "validation.idRequired": { hu: "Sorszám kötelező", en: "Serial number is required" },

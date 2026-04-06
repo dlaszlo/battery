@@ -142,6 +142,11 @@ export function useCellStats(lang: Language = "hu") {
         alerts.push({ cell, reason: "poorSoH", detail: `${soh.score}% (${soh.grade})` });
       }
 
+      // Needs discharge (in storage but not discharged to storage voltage)
+      if (cell.currentDevice === "Raktáron" && cell.storageReady === false) {
+        alerts.push({ cell, reason: "needsDischarge", detail: "" });
+      }
+
       // Long storage (3+ months)
       if (cell.currentDevice === "Raktáron") {
         const deviceEvent = [...(cell.events || [])]

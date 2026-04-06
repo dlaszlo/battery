@@ -254,6 +254,49 @@ export default function CellDetail({ cell }: CellDetailProps) {
       {/* SoH estimation */}
       {cell.measurements.length > 0 && <SoHCard cell={cell} lang={lang} />}
 
+      {/* Storage readiness toggle */}
+      {cell.currentDevice === "Raktáron" && cell.storageReady === false && (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-violet-300 bg-violet-50 px-5 py-4 dark:border-violet-700 dark:bg-violet-900/30">
+          <div className="flex items-center gap-3">
+            <svg className="h-5 w-5 flex-shrink-0 text-violet-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+            </svg>
+            <div>
+              <p className="text-sm font-medium text-violet-800 dark:text-violet-200">
+                {t("storageReady.needsDischarge", lang)}
+              </p>
+              <p className="mt-0.5 text-xs text-violet-600 dark:text-violet-400">
+                {t("warning.storageVoltage", lang)}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => updateCell(cell.internalId, { storageReady: true })}
+            className="shrink-0 rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-violet-700 transition-colors"
+          >
+            {t("storageReady.markReady", lang)}
+          </button>
+        </div>
+      )}
+      {cell.currentDevice === "Raktáron" && cell.storageReady === true && (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-green-300 bg-green-50 px-5 py-4 dark:border-green-700 dark:bg-green-900/30">
+          <div className="flex items-center gap-3">
+            <svg className="h-5 w-5 flex-shrink-0 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-sm font-medium text-green-800 dark:text-green-200">
+              {t("storageReady.ready", lang)}
+            </p>
+          </div>
+          <button
+            onClick={() => updateCell(cell.internalId, { storageReady: false })}
+            className="shrink-0 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+          >
+            {t("storageReady.markNotReady", lang)}
+          </button>
+        </div>
+      )}
+
       {/* Storage warnings */}
       {storageMonths >= 3 && (
         <div className="flex items-start gap-3 rounded-xl border border-amber-300 bg-amber-50 px-5 py-4 dark:border-amber-700 dark:bg-amber-900/30">

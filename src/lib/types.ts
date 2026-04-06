@@ -38,6 +38,7 @@ export type CellEventType =
   | "measurement_added"
   | "measurement_deleted"
   | "auto_scrapped"
+  | "storage_ready_changed"
   | "deleted";
 
 export interface CellEvent {
@@ -87,6 +88,7 @@ export interface Cell {
   peakDischargeCurrent?: number;
   weight?: number;
   storageVoltage?: number;
+  storageReady?: boolean;
   batchNumber?: string;
   status: CellStatus;
   currentDevice?: string;

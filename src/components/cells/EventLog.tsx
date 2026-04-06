@@ -13,6 +13,7 @@ const EVENT_ICONS: Record<CellEventType, { icon: string; color: string }> = {
   measurement_added: { icon: "▤", color: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/50 dark:text-cyan-300" },
   measurement_deleted: { icon: "−", color: "bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-300" },
   auto_scrapped: { icon: "!", color: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300" },
+  storage_ready_changed: { icon: "⚡", color: "bg-violet-100 text-violet-700 dark:bg-violet-900/50 dark:text-violet-300" },
   deleted: { icon: "✕", color: "bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300" },
 };
 
