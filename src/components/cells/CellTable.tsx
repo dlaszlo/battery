@@ -124,7 +124,10 @@ export default function CellTable() {
   );
 
   const clearDashboardFilter = () => {
-    router.replace("/cells");
+    const url = new URL(window.location.href);
+    url.searchParams.delete("filter");
+    url.searchParams.delete("from");
+    router.replace(url.pathname);
   };
 
   const toggleSort = (field: SortField) => {
