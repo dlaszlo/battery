@@ -27,7 +27,7 @@ function getFilterLabel(filter: string, lang: "hu" | "en"): string {
     case "status": return enumLabel("status", value, lang);
     case "chemistry": return value;
     case "formFactor": return enumLabel("formFactor", value, lang);
-    case "device": return value;
+    case "device": return value === "__none__" ? t("info.inStorage", lang) : value;
     case "alert": {
       const keys: Record<string, string> = {
         neverMeasured: lang === "hu" ? "Még nem mért" : "Never measured",
