@@ -21,7 +21,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
   const unlockWithPin = useBatteryStore((s) => s.unlockWithPin);
   const lockSession = useBatteryStore((s) => s.lockSession);
 
-  const [isOnline, setIsOnline] = useState(typeof navigator !== "undefined" ? navigator.onLine : true);
+  const [isOnline, setIsOnline] = useState(true);
   const [pinError, setPinError] = useState<string | null>(null);
   const [pinLoading, setPinLoading] = useState(false);
   const [wiped, setWiped] = useState(false);
@@ -54,6 +54,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
 
   // Online/offline detection
   useEffect(() => {
+    setIsOnline(navigator.onLine);
     const goOnline = () => setIsOnline(true);
     const goOffline = () => setIsOnline(false);
     window.addEventListener("online", goOnline);
