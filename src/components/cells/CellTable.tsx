@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useCells } from "@/hooks/useCells";
 import { useBatteryStore } from "@/lib/store";
 import { formatCapacity, capacityPercent } from "@/lib/utils";
@@ -101,6 +101,7 @@ function applyDashboardFilter(cells: Cell[], filter: string, lang: "hu" | "en"):
 export default function CellTable() {
   const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const dashboardFilter = searchParams.get("filter") || "";
   const fromDashboard = searchParams.get("from") === "dashboard";
@@ -124,10 +125,7 @@ export default function CellTable() {
   );
 
   const clearDashboardFilter = () => {
-    const url = new URL(window.location.href);
-    url.searchParams.delete("filter");
-    url.searchParams.delete("from");
-    router.replace(url.pathname);
+    router.replace(pathname);
   };
 
   const toggleSort = (field: SortField) => {
