@@ -377,11 +377,19 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
             <ComboBox
               label={t("form.currentDevice", lang)}
               tooltip={t("tooltip.currentDevice", lang)}
-              options={(settings.devices || []).map((d) => typeof d === "string" ? d : { value: d.name, label: d.notes ? `${d.name} — ${d.notes}` : d.name })}
+              options={(settings.devices || []).map((d) => typeof d === "string" ? d : { value: d.name, label: d.name })}
               value={form.currentDevice}
               onChange={(v) => set("currentDevice", v)}
               placeholder={t("form.currentDevicePlaceholder", lang)}
             />
+            {form.currentDevice && (() => {
+              const dev = (settings.devices || []).find((d) => typeof d !== "string" && d.name === form.currentDevice);
+              return dev && typeof dev !== "string" && dev.notes ? (
+                <p className="mt-1.5 text-xs text-gray-500 dark:text-gray-400 whitespace-pre-wrap">
+                  <span className="font-medium">{t("settings.deviceNotes", lang)}:</span> {dev.notes}
+                </p>
+              ) : null;
+            })()}
             {!form.currentDevice && (
               <p className="mt-1.5 flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
                 <svg className="h-3.5 w-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

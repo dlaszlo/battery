@@ -100,6 +100,7 @@ function applyDashboardFilter(cells: Cell[], filter: string, lang: "hu" | "en"):
 
 export default function CellTable() {
   const lang = useBatteryStore((s) => s.settings.language) ?? "hu";
+  const devices = useBatteryStore((s) => s.settings.devices) || [];
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -282,7 +283,9 @@ export default function CellTable() {
                       <StatusBadge status={cell.status} />
                     </td>
                     <td className="px-4 py-3 hidden xl:table-cell text-gray-500 dark:text-gray-400">
-                      {cell.currentDevice || t("info.inStorage", lang)}
+                      <span title={cell.currentDevice ? (devices.find((d) => d.name === cell.currentDevice)?.notes || undefined) : undefined}>
+                        {cell.currentDevice || t("info.inStorage", lang)}
+                      </span>
                       {!cell.currentDevice && cell.storageReady && (
                         <span className="ml-1.5 inline-flex items-center text-green-500" title={t("storageReady.ready", lang)}>
                           <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

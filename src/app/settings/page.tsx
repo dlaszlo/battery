@@ -39,7 +39,9 @@ export default function SettingsPage() {
   const [tokenPinError, setTokenPinError] = useState<string | null>(null);
   const [showQrScanner, setShowQrScanner] = useState(false);
   const [newDevice, setNewDevice] = useState("");
+  const [newDeviceNotes, setNewDeviceNotes] = useState("");
   const [newTestDevice, setNewTestDevice] = useState("");
+  const [newTestDeviceNotes, setNewTestDeviceNotes] = useState("");
   const [importError, setImportError] = useState<string | null>(null);
   const [importSuccess, setImportSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -208,27 +210,39 @@ export default function SettingsPage() {
                 ))}
               </div>
             )}
-            <div className="flex gap-2">
-              <Input
-                placeholder={t("settings.newTestDevicePlaceholder", lang)}
-                value={newTestDevice}
-                onChange={(e) => setNewTestDevice(e.target.value)}
-              />
-              <Button
-                variant="secondary"
-                size="sm"
-                disabled={!newTestDevice.trim() || (settings.testDevices || []).some((d: TestDevice) => (typeof d === "string" ? d : d.name) === newTestDevice.trim())}
-                onClick={() => {
-                  const id = crypto.randomUUID?.() ?? `td-${Date.now()}`;
-                  updateSettings({
-                    testDevices: [...(settings.testDevices || []), { id, name: newTestDevice.trim() }],
-                  });
-                  setNewTestDevice("");
-                  toast(`"${newTestDevice.trim()}" ${t("settings.testDeviceAdded", lang)}`);
-                }}
-              >
-                {t("settings.addTestDevice", lang)}
-              </Button>
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  placeholder={t("settings.newTestDevicePlaceholder", lang)}
+                  value={newTestDevice}
+                  onChange={(e) => setNewTestDevice(e.target.value)}
+                />
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={!newTestDevice.trim() || (settings.testDevices || []).some((d: TestDevice) => (typeof d === "string" ? d : d.name) === newTestDevice.trim())}
+                  onClick={() => {
+                    const id = crypto.randomUUID?.() ?? `td-${Date.now()}`;
+                    updateSettings({
+                      testDevices: [...(settings.testDevices || []), { id, name: newTestDevice.trim(), notes: newTestDeviceNotes.trim() || undefined }],
+                    });
+                    setNewTestDevice("");
+                    setNewTestDeviceNotes("");
+                    toast(`"${newTestDevice.trim()}" ${t("settings.testDeviceAdded", lang)}`);
+                  }}
+                >
+                  {t("settings.addTestDevice", lang)}
+                </Button>
+              </div>
+              {newTestDevice.trim() && (
+                <textarea
+                  placeholder={t("settings.deviceNotesPlaceholder", lang)}
+                  value={newTestDeviceNotes}
+                  onChange={(e) => setNewTestDeviceNotes(e.target.value)}
+                  rows={2}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500"
+                />
+              )}
             </div>
           </div>
         </Section>
@@ -262,27 +276,39 @@ export default function SettingsPage() {
                 ))}
               </div>
             )}
-            <div className="flex gap-2">
-              <Input
-                placeholder={t("settings.newDevicePlaceholder", lang)}
-                value={newDevice}
-                onChange={(e) => setNewDevice(e.target.value)}
-              />
-              <Button
-                variant="secondary"
-                size="sm"
-                disabled={!newDevice.trim() || (settings.devices || []).some((d: Device) => d.name === newDevice.trim())}
-                onClick={() => {
-                  const id = crypto.randomUUID?.() ?? `dev-${Date.now()}`;
-                  updateSettings({
-                    devices: [...(settings.devices || []), { id, name: newDevice.trim() }],
-                  });
-                  setNewDevice("");
-                  toast(`"${newDevice.trim()}" ${t("settings.deviceAdded", lang)}`);
-                }}
-              >
-                {t("settings.addDevice", lang)}
-              </Button>
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  placeholder={t("settings.newDevicePlaceholder", lang)}
+                  value={newDevice}
+                  onChange={(e) => setNewDevice(e.target.value)}
+                />
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  disabled={!newDevice.trim() || (settings.devices || []).some((d: Device) => d.name === newDevice.trim())}
+                  onClick={() => {
+                    const id = crypto.randomUUID?.() ?? `dev-${Date.now()}`;
+                    updateSettings({
+                      devices: [...(settings.devices || []), { id, name: newDevice.trim(), notes: newDeviceNotes.trim() || undefined }],
+                    });
+                    setNewDevice("");
+                    setNewDeviceNotes("");
+                    toast(`"${newDevice.trim()}" ${t("settings.deviceAdded", lang)}`);
+                  }}
+                >
+                  {t("settings.addDevice", lang)}
+                </Button>
+              </div>
+              {newDevice.trim() && (
+                <textarea
+                  placeholder={t("settings.deviceNotesPlaceholder", lang)}
+                  value={newDeviceNotes}
+                  onChange={(e) => setNewDeviceNotes(e.target.value)}
+                  rows={2}
+                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500"
+                />
+              )}
             </div>
           </div>
         </Section>
@@ -517,11 +543,12 @@ function DeviceRow({
             className="flex-1"
           />
         </div>
-        <Input
+        <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder={t("settings.deviceNotesPlaceholder", lang)}
-          className="w-full"
+          rows={2}
+          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500"
         />
         <div className="flex gap-2 justify-end">
           <Button
@@ -549,7 +576,7 @@ function DeviceRow({
         <div className="flex-1 min-w-0">
           <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{device.name}</span>
           {device.notes && (
-            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{device.notes}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 whitespace-pre-wrap">{device.notes}</p>
           )}
         </div>
         {githubConfig && (
@@ -611,11 +638,12 @@ function TestDeviceRow({
             className="flex-1"
           />
         </div>
-        <Input
+        <textarea
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder={t("settings.deviceNotesPlaceholder", lang)}
-          className="w-full"
+          rows={2}
+          className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-500"
         />
         <div className="flex gap-2 justify-end">
           <Button
@@ -643,7 +671,7 @@ function TestDeviceRow({
         <div className="flex-1 min-w-0">
           <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{device.name}</span>
           {device.notes && (
-            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{device.notes}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 whitespace-pre-wrap">{device.notes}</p>
           )}
         </div>
         {githubConfig && (

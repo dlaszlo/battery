@@ -208,10 +208,17 @@ export default function CellDetail({ cell }: CellDetailProps) {
           <InfoRow label={t("info.continuousDischargeCurrent", lang)} value={cell.continuousDischargeCurrent ? `${cell.continuousDischargeCurrent} A` : "—"} />
           <InfoRow label={t("info.peakDischargeCurrent", lang)} value={cell.peakDischargeCurrent ? `${cell.peakDischargeCurrent} A` : "—"} />
           <InfoRow label={t("info.status", lang)} value={enumLabel("status", cell.status, lang)} />
-          <InfoRow label={t("info.currentDevice", lang)} value={cell.currentDevice || t("info.inStorage", lang)} />
-          {currentDevice?.notes && (
-            <InfoRow label={t("settings.deviceNotes", lang)} value={currentDevice.notes} />
-          )}
+          <div className="flex justify-between sm:flex-col sm:gap-0.5">
+            <span className="text-xs text-gray-500 dark:text-gray-400">{t("info.currentDevice", lang)}</span>
+            <span className="text-sm font-medium text-gray-900 dark:text-gray-100" title={currentDevice?.notes || undefined}>
+              {cell.currentDevice || t("info.inStorage", lang)}
+              {currentDevice?.notes && (
+                <svg className="ml-1 inline h-3.5 w-3.5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                </svg>
+              )}
+            </span>
+          </div>
           <InfoRow label={t("info.platform", lang)} value={cell.platform ? enumLabel("platform", cell.platform, lang) : "—"} />
           <InfoRow label={t("info.seller", lang)} value={cell.seller || "—"} />
           {cell.purchaseUrl ? (
