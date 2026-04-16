@@ -209,6 +209,9 @@ export default function CellDetail({ cell }: CellDetailProps) {
           <InfoRow label={t("info.peakDischargeCurrent", lang)} value={cell.peakDischargeCurrent ? `${cell.peakDischargeCurrent} A` : "—"} />
           <InfoRow label={t("info.status", lang)} value={enumLabel("status", cell.status, lang)} />
           <InfoRow label={t("info.currentDevice", lang)} value={cell.currentDevice || t("info.inStorage", lang)} />
+          {currentDevice?.notes && (
+            <InfoRow label={t("settings.deviceNotes", lang)} value={currentDevice.notes} />
+          )}
           <InfoRow label={t("info.platform", lang)} value={cell.platform ? enumLabel("platform", cell.platform, lang) : "—"} />
           <InfoRow label={t("info.seller", lang)} value={cell.seller || "—"} />
           {cell.purchaseUrl ? (

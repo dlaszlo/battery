@@ -305,6 +305,8 @@ const translations = {
   "settings.addDevice": { hu: "Hozzáadás", en: "Add" },
   "settings.deviceAdded": { hu: "hozzáadva", en: "added" },
   "settings.deviceRemoved": { hu: "törölve", en: "removed" },
+  "settings.deviceNotes": { hu: "Megjegyzés", en: "Notes" },
+  "settings.deviceNotesPlaceholder": { hu: "Pl. LED: XHP50.3, Driver: 6V 4A...", en: "E.g. LED: XHP50.3, Driver: 6V 4A..." },
   "settings.github": { hu: "GitHub szinkronizáció", en: "GitHub Sync" },
   "settings.githubDesc": { hu: "Az adataid a GitHub privát repódban tárolódnak", en: "Your data is stored in your private GitHub repository" },
   "settings.githubUser": { hu: "Felhasználó", en: "User" },

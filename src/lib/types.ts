@@ -104,12 +104,14 @@ export interface Cell {
 export interface Device {
   id: string;
   name: string;
+  notes?: string;
   imageFileName?: string;
 }
 
 export interface TestDevice {
   id: string;
   name: string;
+  notes?: string;
   imageFileName?: string;
 }
 

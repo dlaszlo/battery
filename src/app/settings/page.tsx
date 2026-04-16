@@ -188,10 +188,10 @@ export default function SettingsPage() {
                   <TestDeviceRow
                     key={typeof device === "string" ? device : device.id}
                     device={typeof device === "string" ? { id: device, name: device } : device}
-                    onRename={(name) => {
+                    onUpdate={(updates) => {
                       updateSettings({
                         testDevices: (settings.testDevices || []).map((d: TestDevice) =>
-                          d.id === (typeof device === "string" ? device : device.id) ? { ...d, name } : d
+                          d.id === (typeof device === "string" ? device : device.id) ? { ...d, ...updates } : d
                         ),
                       });
                     }}
@@ -244,10 +244,10 @@ export default function SettingsPage() {
                   <DeviceRow
                     key={device.id}
                     device={device}
-                    onRename={(name) => {
+                    onUpdate={(updates) => {
                       updateSettings({
                         devices: (settings.devices || []).map((d: Device) =>
-                          d.id === device.id ? { ...d, name } : d
+                          d.id === device.id ? { ...d, ...updates } : d
                         ),
                       });
                     }}
@@ -492,152 +492,188 @@ export default function SettingsPage() {
 
 function DeviceRow({
   device,
-  onRename,
+  onUpdate,
   onRemove,
   lang,
 }: {
   device: Device;
-  onRename: (name: string) => void;
+  onUpdate: (updates: Partial<Device>) => void;
   onRemove: () => void;
   lang: Language;
 }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(device.name);
+  const [notes, setNotes] = useState(device.notes || "");
   const githubConfig = useBatteryStore((s) => s.githubConfig);
 
   if (editing) {
     return (
-      <div className="flex items-center gap-2 rounded-lg border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20 p-2">
-        <EntityThumb imageFileName={device.imageFileName} icon="device" />
+      <div className="rounded-lg border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20 p-2 space-y-2">
+        <div className="flex items-center gap-2">
+          <EntityThumb imageFileName={device.imageFileName} icon="device" />
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="flex-1"
+          />
+        </div>
         <Input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="flex-1"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder={t("settings.deviceNotesPlaceholder", lang)}
+          className="w-full"
         />
-        <Button
-          size="sm"
-          disabled={!name.trim()}
-          onClick={() => {
-            onRename(name.trim());
-            setEditing(false);
-          }}
-        >
-          {t("form.save", lang)}
-        </Button>
-        <Button variant="ghost" size="sm" onClick={() => { setName(device.name); setEditing(false); }}>
-          {t("form.cancel", lang)}
-        </Button>
+        <div className="flex gap-2 justify-end">
+          <Button
+            size="sm"
+            disabled={!name.trim()}
+            onClick={() => {
+              onUpdate({ name: name.trim(), notes: notes.trim() || undefined });
+              setEditing(false);
+            }}
+          >
+            {t("form.save", lang)}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => { setName(device.name); setNotes(device.notes || ""); setEditing(false); }}>
+            {t("form.cancel", lang)}
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 p-2">
-      <EntityThumb imageFileName={device.imageFileName} icon="device" />
-      <span className="flex-1 text-sm font-medium text-gray-900 dark:text-gray-100">{device.name}</span>
-      {githubConfig && (
-        <EntityImageButton
-          entity={device}
-          entityType="devices"
-          lang={lang}
-        />
-      )}
-      <button
-        type="button"
-        onClick={() => setEditing(true)}
-        className="p-1 text-gray-400 hover:text-blue-500 transition-colors"
-        title={lang === "hu" ? "Átnevezés" : "Rename"}
-      >
-        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-        </svg>
-      </button>
-      <button
-        type="button"
-        onClick={onRemove}
-        className="p-1 text-gray-400 hover:text-red-500 transition-colors"
-        title={lang === "hu" ? "Törlés" : "Delete"}
-      >
-        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+    <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 p-2">
+      <div className="flex items-center gap-2">
+        <EntityThumb imageFileName={device.imageFileName} icon="device" />
+        <div className="flex-1 min-w-0">
+          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{device.name}</span>
+          {device.notes && (
+            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{device.notes}</p>
+          )}
+        </div>
+        {githubConfig && (
+          <EntityImageButton
+            entity={device}
+            entityType="devices"
+            lang={lang}
+          />
+        )}
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          className="p-1 text-gray-400 hover:text-blue-500 transition-colors"
+          title={lang === "hu" ? "Szerkesztés" : "Edit"}
+        >
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          onClick={onRemove}
+          className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+          title={lang === "hu" ? "Törlés" : "Delete"}
+        >
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 }
 
 function TestDeviceRow({
   device,
-  onRename,
+  onUpdate,
   onRemove,
   lang,
 }: {
   device: TestDevice;
-  onRename: (name: string) => void;
+  onUpdate: (updates: Partial<TestDevice>) => void;
   onRemove: () => void;
   lang: Language;
 }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(device.name);
+  const [notes, setNotes] = useState(device.notes || "");
   const githubConfig = useBatteryStore((s) => s.githubConfig);
 
   if (editing) {
     return (
-      <div className="flex items-center gap-2 rounded-lg border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20 p-2">
-        <EntityThumb imageFileName={device.imageFileName} icon="test" />
+      <div className="rounded-lg border border-blue-200 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20 p-2 space-y-2">
+        <div className="flex items-center gap-2">
+          <EntityThumb imageFileName={device.imageFileName} icon="test" />
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="flex-1"
+          />
+        </div>
         <Input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="flex-1"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          placeholder={t("settings.deviceNotesPlaceholder", lang)}
+          className="w-full"
         />
-        <Button
-          size="sm"
-          disabled={!name.trim()}
-          onClick={() => {
-            onRename(name.trim());
-            setEditing(false);
-          }}
-        >
-          {t("form.save", lang)}
-        </Button>
-        <Button variant="ghost" size="sm" onClick={() => { setName(device.name); setEditing(false); }}>
-          {t("form.cancel", lang)}
-        </Button>
+        <div className="flex gap-2 justify-end">
+          <Button
+            size="sm"
+            disabled={!name.trim()}
+            onClick={() => {
+              onUpdate({ name: name.trim(), notes: notes.trim() || undefined });
+              setEditing(false);
+            }}
+          >
+            {t("form.save", lang)}
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => { setName(device.name); setNotes(device.notes || ""); setEditing(false); }}>
+            {t("form.cancel", lang)}
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 p-2">
-      <EntityThumb imageFileName={device.imageFileName} icon="test" />
-      <span className="flex-1 text-sm font-medium text-gray-900 dark:text-gray-100">{device.name}</span>
-      {githubConfig && (
-        <EntityImageButton
-          entity={device}
-          entityType="testDevices"
-          lang={lang}
-        />
-      )}
-      <button
-        type="button"
-        onClick={() => setEditing(true)}
-        className="p-1 text-gray-400 hover:text-blue-500 transition-colors"
-        title={lang === "hu" ? "Átnevezés" : "Rename"}
-      >
-        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-        </svg>
-      </button>
-      <button
-        type="button"
-        onClick={onRemove}
-        className="p-1 text-gray-400 hover:text-red-500 transition-colors"
-        title={lang === "hu" ? "Törlés" : "Delete"}
-      >
-        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+    <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 p-2">
+      <div className="flex items-center gap-2">
+        <EntityThumb imageFileName={device.imageFileName} icon="test" />
+        <div className="flex-1 min-w-0">
+          <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{device.name}</span>
+          {device.notes && (
+            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{device.notes}</p>
+          )}
+        </div>
+        {githubConfig && (
+          <EntityImageButton
+            entity={device}
+            entityType="testDevices"
+            lang={lang}
+          />
+        )}
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          className="p-1 text-gray-400 hover:text-blue-500 transition-colors"
+          title={lang === "hu" ? "Szerkesztés" : "Edit"}
+        >
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          onClick={onRemove}
+          className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+          title={lang === "hu" ? "Törlés" : "Delete"}
+        >
+          <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 }
