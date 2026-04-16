@@ -374,13 +374,15 @@ export default function CellForm({ cell, defaults, onSave }: CellFormProps) {
         <legend className="mb-3 text-sm font-semibold text-gray-900 dark:text-gray-100">{t("form.placement", lang)}</legend>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
-            <ComboBox
+            <Select
               label={t("form.currentDevice", lang)}
               tooltip={t("tooltip.currentDevice", lang)}
-              options={(settings.devices || []).map((d) => typeof d === "string" ? d : { value: d.name, label: d.name })}
+              options={[
+                { value: "", label: t("info.inStorage", lang) },
+                ...(settings.devices || []).map((d) => typeof d === "string" ? { value: d, label: d } : { value: d.name, label: d.name }),
+              ]}
               value={form.currentDevice}
-              onChange={(v) => set("currentDevice", v)}
-              placeholder={t("form.currentDevicePlaceholder", lang)}
+              onChange={(e) => set("currentDevice", e.target.value)}
             />
             {form.currentDevice && (() => {
               const dev = (settings.devices || []).find((d) => typeof d !== "string" && d.name === form.currentDevice);
